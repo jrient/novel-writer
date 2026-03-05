@@ -30,36 +30,35 @@ export interface ChapterOrder {
 }
 
 // 获取项目的所有章节
-export function getChapters(projectId: number) {
-  return request.get<Chapter[]>(`/projects/${projectId}/chapters`) as Promise<Chapter[]>
+export async function getChapters(projectId: number): Promise<Chapter[]> {
+  return request.get<Chapter[]>(`/projects/${projectId}/chapters/`)
 }
 
 // 创建章节
-export function createChapter(projectId: number, data: CreateChapterData) {
-  return request.post<Chapter>(`/projects/${projectId}/chapters`, data) as Promise<Chapter>
+export async function createChapter(projectId: number, data: CreateChapterData): Promise<Chapter> {
+  return request.post<Chapter>(`/projects/${projectId}/chapters/`, data)
 }
 
 // 获取单个章节
-export function getChapter(projectId: number, chapterId: number) {
-  return request.get<Chapter>(
-    `/projects/${projectId}/chapters/${chapterId}`
-  ) as Promise<Chapter>
+export async function getChapter(projectId: number, chapterId: number): Promise<Chapter> {
+  return request.get<Chapter>(`/projects/${projectId}/chapters/${chapterId}/`)
 }
 
 // 更新章节
-export function updateChapter(projectId: number, chapterId: number, data: UpdateChapterData) {
-  return request.put<Chapter>(
-    `/projects/${projectId}/chapters/${chapterId}`,
-    data
-  ) as Promise<Chapter>
+export async function updateChapter(
+  projectId: number,
+  chapterId: number,
+  data: UpdateChapterData
+): Promise<Chapter> {
+  return request.put<Chapter>(`/projects/${projectId}/chapters/${chapterId}/`, data)
 }
 
 // 删除章节
-export function deleteChapter(projectId: number, chapterId: number) {
-  return request.delete(`/projects/${projectId}/chapters/${chapterId}`) as Promise<void>
+export async function deleteChapter(projectId: number, chapterId: number): Promise<void> {
+  return request.delete(`/projects/${projectId}/chapters/${chapterId}/`)
 }
 
 // 重新排序章节
-export function reorderChapters(projectId: number, orders: ChapterOrder[]) {
-  return request.post(`/projects/${projectId}/chapters/reorder`, { orders }) as Promise<void>
+export async function reorderChapters(projectId: number, orders: ChapterOrder[]): Promise<void> {
+  return request.post(`/projects/${projectId}/chapters/reorder/`, { orders })
 }

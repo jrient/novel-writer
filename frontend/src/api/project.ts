@@ -25,32 +25,33 @@ export interface UpdateProjectData {
   description?: string
   genre?: string
   target_word_count?: number
+  current_word_count?: number
   status?: string
 }
 
 // 获取项目列表
-export function getProjects(status?: string) {
-  return request.get<Project[]>('/projects', {
+export async function getProjects(status?: string): Promise<Project[]> {
+  return request.get<Project[]>('/projects/', {
     params: status ? { status } : undefined,
-  }) as Promise<Project[]>
+  })
 }
 
 // 创建项目
-export function createProject(data: CreateProjectData) {
-  return request.post<Project>('/projects', data) as Promise<Project>
+export async function createProject(data: CreateProjectData): Promise<Project> {
+  return request.post<Project>('/projects/', data)
 }
 
 // 获取单个项目
-export function getProject(id: number) {
-  return request.get<Project>(`/projects/${id}`) as Promise<Project>
+export async function getProject(id: number): Promise<Project> {
+  return request.get<Project>(`/projects/${id}/`)
 }
 
 // 更新项目
-export function updateProject(id: number, data: UpdateProjectData) {
-  return request.put<Project>(`/projects/${id}`, data) as Promise<Project>
+export async function updateProject(id: number, data: UpdateProjectData): Promise<Project> {
+  return request.put<Project>(`/projects/${id}/`, data)
 }
 
 // 删除项目
-export function deleteProject(id: number) {
-  return request.delete(`/projects/${id}`) as Promise<void>
+export async function deleteProject(id: number): Promise<void> {
+  return request.delete(`/projects/${id}/`)
 }
