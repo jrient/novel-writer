@@ -1,0 +1,102 @@
+/* 全局样式 - AI小说创作平台 */
+
+/* 引入 Google 字体 (Noto Serif SC) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+/* 重置与基础样式 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e0e0e0;
+  background-color: #1a1a2e;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Element Plus 暗色主题覆盖 */
+.el-button--primary {
+  --el-button-bg-color: #e2b714;
+  --el-button-border-color: #e2b714;
+  --el-button-text-color: #1a1a2e;
+  --el-button-hover-bg-color: #f0c526;
+  --el-button-hover-border-color: #f0c526;
+  --el-button-active-bg-color: #d0a510;
+  --el-button-active-border-color: #d0a510;
+}
+
+.el-card {
+  --el-card-bg-color: #16213e;
+  --el-card-border-color: #2d3561;
+}
+
+.el-input__wrapper {
+  --el-input-bg-color: #1a1a2e;
+  --el-input-border-color: #2d3561;
+  --el-input-text-color: #e0e0e0;
+}
+
+.el-select-dropdown {
+  --el-bg-color: #16213e;
+  --el-text-color-regular: #e0e0e0;
+}
+
+.el-dialog {
+  --el-dialog-bg-color: #16213e;
+  --el-dialog-title-font-size: 16px;
+}
+
+.el-message-box {
+  --el-messagebox-title-color: #e0e0e0;
+  --el-messagebox-content-color: #c0c4cc;
+}
+
+/* 链接样式 */
+a {
+  color: #e2b714;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #f0c526;
+}
+
+/* 选中文字样式 */
+::selection {
+  background-color: rgba(226, 183, 20, 0.3);
+  color: #fff;
+}
