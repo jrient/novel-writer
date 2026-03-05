@@ -4,5 +4,8 @@
 """
 from app.models.project import Project
 from app.models.chapter import Chapter
+from app.models.character import Character
+from app.models.worldbuilding import WorldbuildingEntry
+from app.models.outline import OutlineNode
 
-__all__ = ["Project", "Chapter"]
+__all__ = ["Project", "Chapter", "Character", "WorldbuildingEntry", "OutlineNode"]

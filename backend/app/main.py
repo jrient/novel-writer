@@ -9,7 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import init_db
 # 导入所有模型，确保 Base.metadata 包含完整表定义
 import app.models  # noqa: F401
-from app.routers import project_router, chapter_router
+from app.routers import (
+    project_router,
+    chapter_router,
+    character_router,
+    worldbuilding_router,
+    outline_router,
+)
 
 
 @asynccontextmanager
@@ -39,6 +45,9 @@ app.add_middleware(
 # 注册路由
 app.include_router(project_router)
 app.include_router(chapter_router)
+app.include_router(character_router)
+app.include_router(worldbuilding_router)
+app.include_router(outline_router)
 
 
 @app.get("/")

@@ -11,6 +11,9 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.chapter import Chapter
+    from app.models.character import Character
+    from app.models.worldbuilding import WorldbuildingEntry
+    from app.models.outline import OutlineNode
 
 
 class Project(Base):
@@ -46,4 +49,28 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan",
         order_by="Chapter.sort_order",
+    )
+
+    # 关联角色列表
+    characters: Mapped[List["Character"]] = relationship(
+        "Character",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="Character.id",
+    )
+
+    # 关联世界观设定
+    worldbuilding_entries: Mapped[List["WorldbuildingEntry"]] = relationship(
+        "WorldbuildingEntry",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="WorldbuildingEntry.sort_order",
+    )
+
+    # 关联大纲节点
+    outline_nodes: Mapped[List["OutlineNode"]] = relationship(
+        "OutlineNode",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="OutlineNode.sort_order",
     )

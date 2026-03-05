@@ -6,6 +6,14 @@
         <el-button text :icon="Back" @click="goBack">返回项目列表</el-button>
         <span class="project-title">{{ projectStore.currentProject?.title || '加载中...' }}</span>
       </div>
+      <div class="header-center">
+        <el-radio-group v-model="activeTab" size="small">
+          <el-radio-button label="editor">写作</el-radio-button>
+          <el-radio-button label="characters">角色</el-radio-button>
+          <el-radio-button label="worldbuilding">设定</el-radio-button>
+          <el-radio-button label="outline">大纲</el-radio-button>
+        </el-radio-group>
+      </div>
       <div class="header-right">
         <span class="total-words">
           总字数: {{ projectStore.currentProject?.current_word_count?.toLocaleString() || 0 }}
@@ -13,32 +21,39 @@
       </div>
     </header>
 
-    <!-- 三栏工作台主体 -->
+    <!-- 主内容区 -->
     <div class="workbench-main">
-      <!-- 左栏: 章节导航 -->
-      <aside class="sidebar-left">
-        <ChapterList :project-id="projectId" />
-      </aside>
+      <!-- 写作模式：三栏布局 -->
+      <template v-if="activeTab === 'editor'">
+        <aside class="sidebar-left">
+          <ChapterList :project-id="projectId" />
+        </aside>
+        <main class="editor-column">
+          <div v-if="!chapterStore.currentChapter" class="no-chapter-selected">
+            <el-empty description="请选择或创建一个章节开始创作">
+              <el-button type="primary" @click="triggerCreateChapter">创建第一章</el-button>
+            </el-empty>
+          </div>
+          <TiptapEditor
+            v-else
+            v-model="currentContent"
+            :saving="chapterStore.saving"
+            @change="handleContentChange"
+          />
+        </main>
+        <aside class="sidebar-right">
+          <AiPanel />
+        </aside>
+      </template>
 
-      <!-- 中栏: Tiptap 编辑器 -->
-      <main class="editor-column">
-        <div v-if="!chapterStore.currentChapter" class="no-chapter-selected">
-          <el-empty description="请选择或创建一个章节开始创作">
-            <el-button type="primary" @click="triggerCreateChapter">创建第一章</el-button>
-          </el-empty>
+      <!-- Story Bible 面板 -->
+      <template v-else>
+        <div class="story-bible-panel">
+          <CharacterPanel v-if="activeTab === 'characters'" :project-id="projectId" />
+          <WorldbuildingPanel v-else-if="activeTab === 'worldbuilding'" :project-id="projectId" />
+          <OutlinePanel v-else-if="activeTab === 'outline'" :project-id="projectId" />
         </div>
-        <TiptapEditor
-          v-else
-          v-model="currentContent"
-          :saving="chapterStore.saving"
-          @change="handleContentChange"
-        />
-      </main>
-
-      <!-- 右栏: AI 助手面板 -->
-      <aside class="sidebar-right">
-        <AiPanel />
-      </aside>
+      </template>
     </div>
   </div>
 </template>
@@ -52,42 +67,36 @@ import { useChapterStore } from '@/stores/chapter'
 import ChapterList from '@/components/ChapterList.vue'
 import TiptapEditor from '@/components/TiptapEditor.vue'
 import AiPanel from '@/components/AiPanel.vue'
+import CharacterPanel from '@/components/CharacterPanel.vue'
+import WorldbuildingPanel from '@/components/WorldbuildingPanel.vue'
+import OutlinePanel from '@/components/OutlinePanel.vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
 const chapterStore = useChapterStore()
 
-// 项目 ID（从路由参数获取）
 const projectId = computed(() => Number(route.params.id))
-
-// 当前章节内容（双向绑定）
 const currentContent = ref('')
+const activeTab = ref('editor')
 
-// 触发创建章节（通过 event bus 或直接调用子组件方法）
 function triggerCreateChapter() {
-  // 通过设置一个临时状态触发 ChapterList 显示创建对话框
-  // 这里简化处理：直接调用 store 创建
   chapterStore.createNewChapter(projectId.value, { title: '第一章' })
 }
 
-// 返回项目列表
 function goBack() {
   router.push('/projects')
 }
 
-// 内容变化处理（防抖后触发自动保存）
 async function handleContentChange(content: string) {
   if (!chapterStore.currentChapter) return
 
-  // 更新章节内容
   await chapterStore.updateCurrentChapter(
     projectId.value,
     chapterStore.currentChapter.id,
     { content }
   )
 
-  // 同步更新项目的总字数
   const totalWords = chapterStore.chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0)
   if (projectStore.currentProject && totalWords !== projectStore.currentProject.current_word_count) {
     await projectStore.updateCurrentProject(projectId.value, {
@@ -96,7 +105,6 @@ async function handleContentChange(content: string) {
   }
 }
 
-// 监听当前章节变化，更新编辑器内容
 watch(
   () => chapterStore.currentChapter,
   (chapter) => {
@@ -109,14 +117,12 @@ watch(
   { immediate: true }
 )
 
-// 页面加载时获取项目和章节数据
 onMounted(async () => {
   await Promise.all([
     projectStore.fetchProject(projectId.value),
     chapterStore.fetchChapters(projectId.value),
   ])
 
-  // 如果有章节，默认选中第一个
   if (chapterStore.chapters.length > 0 && !chapterStore.currentChapter) {
     chapterStore.setCurrentChapter(chapterStore.chapters[0])
   }
@@ -131,7 +137,6 @@ onMounted(async () => {
   background-color: #1a1a2e;
 }
 
-/* 顶部工具栏 */
 .workbench-header {
   display: flex;
   justify-content: space-between;
@@ -143,10 +148,16 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.header-left {
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
 }
 
 .project-title {
@@ -156,25 +167,17 @@ onMounted(async () => {
   font-family: 'Noto Serif SC', serif;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
 .total-words {
   font-size: 13px;
   color: #909399;
 }
 
-/* 三栏工作台 */
 .workbench-main {
   flex: 1;
   display: flex;
   overflow: hidden;
 }
 
-/* 左侧边栏 - 章节导航 */
 .sidebar-left {
   width: 240px;
   flex-shrink: 0;
@@ -182,12 +185,18 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-/* 中间编辑器区域 */
 .editor-column {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.sidebar-right {
+  width: 300px;
+  flex-shrink: 0;
+  border-left: 1px solid #2d3561;
+  overflow: hidden;
 }
 
 .no-chapter-selected {
@@ -198,11 +207,21 @@ onMounted(async () => {
   background-color: #f8f6f0;
 }
 
-/* 右侧边栏 - AI 助手 */
-.sidebar-right {
-  width: 300px;
-  flex-shrink: 0;
-  border-left: 1px solid #2d3561;
+.story-bible-panel {
+  flex: 1;
   overflow: hidden;
+}
+
+/* Radio group 样式 */
+:deep(.el-radio-button__inner) {
+  background-color: transparent;
+  border-color: #2d3561;
+  color: #909399;
+}
+
+:deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background-color: #e2b714;
+  border-color: #e2b714;
+  color: #1a1a2e;
 }
 </style>

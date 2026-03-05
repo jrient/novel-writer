@@ -11,6 +11,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.project import Project
+    from app.models.outline import OutlineNode
 
 
 class Chapter(Base):
@@ -52,3 +53,8 @@ class Chapter(Base):
 
     # 反向关联到项目
     project: Mapped["Project"] = relationship("Project", back_populates="chapters")
+
+    # 关联的大纲节点（一对一）
+    outline_node: Mapped[Optional["OutlineNode"]] = relationship(
+        "OutlineNode", back_populates="chapter", uselist=False
+    )
