@@ -233,7 +233,7 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #f8f6f0;
+  background-color: #fafaf9;
 }
 
 /* 全屏专注模式 */
@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   z-index: 2000;
-  background-color: #f8f6f0;
+  background-color: #fafaf9;
 }
 
 .tiptap-wrapper.fullscreen .editor-container {
@@ -260,8 +260,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   padding: 6px 16px;
-  background-color: #f0ede6;
-  border-bottom: 1px solid #ddd8ce;
+  background-color: white;
+  border-bottom: 1px solid #e7e5e4;
   gap: 2px;
   flex-shrink: 0;
 }
@@ -279,8 +279,8 @@ onBeforeUnmount(() => {
   height: 28px;
   border: none;
   background: transparent;
-  color: #5a5347;
-  border-radius: 4px;
+  color: #78716c;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
@@ -288,13 +288,13 @@ onBeforeUnmount(() => {
 }
 
 .toolbar-btn:hover {
-  background-color: #e5e0d6;
-  color: #2c2c2c;
+  background-color: #f5f3f0;
+  color: #1c1917;
 }
 
 .toolbar-btn.active {
-  background-color: #e2b714;
-  color: #1a1a2e;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .toolbar-btn:disabled {
@@ -313,7 +313,7 @@ onBeforeUnmount(() => {
 .toolbar-divider {
   width: 1px;
   height: 20px;
-  background-color: #ccc7bb;
+  background-color: #e7e5e4;
   margin: 0 6px;
 }
 
@@ -322,12 +322,12 @@ onBeforeUnmount(() => {
 }
 
 .focus-btn {
-  color: #909399;
+  color: #a8a29e;
 }
 
 .focus-btn:hover {
-  color: #e2b714;
-  background-color: rgba(226, 183, 20, 0.1);
+  color: #667eea;
+  background-color: rgba(102, 126, 234, 0.08);
 }
 
 /* 编辑器容器 */
@@ -347,8 +347,8 @@ onBeforeUnmount(() => {
   font-family: 'Noto Serif SC', serif;
   font-size: 17px;
   line-height: 2;
-  color: #2c2c2c;
-  caret-color: #e2b714;
+  color: #1c1917;
+  caret-color: #667eea;
   max-width: 720px;
   margin: 0 auto;
 }
@@ -370,7 +370,7 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror h2),
 :deep(.ProseMirror h3) {
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1c1917;
   text-indent: 0;
   margin: 1.5em 0 0.8em;
 }
@@ -380,20 +380,20 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror h3) { font-size: 1.15em; }
 
 :deep(.ProseMirror blockquote) {
-  border-left: 3px solid #e2b714;
+  border-left: 3px solid #667eea;
   padding-left: 16px;
-  color: #666;
+  color: #78716c;
   font-style: italic;
 }
 
 :deep(.ProseMirror hr) {
   border: none;
-  border-top: 1px solid #ddd8ce;
+  border-top: 1px solid #e7e5e4;
   margin: 2em 0;
 }
 
 :deep(.ProseMirror code) {
-  background: #f0ede6;
+  background: #f5f3f0;
   padding: 2px 4px;
   border-radius: 3px;
   font-family: monospace;
@@ -405,10 +405,10 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 24px;
-  background-color: #f0ede6;
-  border-top: 1px solid #ddd8ce;
+  background-color: white;
+  border-top: 1px solid #e7e5e4;
   font-size: 12px;
-  color: #8a8070;
+  color: #a8a29e;
   flex-shrink: 0;
 }
 
@@ -423,7 +423,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #b0a898;
+  color: #a8a29e;
 }
 
 .saved-indicator {
@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
 }
 
 .paragraph-count {
-  color: #b0a898;
+  color: #d6d3d1;
 }
 
 .rotating {

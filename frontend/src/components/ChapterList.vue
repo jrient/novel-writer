@@ -181,7 +181,7 @@ async function handleDelete(chapter: Chapter) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #16213e;
+  background-color: white;
 }
 
 /* 列表头部 */
@@ -190,14 +190,13 @@ async function handleDelete(chapter: Chapter) {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #2d3561;
+  border-bottom: 1px solid #f0ede6;
 }
 
 .list-title {
   font-size: 14px;
   font-weight: 600;
-  color: #c0c4cc;
-  text-transform: uppercase;
+  color: #57534e;
   letter-spacing: 0.5px;
 }
 
@@ -211,7 +210,7 @@ async function handleDelete(chapter: Chapter) {
 .empty-chapters {
   text-align: center;
   padding: 32px 16px;
-  color: #606266;
+  color: #a8a29e;
   font-size: 13px;
 }
 
@@ -227,12 +226,12 @@ async function handleDelete(chapter: Chapter) {
 }
 
 .chapter-item:hover {
-  background-color: rgba(226, 183, 20, 0.05);
+  background-color: rgba(102, 126, 234, 0.04);
 }
 
 .chapter-item.active {
-  background-color: rgba(226, 183, 20, 0.1);
-  border-left-color: #e2b714;
+  background-color: rgba(102, 126, 234, 0.08);
+  border-left-color: #667eea;
 }
 
 .chapter-info {
@@ -244,21 +243,22 @@ async function handleDelete(chapter: Chapter) {
 .chapter-order {
   display: block;
   font-size: 11px;
-  color: #606266;
+  color: #a8a29e;
   margin-bottom: 2px;
 }
 
 .chapter-title {
   display: block;
   font-size: 13px;
-  color: #e0e0e0;
+  color: #1c1917;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .chapter-item.active .chapter-title {
-  color: #e2b714;
+  color: #667eea;
+  font-weight: 500;
 }
 
 .chapter-meta {
@@ -270,7 +270,7 @@ async function handleDelete(chapter: Chapter) {
 
 .word-count {
   font-size: 11px;
-  color: #606266;
+  color: #a8a29e;
 }
 
 /* 删除按钮：默认隐藏，悬停显示 */
@@ -286,15 +286,5 @@ async function handleDelete(chapter: Chapter) {
 
 .rename-input {
   width: 100%;
-}
-
-/* 对话框暗色主题 */
-:deep(.el-dialog) {
-  background-color: #16213e;
-  border: 1px solid #2d3561;
-}
-
-:deep(.el-dialog__title) {
-  color: #e0e0e0;
 }
 </style>

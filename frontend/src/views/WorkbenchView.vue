@@ -28,7 +28,7 @@
           :percentage="wordProgress"
           :width="28"
           :stroke-width="3"
-          color="#e2b714"
+          color="#667eea"
           :show-text="false"
           class="progress-circle"
         />
@@ -217,6 +217,7 @@ onMounted(async () => {
   background-color: white;
   border-bottom: 1px solid #e7e5e4;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .header-left,
@@ -285,7 +286,7 @@ onMounted(async () => {
 }
 
 .sidebar-right {
-  width: 320px;
+  width: 340px;
   flex-shrink: 0;
   border-left: 1px solid #e7e5e4;
   overflow: hidden;

@@ -18,8 +18,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #e0e0e0;
-  background-color: #1a1a2e;
+  color: #1c1917;
+  background-color: #fafaf9;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -30,8 +30,8 @@ body {
 
 /* 滚动条样式 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -39,64 +39,43 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
-/* Element Plus 暗色主题覆盖 */
+/* Element Plus 浅色主题覆盖 */
 .el-button--primary {
-  --el-button-bg-color: #e2b714;
-  --el-button-border-color: #e2b714;
-  --el-button-text-color: #1a1a2e;
-  --el-button-hover-bg-color: #f0c526;
-  --el-button-hover-border-color: #f0c526;
-  --el-button-active-bg-color: #d0a510;
-  --el-button-active-border-color: #d0a510;
+  --el-button-bg-color: #667eea;
+  --el-button-border-color: #667eea;
+  --el-button-text-color: #fff;
+  --el-button-hover-bg-color: #7b8ff0;
+  --el-button-hover-border-color: #7b8ff0;
+  --el-button-active-bg-color: #5a6fd6;
+  --el-button-active-border-color: #5a6fd6;
 }
 
 .el-card {
-  --el-card-bg-color: #16213e;
-  --el-card-border-color: #2d3561;
-}
-
-.el-input__wrapper {
-  --el-input-bg-color: #1a1a2e;
-  --el-input-border-color: #2d3561;
-  --el-input-text-color: #e0e0e0;
-}
-
-.el-select-dropdown {
-  --el-bg-color: #16213e;
-  --el-text-color-regular: #e0e0e0;
-}
-
-.el-dialog {
-  --el-dialog-bg-color: #16213e;
-  --el-dialog-title-font-size: 16px;
-}
-
-.el-message-box {
-  --el-messagebox-title-color: #e0e0e0;
-  --el-messagebox-content-color: #c0c4cc;
+  --el-card-bg-color: #ffffff;
+  --el-card-border-color: #e7e5e4;
 }
 
 /* 链接样式 */
 a {
-  color: #e2b714;
+  color: #667eea;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #f0c526;
+  color: #764ba2;
 }
 
 /* 选中文字样式 */
 ::selection {
-  background-color: rgba(226, 183, 20, 0.3);
-  color: #fff;
+  background-color: rgba(102, 126, 234, 0.2);
+  color: #1c1917;
 }

@@ -267,7 +267,7 @@ function clearOutput() {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  background-color: #16213e;
+  background-color: white;
   overflow-y: auto;
 }
 
@@ -276,19 +276,19 @@ function clearOutput() {
   align-items: center;
   gap: 8px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #2d3561;
+  border-bottom: 1px solid #f0ede6;
   margin-bottom: 16px;
 }
 
 .ai-icon {
   font-size: 20px;
-  color: #e2b714;
+  color: #667eea;
 }
 
 .panel-header h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #1c1917;
   margin: 0;
   flex: 1;
 }
@@ -298,22 +298,22 @@ function clearOutput() {
 }
 
 .chapter-info {
-  background: rgba(226, 183, 20, 0.05);
-  border: 1px solid rgba(226, 183, 20, 0.2);
-  border-radius: 6px;
+  background: rgba(102, 126, 234, 0.05);
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 16px;
 }
 
 .info-label {
   font-size: 11px;
-  color: #909399;
+  color: #a8a29e;
   margin-bottom: 4px;
 }
 
 .chapter-name {
   font-size: 13px;
-  color: #e2b714;
+  color: #667eea;
   font-weight: 500;
 }
 
@@ -323,7 +323,7 @@ function clearOutput() {
 
 .section-title {
   font-size: 12px;
-  color: #606266;
+  color: #a8a29e;
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -332,9 +332,9 @@ function clearOutput() {
 .ai-btn {
   width: 100%;
   margin-bottom: 8px;
-  background-color: #1a1a2e;
-  border-color: #2d3561;
-  color: #c0c4cc;
+  background-color: #fafaf9;
+  border-color: #e7e5e4;
+  color: #57534e;
   justify-content: flex-start;
   gap: 8px;
   height: 40px;
@@ -342,9 +342,9 @@ function clearOutput() {
 }
 
 .ai-btn:hover:not(:disabled) {
-  border-color: #e2b714;
-  background-color: rgba(226, 183, 20, 0.1);
-  color: #e2b714;
+  border-color: #667eea;
+  background-color: rgba(102, 126, 234, 0.06);
+  color: #667eea;
 }
 
 .ai-btn:disabled {
@@ -362,24 +362,22 @@ function clearOutput() {
 }
 
 .chat-input-wrap :deep(.el-textarea__inner) {
-  background-color: #1a1a2e;
-  border-color: #2d3561;
-  color: #e0e0e0;
+  background-color: #fafaf9;
+  border-color: #e7e5e4;
+  color: #1c1917;
   resize: none;
   padding-right: 40px;
+  border-radius: 8px;
 }
 
 .chat-input-wrap :deep(.el-textarea__inner):focus {
-  border-color: #e2b714;
+  border-color: #667eea;
 }
 
 .send-btn {
   position: absolute;
   right: 4px;
   bottom: 4px;
-  background-color: #e2b714 !important;
-  border-color: #e2b714 !important;
-  color: #1a1a2e !important;
 }
 
 /* AI 输出区域 */
@@ -387,7 +385,7 @@ function clearOutput() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #2d3561;
+  border-top: 1px solid #f0ede6;
   padding-top: 12px;
   min-height: 150px;
 }
@@ -404,7 +402,7 @@ function clearOutput() {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #e2b714;
+  color: #667eea;
 }
 
 .output-actions {
@@ -413,11 +411,11 @@ function clearOutput() {
 }
 
 .output-actions .el-button {
-  color: #909399;
+  color: #a8a29e;
 }
 
 .output-actions .el-button:hover {
-  color: #e2b714;
+  color: #667eea;
 }
 
 .stop-btn {
@@ -426,9 +424,9 @@ function clearOutput() {
 
 .output-content {
   flex: 1;
-  background: #1a1a2e;
-  border: 1px solid #2d3561;
-  border-radius: 6px;
+  background: #fafaf9;
+  border: 1px solid #e7e5e4;
+  border-radius: 8px;
   padding: 12px;
   overflow-y: auto;
   max-height: 400px;
@@ -437,7 +435,7 @@ function clearOutput() {
 .generated-text {
   font-size: 13px;
   line-height: 1.8;
-  color: #e0e0e0;
+  color: #1c1917;
   white-space: pre-wrap;
   word-break: break-all;
   font-family: 'Noto Serif SC', 'PingFang SC', sans-serif;
@@ -451,7 +449,7 @@ function clearOutput() {
 
 .cursor-blink {
   animation: blink 1s step-end infinite;
-  color: #e2b714;
+  color: #667eea;
 }
 
 @keyframes blink {

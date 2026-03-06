@@ -16,7 +16,7 @@
         :type="activeCategory === cat.value ? '' : 'info'"
         :effect="activeCategory === cat.value ? 'dark' : 'plain'"
         @click="filterByCategory(cat.value)"
-        style="cursor: pointer; margin: 4px"
+        class="category-tag"
       >
         {{ cat.label }}
       </el-tag>
@@ -41,7 +41,7 @@
         @click="selectEntry(entry)"
       >
         <div class="entry-header">
-          <span class="entry-category" :style="{ borderColor: entry.color || '#e2b714' }">
+          <span class="entry-category" :style="{ borderColor: entry.color || '#667eea' }">
             {{ categoryLabel(entry.category) }}
           </span>
           <span class="entry-title">{{ entry.title }}</span>
@@ -156,7 +156,7 @@ const formData = ref<CreateWorldbuildingData & UpdateWorldbuildingData>({
   content: '',
   trigger_keywords: '',
   sort_order: 0,
-  color: '#e2b714',
+  color: '#667eea',
 })
 
 function categoryLabel(cat: string) {
@@ -194,7 +194,7 @@ function openCreateDialog() {
     content: '',
     trigger_keywords: '',
     sort_order: 0,
-    color: '#e2b714',
+    color: '#667eea',
   }
   keywordsInput.value = ''
   showEditDialog.value = true
@@ -208,7 +208,7 @@ function editEntry(entry: WorldbuildingEntry) {
     content: entry.content || '',
     trigger_keywords: entry.trigger_keywords || '',
     sort_order: entry.sort_order,
-    color: entry.color || '#e2b714',
+    color: entry.color || '#667eea',
   }
   keywordsInput.value = parseKeywords(entry.trigger_keywords).join(', ')
   showEditDialog.value = true
@@ -254,53 +254,63 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #16213e;
+  background-color: #fafaf9;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #2d3561;
+  padding: 20px 32px;
+  background: white;
+  border-bottom: 1px solid #e7e5e4;
 }
 
 .panel-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #e2b714;
+  color: #1c1917;
 }
 
 .category-tabs {
-  padding: 12px 16px;
-  border-bottom: 1px solid #2d3561;
+  padding: 16px 32px;
+  background: white;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.category-tag {
+  cursor: pointer;
+  margin: 4px;
+  transition: all 0.2s;
 }
 
 .entry-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 16px 32px;
 }
 
 .entry-card {
-  padding: 12px;
-  margin-bottom: 8px;
-  background-color: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: white;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid transparent;
+  border: 1px solid #e7e5e4;
   position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .entry-card:hover {
-  background-color: rgba(226, 183, 20, 0.05);
-  border-color: #2d3561;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+  transform: translateY(-1px);
 }
 
 .entry-card.active {
-  background-color: rgba(226, 183, 20, 0.1);
-  border-color: #e2b714;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
 }
 
 .entry-header {
@@ -312,22 +322,22 @@ onMounted(() => {
 
 .entry-category {
   font-size: 11px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #909399;
+  background-color: #f5f3f0;
+  color: #78716c;
   border-left: 2px solid;
 }
 
 .entry-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #1c1917;
 }
 
 .entry-preview {
-  font-size: 12px;
-  color: #909399;
+  font-size: 13px;
+  color: #78716c;
   line-height: 1.6;
   margin-bottom: 8px;
 }
@@ -340,8 +350,8 @@ onMounted(() => {
 
 .entry-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
   opacity: 0;
   transition: opacity 0.2s;
 }
@@ -357,36 +367,7 @@ onMounted(() => {
 
 .form-tip {
   font-size: 11px;
-  color: #909399;
+  color: #a8a29e;
   margin-top: 4px;
-}
-
-/* 对话框样式 */
-:deep(.el-dialog) {
-  background-color: #16213e;
-  border: 1px solid #2d3561;
-}
-
-:deep(.el-dialog__title) {
-  color: #e0e0e0;
-}
-
-:deep(.el-form-item__label) {
-  color: #c0c4cc;
-}
-
-:deep(.el-input__wrapper) {
-  background-color: #1a1a2e;
-  border-color: #2d3561;
-}
-
-:deep(.el-input__inner) {
-  color: #e0e0e0;
-}
-
-:deep(.el-textarea__inner) {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
-  border-color: #2d3561;
 }
 </style>

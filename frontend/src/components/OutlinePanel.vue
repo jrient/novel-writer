@@ -197,27 +197,28 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #16213e;
+  background-color: #fafaf9;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #2d3561;
+  padding: 20px 32px;
+  background: white;
+  border-bottom: 1px solid #e7e5e4;
 }
 
 .panel-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #e2b714;
+  color: #1c1917;
 }
 
 .outline-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 16px 32px;
 }
 
 .tree-container {
@@ -227,33 +228,5 @@ onMounted(() => {
 .loading-state,
 .empty-state {
   padding: 24px;
-}
-
-:deep(.el-dialog) {
-  background-color: #16213e;
-  border: 1px solid #2d3561;
-}
-
-:deep(.el-dialog__title) {
-  color: #e0e0e0;
-}
-
-:deep(.el-form-item__label) {
-  color: #c0c4cc;
-}
-
-:deep(.el-input__wrapper) {
-  background-color: #1a1a2e;
-  border-color: #2d3561;
-}
-
-:deep(.el-input__inner) {
-  color: #e0e0e0;
-}
-
-:deep(.el-textarea__inner) {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
-  border-color: #2d3561;
 }
 </style>

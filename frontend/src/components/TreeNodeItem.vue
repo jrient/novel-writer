@@ -64,9 +64,9 @@ const nodeIcon = computed(() => {
 
 const statusColor = computed(() => {
   switch (props.node.status) {
-    case 'writing': return '#e2b714'
+    case 'writing': return '#667eea'
     case 'completed': return '#67c23a'
-    default: return '#909399'
+    default: return '#a8a29e'
   }
 })
 
@@ -84,23 +84,23 @@ function toggleExpand() {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .node-content:hover {
-  background-color: rgba(226, 183, 20, 0.05);
+  background-color: rgba(102, 126, 234, 0.06);
 }
 
 .node-content.active {
-  background-color: rgba(226, 183, 20, 0.1);
+  background-color: rgba(102, 126, 234, 0.1);
 }
 
 .expand-btn {
   width: 16px;
   font-size: 10px;
-  color: #909399;
+  color: #a8a29e;
   transition: transform 0.2s;
   cursor: pointer;
 }
@@ -121,7 +121,7 @@ function toggleExpand() {
 .node-title {
   flex: 1;
   font-size: 13px;
-  color: #e0e0e0;
+  color: #1c1917;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -129,7 +129,7 @@ function toggleExpand() {
 
 .node-words {
   font-size: 11px;
-  color: #909399;
+  color: #a8a29e;
   margin-right: 8px;
 }
 
@@ -146,13 +146,13 @@ function toggleExpand() {
 
 .action-icon {
   font-size: 14px;
-  color: #909399;
+  color: #a8a29e;
   cursor: pointer;
   padding: 4px;
 }
 
 .action-icon:hover {
-  color: #e2b714;
+  color: #667eea;
 }
 
 .action-icon.danger:hover {

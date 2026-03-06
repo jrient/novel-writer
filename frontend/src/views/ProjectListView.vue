@@ -3,8 +3,11 @@
     <!-- 顶部导航栏 -->
     <header class="page-header">
       <div class="header-content">
-        <h1 class="logo">AI小说创作平台</h1>
-        <el-button type="primary" :icon="Plus" @click="showCreateDialog = true">
+        <div class="logo-area">
+          <span class="logo-icon">&#9997;</span>
+          <h1 class="logo">AI小说创作平台</h1>
+        </div>
+        <el-button type="primary" :icon="Plus" @click="showCreateDialog = true" round>
           新建项目
         </el-button>
       </div>
@@ -39,10 +42,10 @@
 
       <!-- 空状态 -->
       <div v-else-if="projectStore.projects.length === 0" class="empty-state">
-        <div class="empty-icon">✍</div>
+        <div class="empty-icon">&#9997;</div>
         <h2 class="empty-title">开始你的创作之旅</h2>
         <p class="empty-desc">点击下方按钮创建第一个项目</p>
-        <el-button type="primary" size="large" @click="showCreateDialog = true">创建第一个项目</el-button>
+        <el-button type="primary" size="large" @click="showCreateDialog = true" round>创建第一个项目</el-button>
       </div>
 
       <!-- 项目网格 -->
@@ -209,7 +212,7 @@ const createRules: FormRules = {
   title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
 }
 
-const progressColor = '#e2b714'
+const progressColor = '#667eea'
 
 // 统计数据
 const totalWords = computed(() =>
@@ -318,16 +321,17 @@ onMounted(() => {
 <style scoped>
 .project-list-page {
   min-height: 100vh;
-  background-color: #1a1a2e;
+  background-color: #f5f3f0;
 }
 
 .page-header {
-  background-color: #16213e;
-  border-bottom: 1px solid #2d3561;
+  background-color: white;
+  border-bottom: 1px solid #e7e5e4;
   padding: 0 32px;
   height: 64px;
   display: flex;
   align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .header-content {
@@ -339,10 +343,23 @@ onMounted(() => {
   align-items: center;
 }
 
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
 .logo {
   font-size: 20px;
   font-weight: 700;
-  color: #e2b714;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-family: 'Noto Serif SC', serif;
 }
 
@@ -355,12 +372,8 @@ onMounted(() => {
 /* 统计栏 */
 .stats-bar {
   display: flex;
-  gap: 24px;
+  gap: 16px;
   margin-bottom: 32px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
-  border: 1px solid #2d3561;
-  border-radius: 12px;
 }
 
 .stat-item {
@@ -368,18 +381,31 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #e2b714;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-family: 'Noto Serif SC', serif;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #909399;
+  color: #a8a29e;
   margin-top: 4px;
 }
 
@@ -396,19 +422,21 @@ onMounted(() => {
 
 .empty-title {
   font-size: 24px;
-  color: #e0e0e0;
+  color: #1c1917;
   margin-bottom: 8px;
   font-family: 'Noto Serif SC', serif;
 }
 
 .empty-desc {
   font-size: 14px;
-  color: #909399;
+  color: #a8a29e;
   margin-bottom: 24px;
 }
 
 .loading-container {
   padding: 24px;
+  background: white;
+  border-radius: 12px;
 }
 
 /* 项目网格 */
@@ -420,16 +448,16 @@ onMounted(() => {
 
 .project-card {
   cursor: pointer;
-  background-color: #16213e !important;
-  border: 1px solid #2d3561 !important;
+  background-color: white !important;
+  border: 1px solid #e7e5e4 !important;
   transition: all 0.25s ease;
   border-radius: 12px !important;
 }
 
 .project-card:hover {
-  border-color: #e2b714 !important;
+  border-color: #667eea !important;
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(226, 183, 20, 0.1) !important;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12) !important;
 }
 
 .card-header {
@@ -442,7 +470,7 @@ onMounted(() => {
 .project-title {
   font-size: 17px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #1c1917;
   margin: 0;
   flex: 1;
   margin-right: 8px;
@@ -450,16 +478,16 @@ onMounted(() => {
 }
 
 .more-btn {
-  color: #606266 !important;
+  color: #a8a29e !important;
 }
 
 .more-btn:hover {
-  color: #e2b714 !important;
+  color: #667eea !important;
 }
 
 .project-description {
   font-size: 13px;
-  color: #909399;
+  color: #78716c;
   line-height: 1.6;
   margin-bottom: 12px;
   display: -webkit-box;
@@ -480,8 +508,8 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #e2b714;
-  background: rgba(226, 183, 20, 0.1);
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.08);
   padding: 2px 10px;
   border-radius: 12px;
 }
@@ -500,19 +528,19 @@ onMounted(() => {
 .current-words {
   font-size: 16px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #1c1917;
 }
 
 .target {
   font-size: 12px;
-  color: #606266;
+  color: #a8a29e;
 }
 
 .card-footer {
   display: flex;
   justify-content: flex-end;
   padding-top: 10px;
-  border-top: 1px solid #2d3561;
+  border-top: 1px solid #f5f5f4;
 }
 
 .create-time {
@@ -520,30 +548,6 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #606266;
-}
-
-/* 对话框暗色主题 */
-:deep(.el-dialog) {
-  background-color: #16213e;
-  border: 1px solid #2d3561;
-}
-:deep(.el-dialog__title) {
-  color: #e0e0e0;
-}
-:deep(.el-form-item__label) {
-  color: #c0c4cc;
-}
-:deep(.el-input__wrapper) {
-  background-color: #1a1a2e;
-  border-color: #2d3561;
-}
-:deep(.el-input__inner) {
-  color: #e0e0e0;
-}
-:deep(.el-textarea__inner) {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
-  border-color: #2d3561;
+  color: #a8a29e;
 }
 </style>
