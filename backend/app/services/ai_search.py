@@ -34,7 +34,7 @@ class AISearchService:
                 return results
 
         # 2. 回退到Jina + OpenAI
-        search_content = await self._jina_search(keyword)
+        search_content = await self._jina_search(keyword, max_retries=1)
         if not search_content:
             return []
 
@@ -58,7 +58,10 @@ class AISearchService:
 3. 优先中文
 4. 返回JSON：[{{"title":"...","content":"...","url":"..."}}]"""
 
-            response = model.generate_content(prompt)
+            response = await asyncio.wait_for(
+                asyncio.to_thread(model.generate_content, prompt),
+                timeout=300.0
+            )
 
             import json
             text = response.text.strip()
@@ -68,6 +71,9 @@ class AISearchService:
                 text = text.split("```")[1].split("```")[0].strip()
 
             return json.loads(text)[:max_results]
+        except asyncio.TimeoutError:
+            logger.warning(f"Gemini搜索超时（300秒）")
+            return []
         except Exception as e:
             logger.error(f"Gemini搜索失败: {e}")
             return []
@@ -82,7 +88,7 @@ class AISearchService:
                 if self.jina_api_key:
                     headers["Authorization"] = f"Bearer {self.jina_api_key}"
 
-                async with httpx.AsyncClient(timeout=30.0, proxy=proxy, verify=False) as client:
+                async with httpx.AsyncClient(timeout=8.0, proxy=proxy, verify=False) as client:
                     resp = await client.get(
                         f"https://s.jina.ai/{keyword}",
                         headers=headers
