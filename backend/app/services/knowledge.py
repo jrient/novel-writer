@@ -35,7 +35,12 @@ class KnowledgeService:
         # 选择搜索方式
         if use_ai and settings.OPENAI_API_KEY:
             from app.services.ai_search import AISearchService
-            ai_search = AISearchService(settings.OPENAI_API_KEY, settings.OPENAI_BASE_URL, settings.JINA_API_KEY)
+            ai_search = AISearchService(
+                settings.OPENAI_API_KEY,
+                settings.OPENAI_BASE_URL,
+                settings.JINA_API_KEY,
+                settings.GEMINI_API_KEY
+            )
             search_results = await ai_search.search(keyword, max_results)
             # AI搜索失败时回退到传统搜索
             if not search_results:

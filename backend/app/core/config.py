@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Jina API
     JINA_API_KEY: Optional[str] = None
 
+    # Google Gemini API
+    GEMINI_API_KEY: Optional[str] = None
+
     # Server
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000

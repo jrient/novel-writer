@@ -26,8 +26,6 @@ services:
       - .env
     environment:
       - TZ=Asia/Shanghai
-      - HTTP_PROXY=http://172.23.0.1:7890
-      - HTTPS_PROXY=http://172.23.0.1:7890
     depends_on:
       - db
     restart: unless-stopped

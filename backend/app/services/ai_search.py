@@ -18,22 +18,59 @@ def _get_proxy() -> Optional[str]:
 
 
 class AISearchService:
-    def __init__(self, openai_api_key: str, openai_base_url: str, jina_api_key: Optional[str] = None):
+    def __init__(self, openai_api_key: str, openai_base_url: str, jina_api_key: Optional[str] = None, gemini_api_key: Optional[str] = None):
         proxy = _get_proxy()
         http_client = httpx.AsyncClient(proxy=proxy, verify=False) if proxy else None
         self.client = AsyncOpenAI(api_key=openai_api_key, base_url=openai_base_url, http_client=http_client)
         self.jina_api_key = jina_api_key
+        self.gemini_api_key = gemini_api_key
 
     async def search(self, keyword: str, max_results: int = 3) -> List[Dict]:
-        """AI增强搜索：Jina Reader + OpenAI"""
-        # 1. 使用Jina Reader搜索
+        """AI增强搜索：优先Gemini，回退Jina"""
+        # 1. 优先使用Gemini Google Search
+        if self.gemini_api_key:
+            results = await self._gemini_search(keyword, max_results)
+            if results:
+                return results
+
+        # 2. 回退到Jina + OpenAI
         search_content = await self._jina_search(keyword)
         if not search_content:
             return []
 
-        # 2. 用OpenAI生成知识摘要
         knowledge_entries = await self._generate_knowledge(keyword, search_content, max_results)
         return knowledge_entries
+
+    async def _gemini_search(self, keyword: str, max_results: int) -> List[Dict]:
+        """使用Gemini Google Search"""
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=self.gemini_api_key)
+
+            model = genai.GenerativeModel('gemini-2.0-flash-exp',
+                tools='google_search_retrieval')
+
+            prompt = f"""搜索关键词"{keyword}"，生成{max_results}条高质量知识摘要。
+
+要求：
+1. 每条包含：title、content（200-400字）、url
+2. 内容准确详实
+3. 优先中文
+4. 返回JSON：[{{"title":"...","content":"...","url":"..."}}]"""
+
+            response = model.generate_content(prompt)
+
+            import json
+            text = response.text.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0].strip()
+
+            return json.loads(text)[:max_results]
+        except Exception as e:
+            logger.error(f"Gemini搜索失败: {e}")
+            return []
 
     async def _jina_search(self, keyword: str, max_retries: int = 3) -> str:
         """使用Jina Reader API搜索，支持重试"""
