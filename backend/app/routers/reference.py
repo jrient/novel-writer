@@ -415,3 +415,39 @@ async def get_reference_analysis(
     if novel.analysis:
         return json.loads(novel.analysis)
     return {"message": "暂无分析数据"}
+
+
+@router.post("/{novel_id}/vectorize")
+async def vectorize_reference(
+    novel_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """将参考小说向量化"""
+    from app.services.chunk import chunk_service
+    
+    try:
+        chunk_count = await chunk_service.process_reference(db, novel_id)
+        return {"message": f"成功生成 {chunk_count} 个向量片段"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/batch-vectorize")
+async def batch_vectorize_references(
+    db: AsyncSession = Depends(get_db),
+):
+    """批量向量化所有参考小说"""
+    from app.services.chunk import chunk_service
+    
+    result = await db.execute(select(ReferenceNovel))
+    novels = result.scalars().all()
+    
+    results = []
+    for novel in novels:
+        try:
+            chunk_count = await chunk_service.process_reference(db, novel.id)
+            results.append({"id": novel.id, "title": novel.title, "chunks": chunk_count})
+        except Exception as e:
+            results.append({"id": novel.id, "title": novel.title, "error": str(e)})
+    
+    return {"processed": len(results), "results": results}

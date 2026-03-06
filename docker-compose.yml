@@ -1,6 +1,17 @@
-version: "3.8"
-
 services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: novel_writer
+      POSTGRES_USER: novel_writer
+      POSTGRES_PASSWORD: novel_writer_pass
+      TZ: Asia/Shanghai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -8,7 +19,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/app/app        # 挂载代码，修改无需重新构建
+      - ./backend/app:/app/app
       - ./data:/app/data
       - ./uploads:/app/uploads
       - ./reference_novels:/app/reference_novels
@@ -16,6 +27,8 @@ services:
       - .env
     environment:
       - TZ=Asia/Shanghai
+    depends_on:
+      - db
     restart: unless-stopped
 
   frontend:
@@ -29,3 +42,6 @@ services:
     environment:
       - TZ=Asia/Shanghai
     restart: unless-stopped
+
+volumes:
+  postgres_data:
