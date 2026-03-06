@@ -15,6 +15,7 @@
           <el-radio-button label="characters">角色</el-radio-button>
           <el-radio-button label="worldbuilding">设定</el-radio-button>
           <el-radio-button label="outline">大纲</el-radio-button>
+          <el-radio-button label="knowledge">知识库</el-radio-button>
         </el-radio-group>
       </div>
       <div class="header-right">
@@ -83,6 +84,7 @@
           <CharacterPanel v-if="activeTab === 'characters'" :project-id="projectId" />
           <WorldbuildingPanel v-else-if="activeTab === 'worldbuilding'" :project-id="projectId" />
           <OutlinePanel v-else-if="activeTab === 'outline'" :project-id="projectId" />
+          <KnowledgePanel v-else-if="activeTab === 'knowledge'" />
         </div>
       </template>
     </div>
@@ -102,6 +104,7 @@ import AiPanel from '@/components/AiPanel.vue'
 import CharacterPanel from '@/components/CharacterPanel.vue'
 import WorldbuildingPanel from '@/components/WorldbuildingPanel.vue'
 import OutlinePanel from '@/components/OutlinePanel.vue'
+import KnowledgePanel from '@/components/KnowledgePanel.vue'
 
 const route = useRoute()
 const router = useRouter()
