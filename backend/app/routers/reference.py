@@ -28,6 +28,9 @@ router = APIRouter(
 
 UPLOAD_DIR = "reference_novels"
 
+# 确保上传目录存在
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 def _analyze_text(content: str) -> dict:
     """分析文本内容，提取统计信息"""

@@ -31,3 +31,9 @@ dist/
 # Sensitive configs
 .claude/
 .omc/
+
+# 参考资料上传文件
+reference_novels/*.txt
+reference_novels/*.epub
+reference_novels/*.md
+!reference_novels/README.md
