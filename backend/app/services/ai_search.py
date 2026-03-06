@@ -26,20 +26,22 @@ class AISearchService:
         self.gemini_api_key = gemini_api_key
 
     async def search(self, keyword: str, max_results: int = 3) -> List[Dict]:
-        """AI增强搜索：优先Gemini，回退Jina"""
-        # 1. 优先使用Gemini Google Search
-        if self.gemini_api_key:
-            results = await self._gemini_search(keyword, max_results)
-            if results:
-                return results
+        """AI增强搜索：跳过Gemini（代理不支持），回退Jina，最后使用OpenAI直接生成"""
+        # 1. Gemini暂时禁用（代理配置问题）
+        # if self.gemini_api_key:
+        #     results = await self._gemini_search(keyword, max_results)
+        #     if results:
+        #         return results
 
         # 2. 回退到Jina + OpenAI
         search_content = await self._jina_search(keyword, max_retries=1)
-        if not search_content:
-            return []
+        if search_content:
+            knowledge_entries = await self._generate_knowledge(keyword, search_content, max_results)
+            if knowledge_entries:
+                return knowledge_entries
 
-        knowledge_entries = await self._generate_knowledge(keyword, search_content, max_results)
-        return knowledge_entries
+        # 3. 最终回退：直接使用OpenAI生成知识
+        return await self._generate_knowledge_direct(keyword, max_results)
 
     async def _gemini_search(self, keyword: str, max_results: int) -> List[Dict]:
         """使用Gemini Google Search"""
@@ -138,4 +140,36 @@ class AISearchService:
             return knowledge_list[:max_results]
         except Exception as e:
             logger.error(f"AI生成知识失败: {e}")
+            return []
+
+    async def _generate_knowledge_direct(self, keyword: str, max_results: int) -> List[Dict]:
+        """直接使用OpenAI生成知识（无需搜索内容）"""
+        prompt = f"""为关键词"{keyword}"生成{max_results}条高质量的知识摘要。
+
+要求：
+1. 每条摘要包含：title（标题）、content（200-400字详实内容）、url（设为"https://ai-generated"）
+2. 内容要准确、详实、有价值
+3. 优先使用中文
+4. 返回JSON格式：[{{"title": "...", "content": "...", "url": "..."}}]
+
+直接返回JSON数组，不要其他文字。"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3
+            )
+
+            import json
+            result_text = response.choices[0].message.content.strip()
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0].strip()
+
+            knowledge_list = json.loads(result_text)
+            return knowledge_list[:max_results]
+        except Exception as e:
+            logger.error(f"OpenAI直接生成知识失败: {e}")
             return []
