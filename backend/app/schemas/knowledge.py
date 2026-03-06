@@ -36,3 +36,4 @@ class KnowledgeEntryResponse(BaseModel):
 class KnowledgeSearchRequest(BaseModel):
     keywords: List[str]
     max_results_per_keyword: int = 3
+    use_ai: bool = False  # 是否使用AI增强搜索

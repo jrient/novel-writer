@@ -1,0 +1,89 @@
+"""
+AI增强搜索服务
+使用Jina Reader API + OpenAI生成高质量知识摘要
+"""
+import os
+import httpx
+import logging
+from typing import List, Dict, Optional
+from openai import AsyncOpenAI
+
+logger = logging.getLogger(__name__)
+
+
+def _get_proxy() -> Optional[str]:
+    """从环境变量获取代理配置"""
+    return os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy") or None
+
+
+class AISearchService:
+    def __init__(self, openai_api_key: str, openai_base_url: str, jina_api_key: Optional[str] = None):
+        proxy = _get_proxy()
+        http_client = httpx.AsyncClient(proxy=proxy, verify=False) if proxy else None
+        self.client = AsyncOpenAI(api_key=openai_api_key, base_url=openai_base_url, http_client=http_client)
+        self.jina_api_key = jina_api_key
+
+    async def search(self, keyword: str, max_results: int = 3) -> List[Dict]:
+        """AI增强搜索：Jina Reader + OpenAI"""
+        # 1. 使用Jina Reader搜索
+        search_content = await self._jina_search(keyword)
+        if not search_content:
+            return []
+
+        # 2. 用OpenAI生成知识摘要
+        knowledge_entries = await self._generate_knowledge(keyword, search_content, max_results)
+        return knowledge_entries
+
+    async def _jina_search(self, keyword: str) -> str:
+        """使用Jina Reader API搜索"""
+        proxy = _get_proxy()
+        try:
+            headers = {"User-Agent": "NovelWriter/1.0"}
+            if self.jina_api_key:
+                headers["Authorization"] = f"Bearer {self.jina_api_key}"
+
+            async with httpx.AsyncClient(timeout=30.0, proxy=proxy, verify=False) as client:
+                resp = await client.get(
+                    f"https://s.jina.ai/{keyword}",
+                    headers=headers
+                )
+                if resp.status_code == 200:
+                    return resp.text[:8000]  # 限制长度
+        except Exception as e:
+            logger.warning(f"Jina搜索失败: {e}")
+        return ""
+
+    async def _generate_knowledge(self, keyword: str, search_content: str, max_results: int) -> List[Dict]:
+        """用AI生成知识摘要"""
+        prompt = f"""基于以下搜索内容，为关键词"{keyword}"生成{max_results}条高质量的知识摘要。
+
+搜索内容：
+{search_content}
+
+要求：
+1. 每条摘要包含：title（标题）、content（200-400字内容）、url（来源链接）
+2. 内容要准确、详实、有价值
+3. 优先使用中文
+4. 返回JSON格式：[{{"title": "...", "content": "...", "url": "..."}}]
+
+直接返回JSON数组，不要其他文字。"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3
+            )
+
+            import json
+            result_text = response.choices[0].message.content.strip()
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0].strip()
+
+            knowledge_list = json.loads(result_text)
+            return knowledge_list[:max_results]
+        except Exception as e:
+            logger.error(f"AI生成知识失败: {e}")
+            return []

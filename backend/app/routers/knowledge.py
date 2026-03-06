@@ -28,7 +28,7 @@ async def search_and_learn(
     all_entries = []
     for keyword in request.keywords:
         entries = await knowledge_service.search_and_store(
-            db, keyword, request.max_results_per_keyword
+            db, keyword, request.max_results_per_keyword, request.use_ai
         )
         all_entries.extend(entries)
 

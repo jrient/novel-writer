@@ -10,6 +10,9 @@
           <el-button :loading="searching" @click="handleSearch">搜索学习</el-button>
         </template>
       </el-input>
+      <div class="search-options">
+        <el-checkbox v-model="useAI">使用AI增强搜索（更准确，稍慢）</el-checkbox>
+      </div>
     </div>
 
     <div class="knowledge-list">
@@ -41,6 +44,7 @@ const keyword = ref('')
 const searching = ref(false)
 const loading = ref(false)
 const knowledgeList = ref<KnowledgeEntry[]>([])
+const useAI = ref(false)
 
 const loadKnowledge = async () => {
   loading.value = true
@@ -60,10 +64,14 @@ const handleSearch = async () => {
   }
   searching.value = true
   try {
-    const results = await knowledgeApi.search(keyword.value.trim())
-    ElMessage.success(`成功学习 ${results.length} 条知识`)
-    keyword.value = ''
-    await loadKnowledge()
+    const results = await knowledgeApi.search(keyword.value.trim(), 3, useAI.value)
+    if (results.length === 0) {
+      ElMessage.warning('未找到相关知识，请尝试其他关键词')
+    } else {
+      ElMessage.success(`成功学习 ${results.length} 条知识`)
+      keyword.value = ''
+      await loadKnowledge()
+    }
   } catch (error) {
     ElMessage.error('搜索学习失败')
   } finally {

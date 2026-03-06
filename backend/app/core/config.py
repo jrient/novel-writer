@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     EMBEDDING_API_KEY: Optional[str] = None
     EMBEDDING_MODEL: str = "text-embedding-3-small"
 
+    # Jina API
+    JINA_API_KEY: Optional[str] = None
+
     # Server
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000

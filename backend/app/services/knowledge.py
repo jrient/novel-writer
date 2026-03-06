@@ -20,6 +20,7 @@ from sqlalchemy import select
 from app.models.knowledge import KnowledgeEntry
 from app.models.embedding import NovelChunk
 from app.services.embedding import embedding_service
+from app.core.config import settings
 
 
 class KnowledgeService:
@@ -27,11 +28,17 @@ class KnowledgeService:
     async def search_and_store(
         db: AsyncSession,
         keyword: str,
-        max_results: int = 3
+        max_results: int = 3,
+        use_ai: bool = False
     ) -> List[KnowledgeEntry]:
         """通过Web搜索获取知识并存储"""
-        # 使用简单的HTTP搜索（实际应该集成专业搜索API）
-        search_results = await KnowledgeService._web_search(keyword, max_results)
+        # 选择搜索方式
+        if use_ai and settings.OPENAI_API_KEY:
+            from app.services.ai_search import AISearchService
+            ai_search = AISearchService(settings.OPENAI_API_KEY, settings.OPENAI_BASE_URL, settings.JINA_API_KEY)
+            search_results = await ai_search.search(keyword, max_results)
+        else:
+            search_results = await KnowledgeService._web_search(keyword, max_results)
 
         entries = []
         for result in search_results:
