@@ -205,17 +205,17 @@ onMounted(async () => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #1a1a2e;
+  background-color: #fafaf9;
 }
 
 .workbench-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 48px;
-  padding: 0 16px;
-  background-color: #16213e;
-  border-bottom: 1px solid #2d3561;
+  height: 56px;
+  padding: 0 24px;
+  background-color: white;
+  border-bottom: 1px solid #e7e5e4;
   flex-shrink: 0;
 }
 
@@ -223,7 +223,7 @@ onMounted(async () => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .header-center {
@@ -232,21 +232,21 @@ onMounted(async () => {
 }
 
 .project-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #e2b714;
+  color: #1c1917;
   font-family: 'Noto Serif SC', serif;
 }
 
 .genre-tag {
-  color: #909399 !important;
-  border-color: #2d3561 !important;
-  background-color: transparent !important;
+  color: #78716c !important;
+  border-color: #e7e5e4 !important;
+  background-color: #fafaf9 !important;
 }
 
 .total-words {
-  font-size: 13px;
-  color: #909399;
+  font-size: 14px;
+  color: #57534e;
   font-weight: 500;
 }
 
@@ -255,11 +255,11 @@ onMounted(async () => {
 }
 
 .export-btn {
-  color: #909399 !important;
+  color: #57534e !important;
 }
 
 .export-btn:hover {
-  color: #e2b714 !important;
+  color: #667eea !important;
 }
 
 .workbench-main {
@@ -269,10 +269,11 @@ onMounted(async () => {
 }
 
 .sidebar-left {
-  width: 240px;
+  width: 260px;
   flex-shrink: 0;
-  border-right: 1px solid #2d3561;
+  border-right: 1px solid #e7e5e4;
   overflow: hidden;
+  background: white;
 }
 
 .editor-column {
@@ -280,13 +281,15 @@ onMounted(async () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: #fafaf9;
 }
 
 .sidebar-right {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
-  border-left: 1px solid #2d3561;
+  border-left: 1px solid #e7e5e4;
   overflow: hidden;
+  background: white;
 }
 
 .no-chapter-selected {
@@ -294,23 +297,35 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f8f6f0;
+  background-color: #fafaf9;
 }
 
 .story-bible-panel {
   flex: 1;
   overflow: hidden;
+  background: #fafaf9;
 }
 
 :deep(.el-radio-button__inner) {
   background-color: transparent;
-  border-color: #2d3561;
-  color: #909399;
+  border-color: #e7e5e4;
+  color: #57534e;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 500;
 }
 
 :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background-color: #e2b714;
-  border-color: #e2b714;
-  color: #1a1a2e;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+}
+
+:deep(.el-button--text) {
+  color: #57534e;
+}
+
+:deep(.el-button--text:hover) {
+  color: #667eea;
 }
 </style>

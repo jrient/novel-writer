@@ -88,23 +88,35 @@ onMounted(() => {
 
 <style scoped>
 .knowledge-panel {
-  padding: 20px;
+  padding: 32px;
   height: 100%;
   overflow-y: auto;
+  background: #fafaf9;
 }
 
 .search-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .knowledge-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 16px;
 }
 
 .knowledge-item {
   margin-bottom: 0;
+  border-radius: 12px;
+  border: 1px solid #e7e5e4;
+  transition: all 0.2s ease;
+}
+
+.knowledge-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .item-header {
@@ -114,23 +126,27 @@ onMounted(() => {
 }
 
 .keyword-tag {
-  background: #e2b714;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: 6px;
   font-size: 12px;
+  font-weight: 500;
 }
 
 .knowledge-item h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1c1917;
+  line-height: 1.4;
 }
 
 .content {
-  color: #666;
-  font-size: 13px;
-  line-height: 1.6;
-  margin: 0 0 8px 0;
+  color: #57534e;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 12px 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -141,7 +157,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #999;
+  color: #a8a29e;
+  padding-top: 12px;
+  border-top: 1px solid #f5f5f4;
 }
 
 .source {
@@ -149,5 +167,27 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  box-shadow: none;
+  border: 1px solid #e7e5e4;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: #667eea;
+}
+
+:deep(.el-input-group__append) {
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+:deep(.el-button) {
+  border: none;
+  color: white;
 }
 </style>
