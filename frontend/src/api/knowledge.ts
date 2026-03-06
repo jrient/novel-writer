@@ -13,7 +13,7 @@ export interface KnowledgeEntry {
 
 export const knowledgeApi = {
   search: (keyword: string, maxResults = 3) =>
-    request.post<KnowledgeEntry[]>('/knowledge/search', { keyword, max_results: maxResults }),
+    request.post<KnowledgeEntry[]>('/knowledge/search', { keywords: [keyword], max_results_per_keyword: maxResults }),
 
   list: (keyword?: string) =>
     request.get<KnowledgeEntry[]>('/knowledge/', { params: { keyword } }),
