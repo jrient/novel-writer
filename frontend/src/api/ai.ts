@@ -4,7 +4,7 @@
  */
 
 export interface AIGenerateRequest {
-  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat'
+  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand'
   content: string
   provider?: string
   title?: string

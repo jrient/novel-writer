@@ -52,6 +52,17 @@
         </el-button>
       </el-tooltip>
 
+      <el-tooltip content="AI 将分析开头风格并扩写续写" placement="left">
+        <el-button
+          class="ai-btn"
+          :disabled="generating"
+          @click="handleAction('analyze_expand')"
+        >
+          <el-icon><Reading /></el-icon>
+          开篇分析
+        </el-button>
+      </el-tooltip>
+
       <el-tooltip content="AI 将为故事生成章节大纲" placement="left">
         <el-button
           class="ai-btn"
@@ -141,7 +152,7 @@
 import { ref, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
-  MagicStick, Promotion, Edit, Plus, Document, User,
+  MagicStick, Promotion, Edit, Plus, Document, User, Reading,
   Loading, Check, CopyDocument, Bottom, Delete, Close,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -184,7 +195,7 @@ function handleAction(action: AIGenerateRequest['action']) {
   }
 
   const content = props.currentContent || ''
-  if (!content && ['continue', 'rewrite', 'expand'].includes(action)) {
+  if (!content && ['continue', 'rewrite', 'expand', 'analyze_expand'].includes(action)) {
     ElMessage.warning('当前章节没有内容，请先写一些文字')
     return
   }
