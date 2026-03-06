@@ -2,9 +2,15 @@
 Embedding服务
 调用API生成文本向量
 """
+import os
 import httpx
-from typing import List
+from typing import List, Optional
 from app.core.config import settings
+
+
+def _get_proxy() -> Optional[str]:
+    """从环境变量获取代理配置"""
+    return os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy") or None
 
 
 class EmbeddingService:
@@ -15,7 +21,8 @@ class EmbeddingService:
 
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """批量生成embedding向量"""
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        proxy = _get_proxy()
+        async with httpx.AsyncClient(timeout=60.0, proxy=proxy, verify=False) as client:
             response = await client.post(
                 f"{self.api_base}/embeddings",
                 headers={
