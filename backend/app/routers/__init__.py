@@ -8,6 +8,7 @@ from app.routers.worldbuilding import router as worldbuilding_router
 from app.routers.outline import router as outline_router
 from app.routers.ai import router as ai_router, config_router as ai_config_router
 from app.routers.export import router as export_router
+from app.routers.reference import router as reference_router
 
 __all__ = [
     "project_router",
@@ -18,4 +19,5 @@ __all__ = [
     "ai_router",
     "ai_config_router",
     "export_router",
+    "reference_router",
 ]

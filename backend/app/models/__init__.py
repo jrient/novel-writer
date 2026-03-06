@@ -7,5 +7,6 @@ from app.models.chapter import Chapter
 from app.models.character import Character
 from app.models.worldbuilding import WorldbuildingEntry
 from app.models.outline import OutlineNode
+from app.models.reference import ReferenceNovel
 
-__all__ = ["Project", "Chapter", "Character", "WorldbuildingEntry", "OutlineNode"]
+__all__ = ["Project", "Chapter", "Character", "WorldbuildingEntry", "OutlineNode", "ReferenceNovel"]

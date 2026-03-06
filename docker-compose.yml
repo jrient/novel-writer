@@ -11,6 +11,7 @@ services:
       - ./backend/app:/app/app        # 挂载代码，修改无需重新构建
       - ./data:/app/data
       - ./uploads:/app/uploads
+      - ./reference_novels:/app/reference_novels
     env_file:
       - .env
     environment:
