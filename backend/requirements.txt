@@ -10,3 +10,4 @@ openai==1.58.1
 anthropic==0.42.0
 tiktoken==0.8.0
 aiofiles==24.1.0
+httpx==0.28.1

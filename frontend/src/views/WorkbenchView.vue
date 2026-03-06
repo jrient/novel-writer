@@ -42,7 +42,13 @@
           />
         </main>
         <aside class="sidebar-right">
-          <AiPanel />
+          <AiPanel
+            :current-chapter-title="chapterStore.currentChapter?.title"
+            :current-content="currentContent"
+            :project-id="projectId"
+            :chapter-id="chapterStore.currentChapter?.id"
+            @insert-text="handleInsertText"
+          />
         </aside>
       </template>
 
@@ -86,6 +92,12 @@ function triggerCreateChapter() {
 
 function goBack() {
   router.push('/projects')
+}
+
+function handleInsertText(text: string) {
+  if (!chapterStore.currentChapter) return
+  currentContent.value = currentContent.value + '\n\n' + text
+  handleContentChange(currentContent.value)
 }
 
 async function handleContentChange(content: string) {
