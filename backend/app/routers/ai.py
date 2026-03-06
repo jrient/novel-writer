@@ -123,3 +123,41 @@ async def get_ai_config():
         available_providers=available,
         models=models,
     )
+
+
+async def _retrieve_knowledge(db: AsyncSession, content: str, limit: int = 3) -> str:
+    """检索相关知识"""
+    from app.services.embedding import embedding_service
+    from sqlalchemy import text
+    
+    if not content or len(content) < 10:
+        return ""
+    
+    try:
+        # 生成查询向量
+        query_embedding = await embedding_service.generate_embedding(content[:500])
+        
+        # 搜索相关知识（reference_id < 0 表示知识条目）
+        sql = """
+            SELECT content, chapter_title
+            FROM novel_chunks
+            WHERE reference_id < 0 AND embedding IS NOT NULL
+            ORDER BY embedding <=> :query_embedding
+            LIMIT :limit
+        """
+        result = await db.execute(
+            text(sql),
+            {"query_embedding": str(query_embedding), "limit": limit}
+        )
+        rows = result.fetchall()
+        
+        if not rows:
+            return ""
+        
+        knowledge_text = "\n\n相关知识参考：\n"
+        for i, row in enumerate(rows, 1):
+            knowledge_text += f"{i}. {row[1]}: {row[0][:200]}...\n"
+        
+        return knowledge_text
+    except Exception:
+        return ""

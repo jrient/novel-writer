@@ -20,6 +20,7 @@ from app.routers import (
     export_router,
     reference_router,
     search_router,
+    knowledge_router,
 )
 
 
@@ -58,6 +59,7 @@ app.include_router(ai_config_router)
 app.include_router(export_router)
 app.include_router(reference_router)
 app.include_router(search_router)
+app.include_router(knowledge_router)
 
 
 @app.get("/")

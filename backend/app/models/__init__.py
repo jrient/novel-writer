@@ -9,5 +9,6 @@ from app.models.worldbuilding import WorldbuildingEntry
 from app.models.outline import OutlineNode
 from app.models.reference import ReferenceNovel
 from app.models.embedding import NovelChunk
+from app.models.knowledge import KnowledgeEntry
 
-__all__ = ["Project", "Chapter", "Character", "WorldbuildingEntry", "OutlineNode", "ReferenceNovel", "NovelChunk"]
+__all__ = ["Project", "Chapter", "Character", "WorldbuildingEntry", "OutlineNode", "ReferenceNovel", "NovelChunk", "KnowledgeEntry"]

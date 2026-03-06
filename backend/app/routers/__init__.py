@@ -7,6 +7,7 @@ from app.routers.ai import router as ai_router, config_router as ai_config_route
 from app.routers.export import router as export_router
 from app.routers.reference import router as reference_router
 from app.routers.search import router as search_router
+from app.routers.knowledge import router as knowledge_router
 
 __all__ = [
     "project_router",
@@ -19,4 +20,5 @@ __all__ = [
     "export_router",
     "reference_router",
     "search_router",
+    "knowledge_router",
 ]
