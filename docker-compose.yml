@@ -8,8 +8,7 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # 数据库端口不对外暴露，仅容器内部使用
     restart: unless-stopped
 
   backend:
@@ -17,7 +16,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8084:8000"
     volumes:
       - ./backend/app:/app/app
       - ./data:/app/data
@@ -36,7 +35,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "8083:80"
     depends_on:
       - backend
     environment:
