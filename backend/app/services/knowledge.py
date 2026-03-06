@@ -2,8 +2,18 @@
 知识库服务
 通过Web搜索获取和管理知识
 """
+import os
 import httpx
-from typing import List, Dict
+import logging
+from typing import List, Dict, Optional
+from urllib.parse import quote
+
+logger = logging.getLogger(__name__)
+
+
+def _get_proxy() -> Optional[str]:
+    """从环境变量获取代理配置"""
+    return os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy") or None
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -47,16 +57,101 @@ class KnowledgeService:
 
     @staticmethod
     async def _web_search(keyword: str, max_results: int) -> List[Dict]:
-        """Web搜索（简化版）"""
-        # TODO: 集成真实的搜索API（如Google Search API, Bing API等）
-        # 这里返回模拟数据
-        return [
-            {
-                "title": f"{keyword}相关知识 - 条目1",
-                "content": f"关于{keyword}的详细介绍...",
-                "url": f"https://example.com/{keyword}/1"
-            }
-        ]
+        """通过 Wikipedia + DuckDuckGo 进行真实 Web 搜索"""
+        results: List[Dict] = []
+        seen_titles: set = set()
+        timeout = httpx.Timeout(10.0)
+        proxy = _get_proxy()
+
+        async with httpx.AsyncClient(timeout=timeout, proxy=proxy, verify=False) as client:
+            # 1. Wikipedia 中文搜索
+            try:
+                url = f"https://zh.wikipedia.org/api/rest_v1/page/summary/{quote(keyword)}"
+                logger.info(f"Searching Wikipedia ZH: {url}")
+                resp = await client.get(
+                    url,
+                    headers={"Accept": "application/json", "User-Agent": "NovelWriter/1.0"},
+                    follow_redirects=True,
+                )
+                logger.info(f"Wikipedia ZH response: {resp.status_code}")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    title = data.get("title", "")
+                    extract = data.get("extract", "")
+                    if extract and title:
+                        seen_titles.add(title.lower())
+                        results.append({
+                            "title": title,
+                            "content": extract,
+                            "url": data.get("content_urls", {}).get("desktop", {}).get("page", f"https://zh.wikipedia.org/wiki/{quote(keyword)}"),
+                        })
+            except Exception as e:
+                logger.warning("Wikipedia 中文搜索失败: %s", e, exc_info=True)
+
+            # 2. Wikipedia 英文回退
+            if len(results) < max_results:
+                try:
+                    resp = await client.get(
+                        f"https://en.wikipedia.org/api/rest_v1/page/summary/{quote(keyword)}",
+                        headers={"Accept": "application/json", "User-Agent": "NovelWriter/1.0"},
+                        follow_redirects=True,
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        title = data.get("title", "")
+                        extract = data.get("extract", "")
+                        if extract and title and title.lower() not in seen_titles:
+                            seen_titles.add(title.lower())
+                            results.append({
+                                "title": title,
+                                "content": extract,
+                                "url": data.get("content_urls", {}).get("desktop", {}).get("page", f"https://en.wikipedia.org/wiki/{quote(keyword)}"),
+                            })
+                except Exception as e:
+                    logger.warning("Wikipedia 英文搜索失败: %s", e)
+
+            # 3. DuckDuckGo Instant Answer API 补充
+            if len(results) < max_results:
+                try:
+                    resp = await client.get(
+                        "https://api.duckduckgo.com/",
+                        params={"q": keyword, "format": "json", "no_html": "1"},
+                        headers={"User-Agent": "NovelWriter/1.0"},
+                        follow_redirects=True,
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        # 提取 Abstract
+                        abstract = data.get("Abstract", "")
+                        abstract_url = data.get("AbstractURL", "")
+                        abstract_source = data.get("AbstractSource", "")
+                        if abstract and abstract_source.lower() not in seen_titles:
+                            seen_titles.add(abstract_source.lower())
+                            results.append({
+                                "title": f"{keyword} - {abstract_source}",
+                                "content": abstract,
+                                "url": abstract_url or f"https://duckduckgo.com/?q={quote(keyword)}",
+                            })
+
+                        # 提取 RelatedTopics
+                        for topic in data.get("RelatedTopics", []):
+                            if len(results) >= max_results:
+                                break
+                            text = topic.get("Text", "")
+                            first_url = topic.get("FirstURL", "")
+                            if text and first_url:
+                                topic_title = text[:50].split(" - ")[0] if " - " in text[:50] else text[:50]
+                                if topic_title.lower() not in seen_titles:
+                                    seen_titles.add(topic_title.lower())
+                                    results.append({
+                                        "title": topic_title,
+                                        "content": text,
+                                        "url": first_url,
+                                    })
+                except Exception as e:
+                    logger.warning("DuckDuckGo 搜索失败: %s", e)
+
+        return results[:max_results]
 
     @staticmethod
     async def _vectorize_knowledge(db: AsyncSession, knowledge_id: int):
