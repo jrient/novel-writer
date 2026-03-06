@@ -1,5 +1,109 @@
 <template>
-  <div class="tiptap-wrapper">
+  <div class="tiptap-wrapper" :class="{ 'fullscreen': isFullscreen }">
+    <!-- 格式工具栏 -->
+    <div class="editor-toolbar" v-if="editor">
+      <div class="toolbar-group">
+        <el-tooltip content="加粗 (Ctrl+B)" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :class="{ active: editor.isActive('bold') }"
+            @click="editor.chain().focus().toggleBold().run()"
+          >B</button>
+        </el-tooltip>
+        <el-tooltip content="斜体 (Ctrl+I)" placement="bottom">
+          <button
+            class="toolbar-btn italic"
+            :class="{ active: editor.isActive('italic') }"
+            @click="editor.chain().focus().toggleItalic().run()"
+          ><em>I</em></button>
+        </el-tooltip>
+        <el-tooltip content="删除线" placement="bottom">
+          <button
+            class="toolbar-btn strike"
+            :class="{ active: editor.isActive('strike') }"
+            @click="editor.chain().focus().toggleStrike().run()"
+          ><s>S</s></button>
+        </el-tooltip>
+      </div>
+
+      <div class="toolbar-divider" />
+
+      <div class="toolbar-group">
+        <el-tooltip content="标题 1" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :class="{ active: editor.isActive('heading', { level: 1 }) }"
+            @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
+          >H1</button>
+        </el-tooltip>
+        <el-tooltip content="标题 2" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :class="{ active: editor.isActive('heading', { level: 2 }) }"
+            @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
+          >H2</button>
+        </el-tooltip>
+        <el-tooltip content="标题 3" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :class="{ active: editor.isActive('heading', { level: 3 }) }"
+            @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
+          >H3</button>
+        </el-tooltip>
+      </div>
+
+      <div class="toolbar-divider" />
+
+      <div class="toolbar-group">
+        <el-tooltip content="引用" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :class="{ active: editor.isActive('blockquote') }"
+            @click="editor.chain().focus().toggleBlockquote().run()"
+          >"</button>
+        </el-tooltip>
+        <el-tooltip content="分隔线" placement="bottom">
+          <button
+            class="toolbar-btn"
+            @click="editor.chain().focus().setHorizontalRule().run()"
+          >—</button>
+        </el-tooltip>
+      </div>
+
+      <div class="toolbar-divider" />
+
+      <div class="toolbar-group">
+        <el-tooltip content="撤销 (Ctrl+Z)" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :disabled="!editor.can().undo()"
+            @click="editor.chain().focus().undo().run()"
+          >
+            <el-icon><RefreshLeft /></el-icon>
+          </button>
+        </el-tooltip>
+        <el-tooltip content="重做 (Ctrl+Shift+Z)" placement="bottom">
+          <button
+            class="toolbar-btn"
+            :disabled="!editor.can().redo()"
+            @click="editor.chain().focus().redo().run()"
+          >
+            <el-icon><RefreshRight /></el-icon>
+          </button>
+        </el-tooltip>
+      </div>
+
+      <div class="toolbar-spacer" />
+
+      <div class="toolbar-group">
+        <el-tooltip :content="isFullscreen ? '退出专注 (Esc)' : '专注模式'" placement="bottom">
+          <button class="toolbar-btn focus-btn" @click="toggleFullscreen">
+            <el-icon><FullScreen v-if="!isFullscreen" /><Close v-else /></el-icon>
+          </button>
+        </el-tooltip>
+      </div>
+    </div>
+
     <!-- 编辑器主体 -->
     <div class="editor-container">
       <editor-content :editor="editor" class="editor-content" />
@@ -15,26 +119,33 @@
         <el-icon><Check /></el-icon>
         已保存
       </span>
-      <span class="word-count-display">
-        <el-icon><Document /></el-icon>
-        {{ charCount }} 字
-      </span>
+      <div class="statusbar-right">
+        <span class="word-count-display">
+          <el-icon><Document /></el-icon>
+          {{ charCount }} 字
+        </span>
+        <span class="paragraph-count" v-if="paragraphCount > 0">
+          {{ paragraphCount }} 段
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount, computed } from 'vue'
+import { ref, watch, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
-import { Loading, Check, Document } from '@element-plus/icons-vue'
+import {
+  Loading, Check, Document, RefreshLeft, RefreshRight,
+  FullScreen, Close,
+} from '@element-plus/icons-vue'
 
-// Props 和 Emits
 const props = defineProps<{
-  modelValue: string   // 章节纯文本内容
-  saving: boolean      // 保存中状态（由父组件传入）
+  modelValue: string
+  saving: boolean
 }>()
 
 const emit = defineEmits<{
@@ -42,13 +153,10 @@ const emit = defineEmits<{
   'change': [value: string]
 }>()
 
-// 上次保存时间（本地显示用）
 const lastSaved = ref(false)
-
-// 防抖定时器
+const isFullscreen = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-// 初始化 Tiptap 编辑器
 const editor = useEditor({
   content: props.modelValue || '',
   extensions: [
@@ -64,11 +172,8 @@ const editor = useEditor({
     },
   },
   onUpdate({ editor }) {
-    // 获取纯文本内容
     const text = editor.getText()
     emit('update:modelValue', text)
-
-    // 防抖 2 秒后触发自动保存
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
       emit('change', text)
@@ -77,18 +182,39 @@ const editor = useEditor({
   },
 })
 
-// 从字符统计扩展获取字数
 const charCount = computed(() => {
   return editor.value?.storage.characterCount.characters() ?? 0
 })
 
-// 监听外部 modelValue 变化（切换章节时更新编辑器内容）
+const paragraphCount = computed(() => {
+  if (!editor.value) return 0
+  const text = editor.value.getText()
+  return text.split(/\n+/).filter(p => p.trim().length > 0).length
+})
+
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value
+}
+
+function handleEsc(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isFullscreen.value) {
+    isFullscreen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEsc)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEsc)
+})
+
 watch(
   () => props.modelValue,
   (newVal) => {
     if (!editor.value) return
     const currentText = editor.value.getText()
-    // 只有内容真正不同时才更新（避免光标跳动）
     if (newVal !== currentText) {
       editor.value.commands.setContent(newVal || '', false)
       lastSaved.value = false
@@ -96,7 +222,6 @@ watch(
   }
 )
 
-// 组件卸载时清理
 onBeforeUnmount(() => {
   if (debounceTimer) clearTimeout(debounceTimer)
   editor.value?.destroy()
@@ -111,6 +236,100 @@ onBeforeUnmount(() => {
   background-color: #f8f6f0;
 }
 
+/* 全屏专注模式 */
+.tiptap-wrapper.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  background-color: #f8f6f0;
+}
+
+.tiptap-wrapper.fullscreen .editor-container {
+  padding: 48px 120px;
+}
+
+.tiptap-wrapper.fullscreen .editor-toolbar {
+  justify-content: center;
+}
+
+/* 格式工具栏 */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  background-color: #f0ede6;
+  border-bottom: 1px solid #ddd8ce;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 2px;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #5a5347;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.toolbar-btn:hover {
+  background-color: #e5e0d6;
+  color: #2c2c2c;
+}
+
+.toolbar-btn.active {
+  background-color: #e2b714;
+  color: #1a1a2e;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.toolbar-btn.italic {
+  font-style: italic;
+}
+
+.toolbar-btn.strike {
+  text-decoration: line-through;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background-color: #ccc7bb;
+  margin: 0 6px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.focus-btn {
+  color: #909399;
+}
+
+.focus-btn:hover {
+  color: #e2b714;
+  background-color: rgba(226, 183, 20, 0.1);
+}
+
 /* 编辑器容器 */
 .editor-container {
   flex: 1;
@@ -118,7 +337,6 @@ onBeforeUnmount(() => {
   padding: 48px 64px;
 }
 
-/* 编辑器内容区域 */
 :deep(.editor-content) {
   height: 100%;
 }
@@ -148,7 +366,6 @@ onBeforeUnmount(() => {
   height: 0;
 }
 
-/* 标题样式 */
 :deep(.ProseMirror h1),
 :deep(.ProseMirror h2),
 :deep(.ProseMirror h3) {
@@ -158,7 +375,10 @@ onBeforeUnmount(() => {
   margin: 1.5em 0 0.8em;
 }
 
-/* 引用样式 */
+:deep(.ProseMirror h1) { font-size: 1.6em; }
+:deep(.ProseMirror h2) { font-size: 1.35em; }
+:deep(.ProseMirror h3) { font-size: 1.15em; }
+
 :deep(.ProseMirror blockquote) {
   border-left: 3px solid #e2b714;
   padding-left: 16px;
@@ -166,7 +386,12 @@ onBeforeUnmount(() => {
   font-style: italic;
 }
 
-/* 代码样式 */
+:deep(.ProseMirror hr) {
+  border: none;
+  border-top: 1px solid #ddd8ce;
+  margin: 2em 0;
+}
+
 :deep(.ProseMirror code) {
   background: #f0ede6;
   padding: 2px 4px;
@@ -184,6 +409,13 @@ onBeforeUnmount(() => {
   border-top: 1px solid #ddd8ce;
   font-size: 12px;
   color: #8a8070;
+  flex-shrink: 0;
+}
+
+.statusbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .saving-indicator,
@@ -198,14 +430,18 @@ onBeforeUnmount(() => {
   color: #7abf7a;
 }
 
-.word-count-display {
+.word-count-display,
+.paragraph-count {
   display: flex;
   align-items: center;
   gap: 4px;
   font-weight: 500;
 }
 
-/* 旋转动画（保存中图标） */
+.paragraph-count {
+  color: #b0a898;
+}
+
 .rotating {
   animation: spin 1s linear infinite;
 }

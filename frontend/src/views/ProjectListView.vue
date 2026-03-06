@@ -12,6 +12,26 @@
 
     <!-- 主体内容 -->
     <main class="page-main">
+      <!-- 总览统计 -->
+      <div class="stats-bar" v-if="projectStore.projects.length > 0">
+        <div class="stat-item">
+          <span class="stat-value">{{ projectStore.projects.length }}</span>
+          <span class="stat-label">项目总数</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ totalWords.toLocaleString() }}</span>
+          <span class="stat-label">总字数</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ writingCount }}</span>
+          <span class="stat-label">创作中</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ completedCount }}</span>
+          <span class="stat-label">已完成</span>
+        </div>
+      </div>
+
       <!-- 加载状态 -->
       <div v-if="projectStore.loading" class="loading-container">
         <el-skeleton :rows="3" animated />
@@ -19,9 +39,10 @@
 
       <!-- 空状态 -->
       <div v-else-if="projectStore.projects.length === 0" class="empty-state">
-        <el-empty description="还没有项目，点击右上角新建一个吧">
-          <el-button type="primary" @click="showCreateDialog = true">创建第一个项目</el-button>
-        </el-empty>
+        <div class="empty-icon">✍</div>
+        <h2 class="empty-title">开始你的创作之旅</h2>
+        <p class="empty-desc">点击下方按钮创建第一个项目</p>
+        <el-button type="primary" size="large" @click="showCreateDialog = true">创建第一个项目</el-button>
       </div>
 
       <!-- 项目网格 -->
@@ -35,9 +56,27 @@
         >
           <div class="card-header">
             <h3 class="project-title">{{ project.title }}</h3>
-            <el-tag :type="statusTagType(project.status)" size="small">
-              {{ statusLabel(project.status) }}
-            </el-tag>
+            <el-dropdown @click.stop trigger="click" @command="(cmd: string) => handleCommand(cmd, project)">
+              <el-button text size="small" class="more-btn" @click.stop>
+                <el-icon><MoreFilled /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">
+                    <el-icon><Edit /></el-icon> 进入创作
+                  </el-dropdown-item>
+                  <el-dropdown-item command="export-txt">
+                    <el-icon><Download /></el-icon> 导出 TXT
+                  </el-dropdown-item>
+                  <el-dropdown-item command="export-md">
+                    <el-icon><Document /></el-icon> 导出 Markdown
+                  </el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>
+                    <el-icon><Delete /></el-icon> 删除项目
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
 
           <p class="project-description">{{ project.description || '暂无简介' }}</p>
@@ -47,30 +86,34 @@
               <el-icon><Collection /></el-icon>
               {{ project.genre }}
             </span>
+            <el-tag :type="statusTagType(project.status)" size="small" effect="plain">
+              {{ statusLabel(project.status) }}
+            </el-tag>
           </div>
 
           <!-- 字数进度 -->
           <div class="word-count-section">
             <div class="word-count-labels">
-              <span>{{ project.current_word_count.toLocaleString() }} 字</span>
-              <span class="target">目标 {{ project.target_word_count.toLocaleString() }} 字</span>
+              <span class="current-words">{{ project.current_word_count.toLocaleString() }} 字</span>
+              <span class="target" v-if="project.target_word_count > 0">
+                / {{ project.target_word_count.toLocaleString() }}
+              </span>
             </div>
             <el-progress
+              v-if="project.target_word_count > 0"
               :percentage="wordCountPercentage(project)"
               :color="progressColor"
-              :stroke-width="6"
+              :stroke-width="4"
               :show-text="false"
             />
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="card-actions" @click.stop>
-            <el-button size="small" text @click="goToWorkbench(project.id)">
-              <el-icon><Edit /></el-icon> 进入创作
-            </el-button>
-            <el-button size="small" text type="danger" @click="handleDelete(project)">
-              <el-icon><Delete /></el-icon>
-            </el-button>
+          <!-- 时间信息 -->
+          <div class="card-footer">
+            <span class="create-time">
+              <el-icon><Clock /></el-icon>
+              {{ formatDate(project.created_at) }}
+            </span>
           </div>
         </el-card>
       </div>
@@ -108,11 +151,14 @@
           <el-select v-model="createForm.genre" placeholder="选择小说类型" style="width: 100%">
             <el-option label="奇幻" value="奇幻" />
             <el-option label="科幻" value="科幻" />
+            <el-option label="玄幻" value="玄幻" />
             <el-option label="言情" value="言情" />
             <el-option label="悬疑" value="悬疑" />
             <el-option label="历史" value="历史" />
             <el-option label="武侠" value="武侠" />
             <el-option label="都市" value="都市" />
+            <el-option label="恐怖" value="恐怖" />
+            <el-option label="军事" value="军事" />
             <el-option label="其他" value="其他" />
           </el-select>
         </el-form-item>
@@ -120,7 +166,7 @@
         <el-form-item label="目标字数">
           <el-input-number
             v-model="createForm.target_word_count"
-            :min="1000"
+            :min="0"
             :max="10000000"
             :step="10000"
             style="width: 100%"
@@ -137,23 +183,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { Plus, Edit, Delete, Collection } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Collection, MoreFilled, Download, Document, Clock } from '@element-plus/icons-vue'
 import { useProjectStore } from '@/stores/project'
 import type { Project } from '@/api/project'
 
 const router = useRouter()
 const projectStore = useProjectStore()
 
-// 对话框控制
 const showCreateDialog = ref(false)
 const creating = ref(false)
 const createFormRef = ref<FormInstance>()
 
-// 创建表单数据
 const createForm = ref({
   title: '',
   description: '',
@@ -161,51 +205,86 @@ const createForm = ref({
   target_word_count: 100000,
 })
 
-// 表单验证规则
 const createRules: FormRules = {
   title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
 }
 
-// 进度条颜色（金色主题）
 const progressColor = '#e2b714'
 
-// 状态标签类型映射
+// 统计数据
+const totalWords = computed(() =>
+  projectStore.projects.reduce((sum, p) => sum + (p.current_word_count || 0), 0)
+)
+const writingCount = computed(() =>
+  projectStore.projects.filter(p => p.status === 'draft' || p.status === 'writing').length
+)
+const completedCount = computed(() =>
+  projectStore.projects.filter(p => p.status === 'completed').length
+)
+
 function statusTagType(status: string) {
   const map: Record<string, string> = {
-    planning: 'info',
-    writing: 'success',
-    completed: 'warning',
-    archived: 'danger',
+    draft: 'info', planning: 'info', writing: 'success', completed: 'warning', archived: 'danger',
   }
   return map[status] || 'info'
 }
 
-// 状态中文标签
 function statusLabel(status: string) {
   const map: Record<string, string> = {
-    planning: '规划中',
-    writing: '创作中',
-    completed: '已完成',
-    archived: '已归档',
+    draft: '草稿', planning: '规划中', writing: '创作中', completed: '已完成', archived: '已归档',
   }
   return map[status] || status
 }
 
-// 计算字数完成百分比
 function wordCountPercentage(project: Project) {
   if (!project.target_word_count) return 0
-  return Math.min(
-    Math.round((project.current_word_count / project.target_word_count) * 100),
-    100
-  )
+  return Math.min(Math.round((project.current_word_count / project.target_word_count) * 100), 100)
 }
 
-// 跳转到工作台
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function goToWorkbench(id: number) {
   router.push(`/project/${id}`)
 }
 
-// 创建项目
+function handleCommand(command: string, project: Project) {
+  switch (command) {
+    case 'edit':
+      goToWorkbench(project.id)
+      break
+    case 'export-txt':
+      exportProject(project.id, 'txt')
+      break
+    case 'export-md':
+      exportProject(project.id, 'markdown')
+      break
+    case 'delete':
+      handleDelete(project)
+      break
+  }
+}
+
+async function exportProject(id: number, format: string) {
+  try {
+    const url = `/api/v1/projects/${id}/export/${format}`
+    const resp = await fetch(url)
+    if (!resp.ok) throw new Error('导出失败')
+    const blob = await resp.blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    const ext = format === 'markdown' ? 'md' : 'txt'
+    a.download = `export.${ext}`
+    a.click()
+    URL.revokeObjectURL(a.href)
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
+}
+
 async function handleCreate() {
   if (!createFormRef.value) return
   await createFormRef.value.validate(async (valid) => {
@@ -214,9 +293,7 @@ async function handleCreate() {
     try {
       const project = await projectStore.createNewProject(createForm.value)
       showCreateDialog.value = false
-      // 重置表单
       createForm.value = { title: '', description: '', genre: '', target_word_count: 100000 }
-      // 跳转到新项目工作台
       router.push(`/project/${project.id}`)
     } finally {
       creating.value = false
@@ -224,7 +301,6 @@ async function handleCreate() {
   })
 }
 
-// 删除项目确认
 async function handleDelete(project: Project) {
   await ElMessageBox.confirm(`确定要删除《${project.title}》吗？此操作不可撤销。`, '删除确认', {
     type: 'warning',
@@ -234,7 +310,6 @@ async function handleDelete(project: Project) {
   await projectStore.removeProject(project.id)
 }
 
-// 页面挂载时加载项目列表
 onMounted(() => {
   projectStore.fetchProjects()
 })
@@ -246,7 +321,6 @@ onMounted(() => {
   background-color: #1a1a2e;
 }
 
-/* 顶部导航 */
 .page-header {
   background-color: #16213e;
   border-bottom: 1px solid #2d3561;
@@ -272,56 +346,115 @@ onMounted(() => {
   font-family: 'Noto Serif SC', serif;
 }
 
-/* 主体 */
 .page-main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px;
 }
 
-.loading-container {
-  padding: 24px;
+/* 统计栏 */
+.stats-bar {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+  border: 1px solid #2d3561;
+  border-radius: 12px;
 }
 
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #e2b714;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+/* 空状态 */
 .empty-state {
-  padding: 80px 0;
+  padding: 100px 0;
   text-align: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-title {
+  font-size: 24px;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 24px;
+}
+
+.loading-container {
+  padding: 24px;
 }
 
 /* 项目网格 */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 20px;
 }
 
-/* 项目卡片 */
 .project-card {
   cursor: pointer;
   background-color: #16213e !important;
   border: 1px solid #2d3561 !important;
-  transition: border-color 0.2s, transform 0.2s;
+  transition: all 0.25s ease;
+  border-radius: 12px !important;
 }
 
 .project-card:hover {
   border-color: #e2b714 !important;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(226, 183, 20, 0.1) !important;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .project-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: #e0e0e0;
   margin: 0;
   flex: 1;
   margin-right: 8px;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.more-btn {
+  color: #606266 !important;
+}
+
+.more-btn:hover {
+  color: #e2b714 !important;
 }
 
 .project-description {
@@ -336,7 +469,10 @@ onMounted(() => {
 }
 
 .project-meta {
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .genre-tag {
@@ -346,57 +482,65 @@ onMounted(() => {
   font-size: 12px;
   color: #e2b714;
   background: rgba(226, 183, 20, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px 10px;
+  border-radius: 12px;
 }
 
 .word-count-section {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .word-count-labels {
   display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #909399;
+  align-items: baseline;
+  gap: 4px;
   margin-bottom: 6px;
 }
 
+.current-words {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
 .target {
+  font-size: 12px;
   color: #606266;
 }
 
-.card-actions {
+.card-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
+  justify-content: flex-end;
+  padding-top: 10px;
   border-top: 1px solid #2d3561;
 }
 
-/* 对话框暗色主题覆盖 */
+.create-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #606266;
+}
+
+/* 对话框暗色主题 */
 :deep(.el-dialog) {
   background-color: #16213e;
   border: 1px solid #2d3561;
 }
-
 :deep(.el-dialog__title) {
   color: #e0e0e0;
 }
-
 :deep(.el-form-item__label) {
   color: #c0c4cc;
 }
-
 :deep(.el-input__wrapper) {
   background-color: #1a1a2e;
   border-color: #2d3561;
 }
-
 :deep(.el-input__inner) {
   color: #e0e0e0;
 }
-
 :deep(.el-textarea__inner) {
   background-color: #1a1a2e;
   color: #e0e0e0;

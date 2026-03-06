@@ -17,6 +17,7 @@ from app.routers import (
     outline_router,
     ai_router,
     ai_config_router,
+    export_router,
 )
 
 
@@ -52,6 +53,7 @@ app.include_router(worldbuilding_router)
 app.include_router(outline_router)
 app.include_router(ai_router)
 app.include_router(ai_config_router)
+app.include_router(export_router)
 
 
 @app.get("/")

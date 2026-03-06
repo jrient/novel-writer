@@ -3,8 +3,11 @@
     <!-- 顶部工具栏 -->
     <header class="workbench-header">
       <div class="header-left">
-        <el-button text :icon="Back" @click="goBack">返回项目列表</el-button>
+        <el-button text :icon="Back" @click="goBack">返回</el-button>
         <span class="project-title">{{ projectStore.currentProject?.title || '加载中...' }}</span>
+        <el-tag v-if="projectStore.currentProject?.genre" size="small" effect="plain" class="genre-tag">
+          {{ projectStore.currentProject.genre }}
+        </el-tag>
       </div>
       <div class="header-center">
         <el-radio-group v-model="activeTab" size="small">
@@ -16,8 +19,30 @@
       </div>
       <div class="header-right">
         <span class="total-words">
-          总字数: {{ projectStore.currentProject?.current_word_count?.toLocaleString() || 0 }}
+          {{ projectStore.currentProject?.current_word_count?.toLocaleString() || 0 }} 字
         </span>
+        <el-progress
+          v-if="wordProgress > 0"
+          type="circle"
+          :percentage="wordProgress"
+          :width="28"
+          :stroke-width="3"
+          color="#e2b714"
+          :show-text="false"
+          class="progress-circle"
+        />
+        <el-dropdown trigger="click" @command="handleExport">
+          <el-button text size="small" class="export-btn">
+            <el-icon><Download /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="txt">导出 TXT</el-dropdown-item>
+              <el-dropdown-item command="markdown">导出 Markdown</el-dropdown-item>
+              <el-dropdown-item command="markdown-full">导出 Markdown（含角色）</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </header>
 
@@ -67,7 +92,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back } from '@element-plus/icons-vue'
+import { Back, Download } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { useProjectStore } from '@/stores/project'
 import { useChapterStore } from '@/stores/chapter'
 import ChapterList from '@/components/ChapterList.vue'
@@ -86,6 +112,12 @@ const projectId = computed(() => Number(route.params.id))
 const currentContent = ref('')
 const activeTab = ref('editor')
 
+const wordProgress = computed(() => {
+  const p = projectStore.currentProject
+  if (!p || !p.target_word_count) return 0
+  return Math.min(Math.round((p.current_word_count / p.target_word_count) * 100), 100)
+})
+
 function triggerCreateChapter() {
   chapterStore.createNewChapter(projectId.value, { title: '第一章' })
 }
@@ -98,6 +130,30 @@ function handleInsertText(text: string) {
   if (!chapterStore.currentChapter) return
   currentContent.value = currentContent.value + '\n\n' + text
   handleContentChange(currentContent.value)
+}
+
+async function handleExport(format: string) {
+  try {
+    let url = `/api/v1/projects/${projectId.value}/export/`
+    if (format === 'markdown-full') {
+      url += 'markdown?include_characters=true'
+    } else {
+      url += format
+    }
+    const resp = await fetch(url)
+    if (!resp.ok) throw new Error('导出失败')
+    const blob = await resp.blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    const ext = format.startsWith('markdown') ? 'md' : 'txt'
+    const title = projectStore.currentProject?.title || 'export'
+    a.download = `${title}.${ext}`
+    a.click()
+    URL.revokeObjectURL(a.href)
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
 }
 
 async function handleContentChange(content: string) {
@@ -164,7 +220,7 @@ onMounted(async () => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .header-center {
@@ -173,15 +229,34 @@ onMounted(async () => {
 }
 
 .project-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #e2b714;
   font-family: 'Noto Serif SC', serif;
 }
 
+.genre-tag {
+  color: #909399 !important;
+  border-color: #2d3561 !important;
+  background-color: transparent !important;
+}
+
 .total-words {
   font-size: 13px;
   color: #909399;
+  font-weight: 500;
+}
+
+.progress-circle {
+  margin-left: -4px;
+}
+
+.export-btn {
+  color: #909399 !important;
+}
+
+.export-btn:hover {
+  color: #e2b714 !important;
 }
 
 .workbench-main {
@@ -224,7 +299,6 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-/* Radio group 样式 */
 :deep(.el-radio-button__inner) {
   background-color: transparent;
   border-color: #2d3561;

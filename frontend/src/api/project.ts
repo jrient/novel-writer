@@ -8,7 +8,7 @@ export interface Project {
   genre: string
   target_word_count: number
   current_word_count: number
-  status: 'planning' | 'writing' | 'completed' | 'archived'
+  status: 'draft' | 'planning' | 'writing' | 'completed' | 'archived'
   created_at: string
   updated_at: string
 }
