@@ -3,6 +3,7 @@ AI增强搜索服务
 使用Jina Reader API + OpenAI生成高质量知识摘要
 """
 import os
+import asyncio
 import httpx
 import logging
 from typing import List, Dict, Optional
@@ -34,23 +35,31 @@ class AISearchService:
         knowledge_entries = await self._generate_knowledge(keyword, search_content, max_results)
         return knowledge_entries
 
-    async def _jina_search(self, keyword: str) -> str:
-        """使用Jina Reader API搜索"""
+    async def _jina_search(self, keyword: str, max_retries: int = 3) -> str:
+        """使用Jina Reader API搜索，支持重试"""
         proxy = _get_proxy()
-        try:
-            headers = {"User-Agent": "NovelWriter/1.0"}
-            if self.jina_api_key:
-                headers["Authorization"] = f"Bearer {self.jina_api_key}"
 
-            async with httpx.AsyncClient(timeout=30.0, proxy=proxy, verify=False) as client:
-                resp = await client.get(
-                    f"https://s.jina.ai/{keyword}",
-                    headers=headers
-                )
-                if resp.status_code == 200:
-                    return resp.text[:8000]  # 限制长度
-        except Exception as e:
-            logger.warning(f"Jina搜索失败: {e}")
+        for attempt in range(max_retries):
+            try:
+                headers = {"User-Agent": "NovelWriter/1.0"}
+                if self.jina_api_key:
+                    headers["Authorization"] = f"Bearer {self.jina_api_key}"
+
+                async with httpx.AsyncClient(timeout=30.0, proxy=proxy, verify=False) as client:
+                    resp = await client.get(
+                        f"https://s.jina.ai/{keyword}",
+                        headers=headers
+                    )
+                    if resp.status_code == 200 and len(resp.text) > 100:
+                        return resp.text[:8000]  # 限制长度
+
+                    logger.warning(f"Jina搜索返回空内容，尝试 {attempt + 1}/{max_retries}")
+            except Exception as e:
+                logger.warning(f"Jina搜索失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+
+            if attempt < max_retries - 1:
+                await asyncio.sleep(1)  # 重试前等待1秒
+
         return ""
 
     async def _generate_knowledge(self, keyword: str, search_content: str, max_results: int) -> List[Dict]:

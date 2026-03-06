@@ -37,6 +37,10 @@ class KnowledgeService:
             from app.services.ai_search import AISearchService
             ai_search = AISearchService(settings.OPENAI_API_KEY, settings.OPENAI_BASE_URL, settings.JINA_API_KEY)
             search_results = await ai_search.search(keyword, max_results)
+            # AI搜索失败时回退到传统搜索
+            if not search_results:
+                logger.info(f"AI搜索无结果，回退到传统搜索: {keyword}")
+                search_results = await KnowledgeService._web_search(keyword, max_results)
         else:
             search_results = await KnowledgeService._web_search(keyword, max_results)
 
