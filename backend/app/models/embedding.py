@@ -33,7 +33,3 @@ class NovelChunk(Base):
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-
-    __table_args__ = (
-        Index('ix_novel_chunks_reference_id', 'reference_id'),
-    )
