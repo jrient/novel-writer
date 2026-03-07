@@ -1,15 +1,18 @@
 <template>
   <div class="knowledge-panel">
     <div class="search-section">
-      <el-input
-        v-model="keyword"
-        placeholder="输入关键词搜索并学习知识"
-        @keyup.enter="handleSearch"
-      >
-        <template #append>
-          <el-button :loading="searching" @click="handleSearch">搜索学习</el-button>
-        </template>
-      </el-input>
+      <div class="search-row">
+        <el-input
+          v-model="keyword"
+          placeholder="输入关键词搜索并学习知识"
+          @keyup.enter="handleSearch"
+        >
+          <template #append>
+            <el-button :loading="searching" @click="handleSearch">搜索学习</el-button>
+          </template>
+        </el-input>
+        <el-button type="primary" class="add-btn" @click="openCreateDialog">手动添加</el-button>
+      </div>
       <div class="search-options">
         <el-checkbox v-model="useAI">使用AI增强搜索（更准确，稍慢）</el-checkbox>
       </div>
@@ -21,7 +24,10 @@
         <template #header>
           <div class="item-header">
             <span class="keyword-tag">{{ item.keyword }}</span>
-            <el-button text size="small" @click="handleDelete(item.id)">删除</el-button>
+            <div>
+              <el-button text size="small" @click="openEditDialog(item)">编辑</el-button>
+              <el-button text size="small" @click="handleDelete(item.id)">删除</el-button>
+            </div>
           </div>
         </template>
         <h4>{{ item.title }}</h4>
@@ -32,6 +38,36 @@
         </div>
       </el-card>
     </div>
+
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEditing ? '编辑知识条目' : '手动添加知识'"
+      width="600px"
+    >
+      <el-form :model="form" label-width="80px">
+        <el-form-item label="关键词" required>
+          <el-input v-model="form.keyword" placeholder="输入关键词" />
+        </el-form-item>
+        <el-form-item label="标题" required>
+          <el-input v-model="form.title" placeholder="输入标题" />
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-input v-model="form.category" placeholder="输入分类（可选）" />
+        </el-form-item>
+        <el-form-item label="内容" required>
+          <el-input
+            v-model="form.content"
+            type="textarea"
+            :rows="6"
+            placeholder="输入知识内容"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -45,6 +81,12 @@ const searching = ref(false)
 const loading = ref(false)
 const knowledgeList = ref<KnowledgeEntry[]>([])
 const useAI = ref(false)
+
+const dialogVisible = ref(false)
+const isEditing = ref(false)
+const saving = ref(false)
+const editingId = ref<number | null>(null)
+const form = ref({ keyword: '', title: '', content: '', category: '' })
 
 const loadKnowledge = async () => {
   loading.value = true
@@ -89,6 +131,54 @@ const handleDelete = async (id: number) => {
   }
 }
 
+const openCreateDialog = () => {
+  isEditing.value = false
+  editingId.value = null
+  form.value = { keyword: '', title: '', content: '', category: '' }
+  dialogVisible.value = true
+}
+
+const openEditDialog = (item: KnowledgeEntry) => {
+  isEditing.value = true
+  editingId.value = item.id
+  form.value = {
+    keyword: item.keyword,
+    title: item.title,
+    content: item.content,
+    category: item.category || '',
+  }
+  dialogVisible.value = true
+}
+
+const handleSave = async () => {
+  if (!form.value.keyword.trim() || !form.value.title.trim() || !form.value.content.trim()) {
+    ElMessage.warning('请填写关键词、标题和内容')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      keyword: form.value.keyword.trim(),
+      title: form.value.title.trim(),
+      content: form.value.content.trim(),
+      category: form.value.category.trim() || undefined,
+    }
+    if (isEditing.value && editingId.value !== null) {
+      await knowledgeApi.update(editingId.value, data)
+      ElMessage.success('更新成功')
+    } else {
+      await knowledgeApi.create(data)
+      ElMessage.success('创建成功')
+    }
+    dialogVisible.value = false
+    await loadKnowledge()
+  } catch (error) {
+    ElMessage.error(isEditing.value ? '更新失败' : '创建失败')
+  } finally {
+    saving.value = false
+  }
+}
+
 onMounted(() => {
   loadKnowledge()
 })
@@ -108,6 +198,23 @@ onMounted(() => {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.search-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.search-row .el-input {
+  flex: 1;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
 .knowledge-list {

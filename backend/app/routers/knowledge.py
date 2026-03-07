@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.models.knowledge import KnowledgeEntry
 from app.schemas.knowledge import (
     KnowledgeEntryCreate,
+    KnowledgeEntryUpdate,
     KnowledgeEntryResponse,
     KnowledgeSearchRequest,
 )
@@ -80,6 +81,36 @@ async def get_knowledge(
     entry = result.scalar_one_or_none()
     if not entry:
         raise HTTPException(status_code=404, detail="知识条目不存在")
+    return entry
+
+
+@router.put("/{entry_id}", response_model=KnowledgeEntryResponse)
+async def update_knowledge(
+    entry_id: int,
+    payload: KnowledgeEntryUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    """更新知识条目"""
+    result = await db.execute(
+        select(KnowledgeEntry).where(KnowledgeEntry.id == entry_id)
+    )
+    entry = result.scalar_one_or_none()
+    if not entry:
+        raise HTTPException(status_code=404, detail="知识条目不存在")
+
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(entry, field, value)
+
+    if "content" in update_data:
+        entry.char_count = len(update_data["content"])
+
+    await db.commit()
+    await db.refresh(entry)
+
+    # 重新向量化
+    await knowledge_service._vectorize_knowledge(db, entry.id)
+
     return entry
 
 

@@ -33,6 +33,14 @@ class KnowledgeEntryResponse(BaseModel):
         from_attributes = True
 
 
+class KnowledgeEntryUpdate(BaseModel):
+    keyword: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[str] = None
+
+
 class KnowledgeSearchRequest(BaseModel):
     keywords: List[str]
     max_results_per_keyword: int = 3
