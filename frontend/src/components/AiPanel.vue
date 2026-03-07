@@ -99,6 +99,7 @@
 
     <!-- 批量生成对话框 -->
     <el-dialog
+      :close-on-press-escape="false"
       v-model="showBatchDialog"
       title="AI 批量写作"
       width="480px"
@@ -344,6 +345,11 @@ function startGeneration(data: AIGenerateRequest) {
     },
     () => {
       generating.value = false
+      // 改写润色、扩写完成后自动替换章节内容
+      if (['rewrite', 'expand'].includes(lastAction.value) && outputText.value) {
+        emit('replace-text', outputText.value)
+        ElMessage.success('已自动替换章节内容')
+      }
     },
     (error) => {
       generating.value = false
