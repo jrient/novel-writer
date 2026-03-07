@@ -555,7 +555,7 @@ class AIService:
                 ],
                 stream=True,
                 temperature=0.8,
-                max_tokens=2000,
+                max_tokens=8000,
             )
 
             async for chunk in stream:
@@ -578,7 +578,7 @@ class AIService:
 
             async with client.messages.stream(
                 model=settings.ANTHROPIC_MODEL,
-                max_tokens=2000,
+                max_tokens=8000,
                 messages=[{"role": "user", "content": prompt}],
                 system="你是一位专业的中文小说创作助手，擅长各类文学创作。",
                 temperature=0.8,
