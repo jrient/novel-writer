@@ -296,8 +296,16 @@ async def batch_generate(
                 # 记录摘要供下一章参考
                 previous_summary = chapter_summary or chapter_content[:200]
 
+            # 更新项目总字数
+            all_chapters_result = await db.execute(
+                select(Chapter).where(Chapter.project_id == project_id)
+            )
+            total_words = sum(ch.word_count for ch in all_chapters_result.scalars().all())
+            project.current_word_count = total_words
+            await db.commit()
+
             # 完成
-            yield f"data: {_json.dumps({'type': 'done', 'total_chapters': len(outline_data)}, ensure_ascii=False)}\n\n"
+            yield f"data: {_json.dumps({'type': 'done', 'total_chapters': len(outline_data), 'total_words': total_words}, ensure_ascii=False)}\n\n"
 
         except Exception as e:
             yield f"data: {_json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"

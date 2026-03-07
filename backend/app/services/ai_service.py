@@ -488,7 +488,7 @@ class AIService:
         if actual_provider == "ollama":
             try:
                 import httpx
-                async with httpx.AsyncClient(timeout=120.0) as client:
+                async with httpx.AsyncClient(timeout=300.0) as client:
                     response = await client.post(
                         f"{settings.OLLAMA_BASE_URL}/api/generate",
                         json={
@@ -496,8 +496,12 @@ class AIService:
                             "prompt": prompt,
                             "system": "你是一位专业的中文小说创作助手，擅长各类文学创作。请严格按要求的格式输出。",
                             "stream": False,
+                            "options": {
+                                "num_predict": max_tokens,
+                                "temperature": 0.8,
+                            },
                         },
-                        timeout=120.0,
+                        timeout=300.0,
                     )
                     data = response.json()
                     return data.get("response", "")
@@ -597,7 +601,7 @@ class AIService:
         try:
             import httpx
 
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=300.0) as client:
                 response = await client.post(
                     f"{settings.OLLAMA_BASE_URL}/api/generate",
                     json={
@@ -605,8 +609,12 @@ class AIService:
                         "prompt": prompt,
                         "system": "你是一位专业的中文小说创作助手，擅长各类文学创作。",
                         "stream": True,
+                        "options": {
+                            "num_predict": 8000,
+                            "temperature": 0.8,
+                        },
                     },
-                    timeout=120.0,
+                    timeout=300.0,
                 )
 
                 async for line in response.aiter_lines():

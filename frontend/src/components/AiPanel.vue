@@ -223,13 +223,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
   Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight,
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
 import type { AIGenerateRequest, BatchGenerateEvent } from '@/api/ai'
 import { getReferences } from '@/api/reference'
@@ -292,6 +292,17 @@ onMounted(async () => {
   loadReferences()
 })
 
+// 切换章节时清空 AI 输出和停止生成
+watch(() => props.chapterId, () => {
+  if (generating.value) {
+    abortController?.abort()
+    generating.value = false
+  }
+  outputText.value = ''
+  errorText.value = ''
+  lastAction.value = ''
+})
+
 function handleAction(action: AIGenerateRequest['action']) {
   if (!props.projectId) {
     ElMessage.warning('请先选择一个项目')
@@ -345,10 +356,18 @@ function startGeneration(data: AIGenerateRequest) {
     },
     () => {
       generating.value = false
-      // 改写润色、扩写完成后自动替换章节内容
+      // 改写润色、扩写完成后提示替换章节内容
       if (['rewrite', 'expand'].includes(lastAction.value) && outputText.value) {
-        emit('replace-text', outputText.value)
-        ElMessage.success('已自动替换章节内容')
+        ElMessageBox.confirm('是否用 AI 生成的内容替换当前章节？', '替换确认', {
+          confirmButtonText: '替换',
+          cancelButtonText: '保留原文',
+          type: 'info',
+        }).then(() => {
+          emit('replace-text', outputText.value)
+          ElMessage.success('已替换章节内容')
+        }).catch(() => {
+          // 用户选择保留原文
+        })
       }
     },
     (error) => {
@@ -657,7 +676,7 @@ function clearOutput() {
   line-height: 1.8;
   color: #1c1917;
   white-space: pre-wrap;
-  word-break: break-all;
+  word-break: break-word;
   font-family: 'Noto Serif SC', 'PingFang SC', sans-serif;
   margin: 0;
 }

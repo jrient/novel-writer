@@ -280,7 +280,9 @@ async function exportProject(id: number, format: string) {
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     const ext = format === 'markdown' ? 'md' : 'txt'
-    a.download = `export.${ext}`
+    const project = projectStore.projects.find(p => p.id === id)
+    const title = project?.title || '导出'
+    a.download = `${title}.${ext}`
     a.click()
     URL.revokeObjectURL(a.href)
     ElMessage.success('导出成功')
