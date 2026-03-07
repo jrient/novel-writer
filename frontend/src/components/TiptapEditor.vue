@@ -157,8 +157,32 @@ const lastSaved = ref(false)
 const isFullscreen = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
+// 纯文本转 HTML：将换行分隔的段落转为 <p> 标签
+function textToHtml(text: string): string {
+  if (!text) return ''
+  // 如果已经是 HTML 格式，直接返回
+  if (text.startsWith('<p>') || text.startsWith('<h')) return text
+  return text
+    .split(/\n/)
+    .map(line => `<p>${line || '<br>'}</p>`)
+    .join('')
+}
+
+// HTML 转纯文本：保留换行结构
+function htmlToText(html: string): string {
+  if (!html) return ''
+  const div = document.createElement('div')
+  div.innerHTML = html
+  // 每个 <p> 块用换行分隔
+  const paragraphs = div.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li')
+  if (paragraphs.length === 0) return div.textContent || ''
+  return Array.from(paragraphs)
+    .map(p => p.textContent || '')
+    .join('\n')
+}
+
 const editor = useEditor({
-  content: props.modelValue || '',
+  content: textToHtml(props.modelValue || ''),
   extensions: [
     StarterKit,
     Placeholder.configure({
@@ -172,7 +196,8 @@ const editor = useEditor({
     },
   },
   onUpdate({ editor }) {
-    const text = editor.getText()
+    const html = editor.getHTML()
+    const text = htmlToText(html)
     emit('update:modelValue', text)
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
@@ -214,9 +239,10 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (!editor.value) return
-    const currentText = editor.value.getText()
+    const currentHtml = editor.value.getHTML()
+    const currentText = htmlToText(currentHtml)
     if (newVal !== currentText) {
-      editor.value.commands.setContent(newVal || '', false)
+      editor.value.commands.setContent(textToHtml(newVal || ''), false)
       lastSaved.value = false
     }
   }
