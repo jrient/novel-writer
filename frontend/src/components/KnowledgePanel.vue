@@ -24,9 +24,9 @@
         <template #header>
           <div class="item-header">
             <span class="keyword-tag">{{ item.keyword }}</span>
-            <div>
-              <el-button text size="small" @click="openEditDialog(item)">编辑</el-button>
-              <el-button text size="small" @click="handleDelete(item.id)">删除</el-button>
+            <div class="item-actions">
+              <el-button text size="small" class="edit-btn" @click="openEditDialog(item)">编辑</el-button>
+              <el-button text size="small" class="delete-btn" @click="handleDelete(item.id)">删除</el-button>
             </div>
           </div>
         </template>
@@ -301,8 +301,16 @@ onMounted(() => {
   color: white;
 }
 
-:deep(.el-button) {
+:deep(.el-input-group__append .el-button) {
   border: none;
   color: white;
+}
+
+.item-actions .edit-btn {
+  color: #667eea !important;
+}
+
+.item-actions .delete-btn {
+  color: #f56c6c !important;
 }
 </style>
