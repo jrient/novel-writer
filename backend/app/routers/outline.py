@@ -42,7 +42,7 @@ def build_outline_tree(nodes: List[OutlineNode]) -> List[OutlineTreeResponse]:
     return roots
 
 
-@router.get("/", response_model=OutlineNodeListResponse)
+@router.get("/", response_model=List[OutlineNodeResponse])
 async def get_outline_nodes(
     project_id: int,
     node_type: str = None,
@@ -59,9 +59,7 @@ async def get_outline_nodes(
     query = query.order_by(OutlineNode.sort_order)
 
     result = await db.execute(query)
-    nodes = result.scalars().all()
-
-    return OutlineNodeListResponse(items=nodes, total=len(nodes))
+    return result.scalars().all()
 
 
 @router.get("/tree", response_model=List[OutlineTreeResponse])

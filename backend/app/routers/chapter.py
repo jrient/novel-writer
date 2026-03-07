@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.models.chapter import Chapter
 from app.models.project import Project
-from app.schemas.chapter import ChapterCreate, ChapterUpdate, ChapterResponse, ChapterReorderItem
+from app.schemas.chapter import ChapterCreate, ChapterUpdate, ChapterResponse, ChapterReorderItem, ChapterReorderRequest
 
 router = APIRouter(
     prefix="/api/v1/projects/{project_id}/chapters",
@@ -179,17 +179,18 @@ async def delete_chapter(
     await db.commit()
 
 
-@router.put("/reorder", response_model=List[ChapterResponse])
+@router.post("/reorder", response_model=List[ChapterResponse])
 async def reorder_chapters(
     project_id: int,
-    items: List[ChapterReorderItem],
+    payload: ChapterReorderRequest,
     db: AsyncSession = Depends(get_db),
 ):
     """
     批量更新章节排序
-    请求体为 [{id: int, sort_order: int}, ...] 列表
+    请求体为 {orders: [{id: int, sort_order: int}, ...]}
     """
     await _get_project_or_404(project_id, db)
+    items = payload.orders
 
     # 批量获取所有目标章节
     chapter_ids = [item.id for item in items]

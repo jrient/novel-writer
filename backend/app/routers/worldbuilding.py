@@ -44,7 +44,7 @@ def build_tree(entries: List[WorldbuildingEntry]) -> List[WorldbuildingTreeRespo
     return roots
 
 
-@router.get("/", response_model=WorldbuildingListResponse)
+@router.get("/", response_model=List[WorldbuildingResponse])
 async def get_worldbuilding(
     project_id: int,
     category: str = None,
@@ -62,9 +62,7 @@ async def get_worldbuilding(
     query = query.order_by(WorldbuildingEntry.sort_order)
 
     result = await db.execute(query)
-    entries = result.scalars().all()
-
-    return WorldbuildingListResponse(items=entries, total=len(entries))
+    return result.scalars().all()
 
 
 @router.get("/tree", response_model=List[WorldbuildingTreeResponse])

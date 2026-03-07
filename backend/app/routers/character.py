@@ -20,7 +20,7 @@ from app.schemas.character import (
 router = APIRouter(prefix="/api/v1/projects/{project_id}/characters", tags=["characters"])
 
 
-@router.get("/", response_model=CharacterListResponse)
+@router.get("/", response_model=List[CharacterResponse])
 async def get_characters(
     project_id: int,
     role_type: str = None,
@@ -39,9 +39,7 @@ async def get_characters(
     query = query.order_by(Character.id)
 
     result = await db.execute(query)
-    characters = result.scalars().all()
-
-    return CharacterListResponse(items=characters, total=len(characters))
+    return result.scalars().all()
 
 
 @router.post("/", response_model=CharacterResponse)

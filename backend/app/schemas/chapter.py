@@ -48,3 +48,8 @@ class ChapterReorderItem(BaseModel):
     """批量重排序时单条记录"""
     id: int
     sort_order: int
+
+
+class ChapterReorderRequest(BaseModel):
+    """批量重排序请求体"""
+    orders: list[ChapterReorderItem]
