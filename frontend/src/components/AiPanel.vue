@@ -402,9 +402,32 @@ function stopGeneration() {
 }
 
 function copyOutput() {
-  navigator.clipboard.writeText(outputText.value).then(() => {
+  const text = outputText.value
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      ElMessage.success('已复制到剪贴板')
+    }).catch(() => {
+      fallbackCopy(text)
+    })
+  } else {
+    fallbackCopy(text)
+  }
+}
+
+function fallbackCopy(text: string) {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.appendChild(textarea)
+  textarea.select()
+  try {
+    document.execCommand('copy')
     ElMessage.success('已复制到剪贴板')
-  })
+  } catch {
+    ElMessage.error('复制失败，请手动复制')
+  }
+  document.body.removeChild(textarea)
 }
 
 function insertToEditor() {
