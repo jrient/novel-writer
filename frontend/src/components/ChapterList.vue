@@ -65,6 +65,7 @@
 
     <!-- 新建章节对话框 -->
     <el-dialog
+      :close-on-press-escape="false"
       v-model="showCreateDialog"
       title="新建章节"
       width="400px"

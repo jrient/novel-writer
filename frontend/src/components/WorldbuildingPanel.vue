@@ -63,6 +63,7 @@
 
     <!-- 编辑对话框 -->
     <el-dialog
+      :close-on-press-escape="false"
       v-model="showEditDialog"
       :title="editingEntry ? '编辑设定' : '新建设定'"
       width="600px"

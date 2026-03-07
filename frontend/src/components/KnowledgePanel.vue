@@ -40,6 +40,7 @@
     </div>
 
     <el-dialog
+      :close-on-press-escape="false"
       v-model="dialogVisible"
       :title="isEditing ? '编辑知识条目' : '手动添加知识'"
       width="600px"

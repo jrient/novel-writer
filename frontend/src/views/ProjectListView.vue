@@ -124,6 +124,7 @@
 
     <!-- 新建项目对话框 -->
     <el-dialog
+      :close-on-press-escape="false"
       v-model="showCreateDialog"
       title="新建项目"
       width="520px"

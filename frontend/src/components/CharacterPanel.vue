@@ -63,6 +63,7 @@
 
     <!-- 角色详情/编辑对话框 -->
     <el-dialog
+      :close-on-press-escape="false"
       v-model="showEditDialog"
       :title="editingCharacter ? '编辑角色' : '新建角色'"
       width="600px"

@@ -47,6 +47,7 @@
 
     <!-- 编辑对话框 -->
     <el-dialog
+      :close-on-press-escape="false"
       v-model="showEditDialog"
       :title="editingNode ? '编辑节点' : '新建节点'"
       width="600px"
