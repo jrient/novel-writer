@@ -74,6 +74,7 @@
             :project-id="projectId"
             :chapter-id="chapterStore.currentChapter?.id"
             @insert-text="handleInsertText"
+            @replace-text="handleReplaceText"
             @chapters-updated="handleChaptersUpdated"
           />
         </aside>
@@ -133,6 +134,12 @@ function goBack() {
 function handleInsertText(text: string) {
   if (!chapterStore.currentChapter) return
   currentContent.value = currentContent.value + '\n\n' + text
+  handleContentChange(currentContent.value)
+}
+
+function handleReplaceText(text: string) {
+  if (!chapterStore.currentChapter) return
+  currentContent.value = text
   handleContentChange(currentContent.value)
 }
 

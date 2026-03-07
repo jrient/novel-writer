@@ -192,6 +192,11 @@
               <el-icon><CopyDocument /></el-icon>
             </el-button>
           </el-tooltip>
+          <el-tooltip content="替换当前章节内容" v-if="['rewrite', 'expand', 'analyze_expand'].includes(lastAction)">
+            <el-button size="small" text type="primary" @click="replaceContent">
+              <el-icon><RefreshRight /></el-icon>
+            </el-button>
+          </el-tooltip>
           <el-tooltip content="插入到编辑器末尾">
             <el-button size="small" text @click="insertToEditor">
               <el-icon><Bottom /></el-icon>
@@ -221,7 +226,7 @@ import { ref, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
-  Loading, Check, CopyDocument, Bottom, Delete, Close, Files,
+  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
@@ -238,11 +243,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'insert-text': [text: string]
+  'replace-text': [text: string]
   'chapters-updated': []
 }>()
 
 const generating = ref(false)
 const outputText = ref('')
+const lastAction = ref('')
 const errorText = ref('')
 const chatQuestion = ref('')
 const currentProvider = ref('')
@@ -296,6 +303,7 @@ function handleAction(action: AIGenerateRequest['action']) {
     return
   }
 
+  lastAction.value = action
   startGeneration({
     action,
     content,
@@ -434,6 +442,13 @@ function insertToEditor() {
   if (outputText.value) {
     emit('insert-text', outputText.value)
     ElMessage.success('已插入到编辑器')
+  }
+}
+
+function replaceContent() {
+  if (outputText.value) {
+    emit('replace-text', outputText.value)
+    ElMessage.success('已替换章节内容')
   }
 }
 
