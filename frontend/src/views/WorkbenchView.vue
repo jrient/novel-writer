@@ -74,6 +74,7 @@
             :project-id="projectId"
             :chapter-id="chapterStore.currentChapter?.id"
             @insert-text="handleInsertText"
+            @chapters-updated="handleChaptersUpdated"
           />
         </aside>
       </template>
@@ -133,6 +134,11 @@ function handleInsertText(text: string) {
   if (!chapterStore.currentChapter) return
   currentContent.value = currentContent.value + '\n\n' + text
   handleContentChange(currentContent.value)
+}
+
+async function handleChaptersUpdated() {
+  // 刷新章节列表
+  await chapterStore.fetchChapters(projectId.value)
 }
 
 async function handleExport(format: string) {

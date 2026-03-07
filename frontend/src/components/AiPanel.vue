@@ -84,7 +84,75 @@
           角色分析
         </el-button>
       </el-tooltip>
+
+      <el-tooltip content="AI 参考小说风格和知识库，批量生成前 X 章" placement="left">
+        <el-button
+          class="ai-btn batch-btn"
+          :disabled="generating"
+          @click="showBatchDialog = true"
+        >
+          <el-icon><Files /></el-icon>
+          批量写作
+        </el-button>
+      </el-tooltip>
     </div>
+
+    <!-- 批量生成对话框 -->
+    <el-dialog
+      v-model="showBatchDialog"
+      title="AI 批量写作"
+      width="480px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="100px" label-position="left">
+        <el-form-item label="章节数量">
+          <el-input-number
+            v-model="batchForm.chapter_count"
+            :min="1"
+            :max="30"
+            :step="1"
+          />
+          <span class="form-hint">章</span>
+        </el-form-item>
+        <el-form-item label="每章字数">
+          <el-input-number
+            v-model="batchForm.words_per_chapter"
+            :min="500"
+            :max="5000"
+            :step="100"
+          />
+          <span class="form-hint">字</span>
+        </el-form-item>
+        <el-form-item label="参考小说">
+          <el-select
+            v-model="batchForm.reference_ids"
+            multiple
+            placeholder="选择参考小说（可选）"
+            style="width: 100%"
+            :loading="loadingRefs"
+          >
+            <el-option
+              v-for="ref in referenceList"
+              :key="ref.id"
+              :label="ref.title"
+              :value="ref.id"
+            >
+              <span>{{ ref.title }}</span>
+              <span v-if="ref.writing_style" style="color: #a8a29e; font-size: 12px; margin-left: 8px">有风格分析</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="使用知识库">
+          <el-switch v-model="batchForm.use_knowledge" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showBatchDialog = false">取消</el-button>
+        <el-button type="primary" @click="startBatchGenerate" :loading="batchGenerating">
+          开始生成
+        </el-button>
+      </template>
+    </el-dialog>
 
     <!-- 自由对话输入 -->
     <div class="chat-input-area">
@@ -153,11 +221,13 @@ import { ref, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
-  Loading, Check, CopyDocument, Bottom, Delete, Close,
+  Loading, Check, CopyDocument, Bottom, Delete, Close, Files,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { streamGenerate, getAIConfig } from '@/api/ai'
-import type { AIGenerateRequest } from '@/api/ai'
+import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
+import type { AIGenerateRequest, BatchGenerateEvent } from '@/api/ai'
+import { getReferences } from '@/api/reference'
+import type { ReferenceNovel } from '@/api/reference'
 
 const props = defineProps<{
   currentChapterTitle?: string
@@ -168,6 +238,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'insert-text': [text: string]
+  'chapters-updated': []
 }>()
 
 const generating = ref(false)
@@ -177,7 +248,31 @@ const chatQuestion = ref('')
 const currentProvider = ref('')
 const outputRef = ref<HTMLElement | null>(null)
 
+// 批量生成相关
+const showBatchDialog = ref(false)
+const batchGenerating = ref(false)
+const loadingRefs = ref(false)
+const referenceList = ref<ReferenceNovel[]>([])
+const batchForm = ref({
+  chapter_count: 5,
+  words_per_chapter: 1500,
+  reference_ids: [] as number[],
+  use_knowledge: true,
+})
+
 let abortController: AbortController | null = null
+
+// 加载参考小说列表
+async function loadReferences() {
+  loadingRefs.value = true
+  try {
+    referenceList.value = await getReferences()
+  } catch {
+    // 静默失败
+  } finally {
+    loadingRefs.value = false
+  }
+}
 
 onMounted(async () => {
   try {
@@ -186,6 +281,7 @@ onMounted(async () => {
   } catch {
     // 静默失败
   }
+  loadReferences()
 })
 
 function handleAction(action: AIGenerateRequest['action']) {
@@ -243,6 +339,58 @@ function startGeneration(data: AIGenerateRequest) {
     },
     (error) => {
       generating.value = false
+      errorText.value = error
+    },
+  )
+}
+
+function startBatchGenerate() {
+  if (!props.projectId) {
+    ElMessage.warning('请先选择一个项目')
+    return
+  }
+
+  showBatchDialog.value = false
+  batchGenerating.value = true
+  generating.value = true
+  outputText.value = ''
+  errorText.value = ''
+
+  abortController = streamBatchGenerate(
+    props.projectId,
+    batchForm.value,
+    (event: BatchGenerateEvent) => {
+      switch (event.type) {
+        case 'progress':
+          outputText.value += `\n⏳ ${event.message}\n`
+          break
+        case 'outline':
+          outputText.value += `\n📋 大纲生成完成：\n${event.text}\n`
+          break
+        case 'chapter_stream':
+          outputText.value += event.text || ''
+          break
+        case 'chapter_done':
+          outputText.value += `\n\n✅ 第${event.chapter_index}章「${event.title}」完成（${event.word_count}字）\n`
+          break
+        case 'done':
+          outputText.value += `\n🎉 全部完成！共生成 ${event.total_chapters} 章\n`
+          generating.value = false
+          batchGenerating.value = false
+          emit('chapters-updated')
+          ElMessage.success(`批量生成完成，共 ${event.total_chapters} 章`)
+          break
+      }
+      // 自动滚动
+      nextTick(() => {
+        if (outputRef.value) {
+          outputRef.value.scrollTop = outputRef.value.scrollHeight
+        }
+      })
+    },
+    (error: string) => {
+      generating.value = false
+      batchGenerating.value = false
       errorText.value = error
     },
   )
@@ -361,6 +509,23 @@ function clearOutput() {
 .ai-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.batch-btn {
+  border-color: #667eea !important;
+  background-color: rgba(102, 126, 234, 0.06) !important;
+  color: #667eea !important;
+  font-weight: 500;
+}
+
+.batch-btn:hover:not(:disabled) {
+  background-color: rgba(102, 126, 234, 0.12) !important;
+}
+
+.form-hint {
+  margin-left: 8px;
+  color: #a8a29e;
+  font-size: 13px;
 }
 
 /* 自由对话区 */

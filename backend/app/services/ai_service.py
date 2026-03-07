@@ -119,6 +119,61 @@ PROMPTS = {
 用户问题：{question}
 
 请回答：""",
+
+    "batch_outline": """你是一位经验丰富的小说策划。请根据以下信息，为小说生成一个包含 {chapter_count} 章的详细大纲。
+
+要求：
+- 严格生成 {chapter_count} 章的大纲
+- 每个章节有明确的标题和内容概要（3-5句话）
+- 注意故事节奏的起伏安排，包含起承转合
+- 章节之间有清晰的情节递进关系
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+{context}
+
+{style_reference}
+
+{knowledge_reference}
+
+请严格按以下 JSON 格式输出（不要输出其他内容）：
+[
+  {{"chapter": 1, "title": "章节标题", "summary": "章节内容概要"}},
+  {{"chapter": 2, "title": "章节标题", "summary": "章节内容概要"}}
+]""",
+
+    "batch_chapter": """你是一位经验丰富的小说作家。请根据以下信息撰写小说的第 {chapter_index} 章。
+
+要求：
+- 字数约 {words_per_chapter} 字
+- 保持文风一致，情节紧凑
+- 自然衔接前后章节的内容
+- 注意人物性格的一致性
+- 直接输出章节正文，不要输出标题
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+{context}
+
+{style_reference}
+
+{knowledge_reference}
+
+完整大纲：
+{outline_text}
+
+当前章节大纲：
+第 {chapter_index} 章「{chapter_title}」：{chapter_summary}
+
+{previous_summary}
+
+请撰写第 {chapter_index} 章的正文内容：""",
 }
 
 # 内置演示内容模板
@@ -386,6 +441,81 @@ class AIService:
         elif actual_provider == "ollama":
             async for chunk in AIService._stream_ollama(prompt):
                 yield chunk
+
+    @staticmethod
+    async def generate_text(prompt: str, provider: str = None, max_tokens: int = 4000) -> str:
+        """非流式生成，收集完整响应文本"""
+        actual_provider = AIService._get_available_provider(provider)
+
+        if actual_provider == "demo":
+            return AIService._demo_outline_text()
+
+        if actual_provider == "openai":
+            try:
+                from openai import AsyncOpenAI
+                client = AsyncOpenAI(
+                    api_key=settings.OPENAI_API_KEY,
+                    base_url=settings.OPENAI_BASE_URL,
+                )
+                resp = await client.chat.completions.create(
+                    model=settings.OPENAI_MODEL,
+                    messages=[
+                        {"role": "system", "content": "你是一位专业的中文小说创作助手，擅长各类文学创作。请严格按要求的格式输出。"},
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=0.8,
+                    max_tokens=max_tokens,
+                )
+                return resp.choices[0].message.content or ""
+            except Exception as e:
+                raise RuntimeError(f"OpenAI 调用失败: {e}")
+
+        if actual_provider == "anthropic":
+            try:
+                from anthropic import AsyncAnthropic
+                client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+                resp = await client.messages.create(
+                    model=settings.ANTHROPIC_MODEL,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}],
+                    system="你是一位专业的中文小说创作助手，擅长各类文学创作。请严格按要求的格式输出。",
+                    temperature=0.8,
+                )
+                return resp.content[0].text if resp.content else ""
+            except Exception as e:
+                raise RuntimeError(f"Anthropic 调用失败: {e}")
+
+        if actual_provider == "ollama":
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    response = await client.post(
+                        f"{settings.OLLAMA_BASE_URL}/api/generate",
+                        json={
+                            "model": settings.OLLAMA_MODEL,
+                            "prompt": prompt,
+                            "system": "你是一位专业的中文小说创作助手，擅长各类文学创作。请严格按要求的格式输出。",
+                            "stream": False,
+                        },
+                        timeout=120.0,
+                    )
+                    data = response.json()
+                    return data.get("response", "")
+            except Exception as e:
+                raise RuntimeError(f"Ollama 调用失败: {e}")
+
+        return ""
+
+    @staticmethod
+    def _demo_outline_text() -> str:
+        """演示模式生成大纲 JSON"""
+        return json.dumps([
+            {"chapter": 1, "title": "命运的起点", "summary": "主角在平凡的生活中遭遇了一件改变命运的事件，被卷入一个未知的世界。"},
+            {"chapter": 2, "title": "初入新世界", "summary": "主角开始适应新的环境，结识了第一位伙伴，同时发现了自己身上隐藏的特殊能力。"},
+            {"chapter": 3, "title": "第一次考验", "summary": "主角面临第一个重大挑战，在伙伴的帮助下勉强度过危机，但也暴露了自身的不足。"},
+            {"chapter": 4, "title": "暗流涌动", "summary": "表面平静之下，一股神秘势力开始关注主角。主角在探索过程中发现了更大的阴谋。"},
+            {"chapter": 5, "title": "抉择时刻", "summary": "主角面对艰难的选择，最终做出了决定，踏上了新的征程。故事在充满希望的氛围中展开新篇章。"},
+        ], ensure_ascii=False)
 
     @staticmethod
     async def _stream_demo(action: str) -> AsyncGenerator[str, None]:

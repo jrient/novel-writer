@@ -20,6 +20,14 @@ class AIGenerateRequest(BaseModel):
     chapter_id: Optional[int] = Field(default=None, description="当前章节 ID")
 
 
+class BatchGenerateRequest(BaseModel):
+    """AI 批量生成请求"""
+    chapter_count: int = Field(default=5, ge=1, le=30, description="生成章节数")
+    words_per_chapter: int = Field(default=1500, ge=500, le=5000, description="每章字数")
+    reference_ids: List[int] = Field(default_factory=list, description="参考小说 ID 列表")
+    use_knowledge: bool = Field(default=True, description="是否使用知识库")
+
+
 class AIConfigResponse(BaseModel):
     """AI 配置信息响应"""
     default_provider: str

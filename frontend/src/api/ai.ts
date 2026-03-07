@@ -14,6 +14,24 @@ export interface AIGenerateRequest {
   chapter_id?: number
 }
 
+export interface BatchGenerateRequest {
+  chapter_count: number
+  words_per_chapter: number
+  reference_ids: number[]
+  use_knowledge: boolean
+}
+
+export interface BatchGenerateEvent {
+  type: 'progress' | 'outline' | 'chapter_stream' | 'chapter_done' | 'done' | 'error'
+  message?: string
+  text?: string
+  chapter_index?: number
+  title?: string
+  chapter_id?: number
+  word_count?: number
+  total_chapters?: number
+}
+
 export interface AIConfig {
   default_provider: string
   available_providers: string[]
@@ -99,6 +117,72 @@ export function streamGenerate(
         }
       }
       onDone()
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') {
+        onError(err.message || '网络请求失败')
+      }
+    })
+
+  return controller
+}
+
+/**
+ * 流式批量生成章节
+ */
+export function streamBatchGenerate(
+  projectId: number,
+  data: BatchGenerateRequest,
+  onEvent: (event: BatchGenerateEvent) => void,
+  onError: (error: string) => void,
+): AbortController {
+  const controller = new AbortController()
+
+  fetch(`/api/v1/projects/${projectId}/ai/batch-generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    signal: controller.signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: '请求失败' }))
+        onError(err.detail || '请求失败')
+        return
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        onError('无法读取响应流')
+        return
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const payload = JSON.parse(line.slice(6)) as BatchGenerateEvent
+              if (payload.type === 'error') {
+                onError(payload.message || '生成失败')
+                return
+              }
+              onEvent(payload)
+            } catch {
+              // 忽略解析错误
+            }
+          }
+        }
+      }
     })
     .catch((err) => {
       if (err.name !== 'AbortError') {
