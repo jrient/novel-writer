@@ -6,8 +6,11 @@
 
       <component :is="nodeIcon" class="node-icon" :style="{ color: statusColor }" />
 
-      <span class="node-title">{{ node.title }}</span>
+      <span class="node-title" :title="node.content || node.title">{{ node.title }}</span>
 
+      <el-tag v-if="node.status !== 'planning'" :type="node.status === 'completed' ? 'success' : ''" size="small" class="node-status">
+        {{ node.status === 'completed' ? '完成' : '写作中' }}
+      </el-tag>
       <span v-if="node.estimated_words" class="node-words">
         {{ (node.estimated_words / 1000).toFixed(1) }}k
       </span>
@@ -125,6 +128,11 @@ function toggleExpand() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.node-status {
+  margin-right: 4px;
+  font-size: 10px;
 }
 
 .node-words {

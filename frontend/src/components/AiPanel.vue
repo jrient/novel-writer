@@ -19,7 +19,7 @@
     <div class="ai-actions">
       <p class="section-title">创作辅助</p>
 
-      <el-tooltip content="AI 将根据当前内容续写故事" placement="left">
+      <el-tooltip content="根据当前内容续写，完成后自动追加到章节末尾" placement="left">
         <el-button
           class="ai-btn"
           :disabled="generating"
@@ -30,7 +30,7 @@
         </el-button>
       </el-tooltip>
 
-      <el-tooltip content="AI 将改写润色当前内容" placement="left">
+      <el-tooltip content="改写润色当前内容，完成后可选择替换原文" placement="left">
         <el-button
           class="ai-btn"
           :disabled="generating"
@@ -41,7 +41,7 @@
         </el-button>
       </el-tooltip>
 
-      <el-tooltip content="AI 将扩写丰富当前内容" placement="left">
+      <el-tooltip content="扩写丰富当前内容，完成后可选择替换原文" placement="left">
         <el-button
           class="ai-btn"
           :disabled="generating"
