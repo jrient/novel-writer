@@ -370,4 +370,43 @@ onUnmounted(() => {
 :deep(.el-button--text:hover) {
   color: #667eea;
 }
+
+/* 响应式适配 */
+@media (max-width: 1024px) {
+  .sidebar-right {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .workbench-main {
+    flex-direction: column;
+  }
+
+  .sidebar-left {
+    width: 100%;
+    height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e7e5e4;
+  }
+
+  .sidebar-right {
+    width: 100%;
+    height: 300px;
+    border-left: none;
+    border-top: 1px solid #e7e5e4;
+  }
+
+  .workbench-header {
+    padding: 0 12px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .editor-column {
+    min-height: 300px;
+  }
+}
 </style>

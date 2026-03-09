@@ -568,4 +568,29 @@ onMounted(() => {
   font-size: 11px;
   color: #a8a29e;
 }
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .page-main {
+    padding: 16px;
+  }
+
+  .stats-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stat-item {
+    flex: 1 1 45%;
+    padding: 12px 16px;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-content {
+    padding: 0 16px;
+  }
+}
 </style>
