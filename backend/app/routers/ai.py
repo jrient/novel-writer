@@ -240,6 +240,7 @@ async def batch_generate(
                 chapter_prompt = PROMPTS["batch_chapter"].format(
                     chapter_index=chapter_index,
                     words_per_chapter=payload.words_per_chapter,
+                    min_words=int(payload.words_per_chapter * 0.8),
                     title=title,
                     genre=genre,
                     description=description,
