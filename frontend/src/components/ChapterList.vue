@@ -285,7 +285,7 @@ async function handleBatchDelete() {
 .list-title {
   font-size: 14px;
   font-weight: 600;
-  color: #57534e;
+  color: #5C5C5C;
   letter-spacing: 0.5px;
 }
 
@@ -299,7 +299,7 @@ async function handleBatchDelete() {
 .empty-chapters {
   text-align: center;
   padding: 32px 16px;
-  color: #a8a29e;
+  color: #9E9E9E;
   font-size: 13px;
 }
 
@@ -315,12 +315,12 @@ async function handleBatchDelete() {
 }
 
 .chapter-item:hover {
-  background-color: rgba(102, 126, 234, 0.04);
+  background-color: rgba(107, 123, 141, 0.04);
 }
 
 .chapter-item.active {
-  background-color: rgba(102, 126, 234, 0.08);
-  border-left-color: #667eea;
+  background-color: rgba(107, 123, 141, 0.08);
+  border-left-color: #6B7B8D;
 }
 
 .chapter-info {
@@ -332,21 +332,21 @@ async function handleBatchDelete() {
 .chapter-order {
   display: block;
   font-size: 11px;
-  color: #a8a29e;
+  color: #9E9E9E;
   margin-bottom: 2px;
 }
 
 .chapter-title {
   display: block;
   font-size: 13px;
-  color: #1c1917;
+  color: #2C2C2C;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .chapter-item.active .chapter-title {
-  color: #667eea;
+  color: #6B7B8D;
   font-weight: 500;
 }
 
@@ -359,10 +359,10 @@ async function handleBatchDelete() {
 
 .chapter-status {
   font-size: 10px;
-  color: #a8a29e;
+  color: #9E9E9E;
   padding: 1px 4px;
   border-radius: 3px;
-  background: #f5f3f0;
+  background: #F0EFEC;
 }
 
 .chapter-status.has-content {
@@ -372,7 +372,7 @@ async function handleBatchDelete() {
 
 .word-count {
   font-size: 11px;
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 /* 删除按钮：默认隐藏，悬停显示 */
@@ -405,7 +405,7 @@ async function handleBatchDelete() {
 }
 
 .batch-info {
-  color: #a8a29e;
+  color: #9E9E9E;
   font-size: 12px;
 }
 
@@ -423,7 +423,7 @@ async function handleBatchDelete() {
 
 /* 批量选中状态 */
 .chapter-item.selected {
-  background-color: rgba(102, 126, 234, 0.08);
+  background-color: rgba(107, 123, 141, 0.08);
 }
 
 .rename-input {

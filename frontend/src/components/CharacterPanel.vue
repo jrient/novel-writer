@@ -288,7 +288,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 .panel-header {
@@ -297,13 +297,13 @@ onMounted(() => {
   align-items: center;
   padding: 20px 32px;
   background: white;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid #E0DFDC;
 }
 
 .panel-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
 }
 
 .filter-bar {
@@ -314,14 +314,14 @@ onMounted(() => {
 
 :deep(.filter-bar .el-radio-button__inner) {
   background-color: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
+  border-color: #E0DFDC;
+  color: #5C5C5C;
   border-radius: 8px;
   font-weight: 500;
 }
 
 :deep(.filter-bar .el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   border-color: transparent;
   color: white;
 }
@@ -338,22 +338,22 @@ onMounted(() => {
   padding: 16px;
   margin-bottom: 12px;
   background-color: white;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid #e7e5e4;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid #E0DFDC;
+  box-shadow: 0 1px 2px rgba(44, 44, 44, 0.03);
 }
 
 .character-card:hover {
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(107, 123, 141, 0.08);
+  border-color: #6B7B8D;
   transform: translateY(-1px);
 }
 
 .character-card.active {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
+  border-color: #6B7B8D;
+  box-shadow: 0 0 0 2px rgba(107, 123, 141, 0.12);
 }
 
 .avatar-section {
@@ -376,14 +376,14 @@ onMounted(() => {
 .name {
   font-size: 15px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
 }
 
 .meta-row {
   display: flex;
   gap: 8px;
   font-size: 12px;
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 .meta-row span:not(:last-child)::after {

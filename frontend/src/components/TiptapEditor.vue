@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 /* 全屏专注模式 */
@@ -291,7 +291,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   z-index: 2000;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 .tiptap-wrapper.fullscreen .editor-container {
@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 6px 16px;
   background-color: white;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid #E0DFDC;
   gap: 2px;
   flex-shrink: 0;
 }
@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
   height: 28px;
   border: none;
   background: transparent;
-  color: #78716c;
+  color: #7A7A7A;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
@@ -335,12 +335,12 @@ onBeforeUnmount(() => {
 }
 
 .toolbar-btn:hover {
-  background-color: #f5f3f0;
-  color: #1c1917;
+  background-color: #F0EFEC;
+  color: #2C2C2C;
 }
 
 .toolbar-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   color: white;
 }
 
@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
 .toolbar-divider {
   width: 1px;
   height: 20px;
-  background-color: #e7e5e4;
+  background-color: #E0DFDC;
   margin: 0 6px;
 }
 
@@ -369,12 +369,12 @@ onBeforeUnmount(() => {
 }
 
 .focus-btn {
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 .focus-btn:hover {
-  color: #667eea;
-  background-color: rgba(102, 126, 234, 0.08);
+  color: #6B7B8D;
+  background-color: rgba(107, 123, 141, 0.08);
 }
 
 /* 编辑器容器 */
@@ -394,8 +394,8 @@ onBeforeUnmount(() => {
   font-family: 'Noto Serif SC', serif;
   font-size: 17px;
   line-height: 2;
-  color: #1c1917;
-  caret-color: #667eea;
+  color: #2C2C2C;
+  caret-color: #6B7B8D;
   max-width: 720px;
   margin: 0 auto;
 }
@@ -417,7 +417,7 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror h2),
 :deep(.ProseMirror h3) {
   font-weight: 700;
-  color: #1c1917;
+  color: #2C2C2C;
   text-indent: 0;
   margin: 1.5em 0 0.8em;
 }
@@ -427,20 +427,20 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror h3) { font-size: 1.15em; }
 
 :deep(.ProseMirror blockquote) {
-  border-left: 3px solid #667eea;
+  border-left: 3px solid #6B7B8D;
   padding-left: 16px;
-  color: #78716c;
+  color: #7A7A7A;
   font-style: italic;
 }
 
 :deep(.ProseMirror hr) {
   border: none;
-  border-top: 1px solid #e7e5e4;
+  border-top: 1px solid #E0DFDC;
   margin: 2em 0;
 }
 
 :deep(.ProseMirror code) {
-  background: #f5f3f0;
+  background: #F0EFEC;
   padding: 2px 4px;
   border-radius: 3px;
   font-family: monospace;
@@ -453,9 +453,9 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 8px 24px;
   background-color: white;
-  border-top: 1px solid #e7e5e4;
+  border-top: 1px solid #E0DFDC;
   font-size: 12px;
-  color: #a8a29e;
+  color: #9E9E9E;
   flex-shrink: 0;
 }
 
@@ -470,7 +470,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 .saved-indicator {

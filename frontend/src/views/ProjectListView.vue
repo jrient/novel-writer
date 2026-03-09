@@ -213,7 +213,7 @@ const createRules: FormRules = {
   title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
 }
 
-const progressColor = '#667eea'
+const progressColor = '#6B7B8D'
 
 // 统计数据
 const totalWords = computed(() =>
@@ -339,17 +339,17 @@ onMounted(() => {
 <style scoped>
 .project-list-page {
   min-height: 100vh;
-  background-color: #f5f3f0;
+  background-color: #F0EFEC;
 }
 
 .page-header {
   background-color: white;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid #E0DFDC;
   padding: 0 32px;
   height: 64px;
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(44, 44, 44, 0.03);
 }
 
 .header-content {
@@ -374,7 +374,7 @@ onMounted(() => {
 .logo {
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -401,20 +401,20 @@ onMounted(() => {
   flex: 1;
   padding: 20px 24px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(44, 44, 44, 0.04);
   transition: all 0.2s ease;
 }
 
 .stat-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(44, 44, 44, 0.05);
   transform: translateY(-2px);
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -423,7 +423,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 12px;
-  color: #a8a29e;
+  color: #9E9E9E;
   margin-top: 4px;
 }
 
@@ -440,21 +440,21 @@ onMounted(() => {
 
 .empty-title {
   font-size: 24px;
-  color: #1c1917;
+  color: #2C2C2C;
   margin-bottom: 8px;
   font-family: 'Noto Serif SC', serif;
 }
 
 .empty-desc {
   font-size: 14px;
-  color: #a8a29e;
+  color: #9E9E9E;
   margin-bottom: 24px;
 }
 
 .loading-container {
   padding: 24px;
   background: white;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 /* 项目网格 */
@@ -467,15 +467,15 @@ onMounted(() => {
 .project-card {
   cursor: pointer;
   background-color: white !important;
-  border: 1px solid #e7e5e4 !important;
+  border: 1px solid #E0DFDC !important;
   transition: all 0.25s ease;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
 }
 
 .project-card:hover {
-  border-color: #667eea !important;
+  border-color: #6B7B8D !important;
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(107, 123, 141, 0.10) !important;
 }
 
 .card-header {
@@ -488,7 +488,7 @@ onMounted(() => {
 .project-title {
   font-size: 17px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
   margin: 0;
   flex: 1;
   margin-right: 8px;
@@ -496,16 +496,16 @@ onMounted(() => {
 }
 
 .more-btn {
-  color: #a8a29e !important;
+  color: #9E9E9E !important;
 }
 
 .more-btn:hover {
-  color: #667eea !important;
+  color: #6B7B8D !important;
 }
 
 .project-description {
   font-size: 13px;
-  color: #78716c;
+  color: #7A7A7A;
   line-height: 1.6;
   margin-bottom: 12px;
   display: -webkit-box;
@@ -526,10 +526,10 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.08);
+  color: #6B7B8D;
+  background: rgba(107, 123, 141, 0.08);
   padding: 2px 10px;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 .word-count-section {
@@ -546,19 +546,19 @@ onMounted(() => {
 .current-words {
   font-size: 16px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
 }
 
 .target {
   font-size: 12px;
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 .card-footer {
   display: flex;
   justify-content: flex-end;
   padding-top: 10px;
-  border-top: 1px solid #f5f5f4;
+  border-top: 1px solid #ECEAE6;
 }
 
 .create-time {
@@ -566,7 +566,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 /* 响应式适配 */

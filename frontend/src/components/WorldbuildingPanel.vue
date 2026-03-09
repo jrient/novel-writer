@@ -41,7 +41,7 @@
         @click="selectEntry(entry)"
       >
         <div class="entry-header">
-          <span class="entry-category" :style="{ borderColor: entry.color || '#667eea' }">
+          <span class="entry-category" :style="{ borderColor: entry.color || '#6B7B8D' }">
             {{ categoryLabel(entry.category) }}
           </span>
           <span class="entry-title">{{ entry.title }}</span>
@@ -157,7 +157,7 @@ const formData = ref<CreateWorldbuildingData & UpdateWorldbuildingData>({
   content: '',
   trigger_keywords: '',
   sort_order: 0,
-  color: '#667eea',
+  color: '#6B7B8D',
 })
 
 function categoryLabel(cat: string) {
@@ -195,7 +195,7 @@ function openCreateDialog() {
     content: '',
     trigger_keywords: '',
     sort_order: 0,
-    color: '#667eea',
+    color: '#6B7B8D',
   }
   keywordsInput.value = ''
   showEditDialog.value = true
@@ -209,7 +209,7 @@ function editEntry(entry: WorldbuildingEntry) {
     content: entry.content || '',
     trigger_keywords: entry.trigger_keywords || '',
     sort_order: entry.sort_order,
-    color: entry.color || '#667eea',
+    color: entry.color || '#6B7B8D',
   }
   keywordsInput.value = parseKeywords(entry.trigger_keywords).join(', ')
   showEditDialog.value = true
@@ -255,7 +255,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 .panel-header {
@@ -264,13 +264,13 @@ onMounted(() => {
   align-items: center;
   padding: 20px 32px;
   background: white;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid #E0DFDC;
 }
 
 .panel-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
 }
 
 .category-tabs {
@@ -295,23 +295,23 @@ onMounted(() => {
   padding: 16px;
   margin-bottom: 12px;
   background-color: white;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid #e7e5e4;
+  border: 1px solid #E0DFDC;
   position: relative;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(44, 44, 44, 0.03);
 }
 
 .entry-card:hover {
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(107, 123, 141, 0.08);
+  border-color: #6B7B8D;
   transform: translateY(-1px);
 }
 
 .entry-card.active {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
+  border-color: #6B7B8D;
+  box-shadow: 0 0 0 2px rgba(107, 123, 141, 0.12);
 }
 
 .entry-header {
@@ -325,20 +325,20 @@ onMounted(() => {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 4px;
-  background-color: #f5f3f0;
-  color: #78716c;
+  background-color: #F0EFEC;
+  color: #7A7A7A;
   border-left: 2px solid;
 }
 
 .entry-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
 }
 
 .entry-preview {
   font-size: 13px;
-  color: #78716c;
+  color: #7A7A7A;
   line-height: 1.6;
   margin-bottom: 8px;
 }
@@ -368,7 +368,7 @@ onMounted(() => {
 
 .form-tip {
   font-size: 11px;
-  color: #a8a29e;
+  color: #9E9E9E;
   margin-top: 4px;
 }
 </style>

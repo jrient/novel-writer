@@ -28,7 +28,7 @@
           :percentage="wordProgress"
           :width="28"
           :stroke-width="3"
-          color="#667eea"
+          color="#6B7B8D"
           :show-text="false"
           class="progress-circle"
         />
@@ -246,7 +246,7 @@ onUnmounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 .workbench-header {
@@ -256,9 +256,9 @@ onUnmounted(() => {
   height: 56px;
   padding: 0 24px;
   background-color: white;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid #E0DFDC;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(44, 44, 44, 0.03);
 }
 
 .header-left,
@@ -276,19 +276,19 @@ onUnmounted(() => {
 .project-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
   font-family: 'Noto Serif SC', serif;
 }
 
 .genre-tag {
-  color: #78716c !important;
-  border-color: #e7e5e4 !important;
-  background-color: #fafaf9 !important;
+  color: #7A7A7A !important;
+  border-color: #E0DFDC !important;
+  background-color: #F7F6F3 !important;
 }
 
 .total-words {
   font-size: 14px;
-  color: #57534e;
+  color: #5C5C5C;
   font-weight: 500;
 }
 
@@ -297,11 +297,11 @@ onUnmounted(() => {
 }
 
 .export-btn {
-  color: #57534e !important;
+  color: #5C5C5C !important;
 }
 
 .export-btn:hover {
-  color: #667eea !important;
+  color: #6B7B8D !important;
 }
 
 .workbench-main {
@@ -313,7 +313,7 @@ onUnmounted(() => {
 .sidebar-left {
   width: 260px;
   flex-shrink: 0;
-  border-right: 1px solid #e7e5e4;
+  border-right: 1px solid #E0DFDC;
   overflow: hidden;
   background: white;
 }
@@ -323,13 +323,13 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #fafaf9;
+  background: #F7F6F3;
 }
 
 .sidebar-right {
   width: 340px;
   flex-shrink: 0;
-  border-left: 1px solid #e7e5e4;
+  border-left: 1px solid #E0DFDC;
   overflow: hidden;
   background: white;
 }
@@ -339,36 +339,36 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 .story-bible-panel {
   flex: 1;
   overflow: hidden;
-  background: #fafaf9;
+  background: #F7F6F3;
 }
 
 :deep(.el-radio-button__inner) {
   background-color: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
+  border-color: #E0DFDC;
+  color: #5C5C5C;
   border-radius: 8px;
   padding: 8px 16px;
   font-weight: 500;
 }
 
 :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   border-color: transparent;
   color: white;
 }
 
 :deep(.el-button--text) {
-  color: #57534e;
+  color: #5C5C5C;
 }
 
 :deep(.el-button--text:hover) {
-  color: #667eea;
+  color: #6B7B8D;
 }
 
 /* 响应式适配 */
@@ -387,14 +387,14 @@ onUnmounted(() => {
     width: 100%;
     height: 200px;
     border-right: none;
-    border-bottom: 1px solid #e7e5e4;
+    border-bottom: 1px solid #E0DFDC;
   }
 
   .sidebar-right {
     width: 100%;
     height: 300px;
     border-left: none;
-    border-top: 1px solid #e7e5e4;
+    border-top: 1px solid #E0DFDC;
   }
 
   .workbench-header {

@@ -193,15 +193,15 @@ onMounted(() => {
   padding: 32px;
   height: 100%;
   overflow-y: auto;
-  background: #fafaf9;
+  background: #F7F6F3;
 }
 
 .search-section {
   margin-bottom: 24px;
   background: white;
   padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(44, 44, 44, 0.05);
 }
 
 .search-row {
@@ -215,7 +215,7 @@ onMounted(() => {
 }
 
 .add-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   border: none;
   border-radius: 8px;
   white-space: nowrap;
@@ -228,13 +228,13 @@ onMounted(() => {
 
 .knowledge-item {
   margin-bottom: 0;
-  border-radius: 12px;
-  border: 1px solid #e7e5e4;
+  border-radius: 14px;
+  border: 1px solid #E0DFDC;
   transition: all 0.2s ease;
 }
 
 .knowledge-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(44, 44, 44, 0.05);
   transform: translateY(-2px);
 }
 
@@ -245,7 +245,7 @@ onMounted(() => {
 }
 
 .keyword-tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   color: white;
   padding: 4px 12px;
   border-radius: 6px;
@@ -257,12 +257,12 @@ onMounted(() => {
   margin: 0 0 12px 0;
   font-size: 15px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
   line-height: 1.4;
 }
 
 .content {
-  color: #57534e;
+  color: #5C5C5C;
   font-size: 14px;
   line-height: 1.7;
   margin: 0 0 12px 0;
@@ -276,9 +276,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #a8a29e;
+  color: #9E9E9E;
   padding-top: 12px;
-  border-top: 1px solid #f5f5f4;
+  border-top: 1px solid #ECEAE6;
 }
 
 .source {
@@ -291,16 +291,16 @@ onMounted(() => {
 :deep(.el-input__wrapper) {
   border-radius: 8px;
   box-shadow: none;
-  border: 1px solid #e7e5e4;
+  border: 1px solid #E0DFDC;
 }
 
 :deep(.el-input__wrapper:hover) {
-  border-color: #667eea;
+  border-color: #6B7B8D;
 }
 
 :deep(.el-input-group__append) {
   border-radius: 0 8px 8px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   border: none;
   color: white;
 }
@@ -311,7 +311,7 @@ onMounted(() => {
 }
 
 .item-actions .edit-btn {
-  color: #667eea !important;
+  color: #6B7B8D !important;
 }
 
 .item-actions .delete-btn {

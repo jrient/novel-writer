@@ -198,7 +198,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #fafaf9;
+  background-color: #F7F6F3;
 }
 
 .panel-header {
@@ -207,13 +207,13 @@ onMounted(() => {
   align-items: center;
   padding: 20px 32px;
   background: white;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid #E0DFDC;
 }
 
 .panel-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
 }
 
 .outline-tree {

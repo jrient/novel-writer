@@ -139,7 +139,7 @@
               :value="ref.id"
             >
               <span>{{ ref.title }}</span>
-              <span v-if="ref.writing_style" style="color: #a8a29e; font-size: 12px; margin-left: 8px">有风格分析</span>
+              <span v-if="ref.writing_style" style="color: #9E9E9E; font-size: 12px; margin-left: 8px">有风格分析</span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -513,13 +513,13 @@ function clearOutput() {
 
 .ai-icon {
   font-size: 20px;
-  color: #667eea;
+  color: #6B7B8D;
 }
 
 .panel-header h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #1c1917;
+  color: #2C2C2C;
   margin: 0;
   flex: 1;
 }
@@ -529,8 +529,8 @@ function clearOutput() {
 }
 
 .chapter-info {
-  background: rgba(102, 126, 234, 0.05);
-  border: 1px solid rgba(102, 126, 234, 0.15);
+  background: rgba(107, 123, 141, 0.05);
+  border: 1px solid rgba(107, 123, 141, 0.12);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 16px;
@@ -538,13 +538,13 @@ function clearOutput() {
 
 .info-label {
   font-size: 11px;
-  color: #a8a29e;
+  color: #9E9E9E;
   margin-bottom: 4px;
 }
 
 .chapter-name {
   font-size: 13px;
-  color: #667eea;
+  color: #6B7B8D;
   font-weight: 500;
 }
 
@@ -554,7 +554,7 @@ function clearOutput() {
 
 .section-title {
   font-size: 12px;
-  color: #a8a29e;
+  color: #9E9E9E;
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -563,9 +563,9 @@ function clearOutput() {
 .ai-btn {
   width: 100%;
   margin-bottom: 8px;
-  background-color: #fafaf9;
-  border-color: #e7e5e4;
-  color: #57534e;
+  background-color: #F7F6F3;
+  border-color: #E0DFDC;
+  color: #5C5C5C;
   justify-content: flex-start;
   gap: 8px;
   height: 40px;
@@ -573,9 +573,9 @@ function clearOutput() {
 }
 
 .ai-btn:hover:not(:disabled) {
-  border-color: #667eea;
-  background-color: rgba(102, 126, 234, 0.06);
-  color: #667eea;
+  border-color: #6B7B8D;
+  background-color: rgba(107, 123, 141, 0.05);
+  color: #6B7B8D;
 }
 
 .ai-btn:disabled {
@@ -584,19 +584,19 @@ function clearOutput() {
 }
 
 .batch-btn {
-  border-color: #667eea !important;
-  background-color: rgba(102, 126, 234, 0.06) !important;
-  color: #667eea !important;
+  border-color: #6B7B8D !important;
+  background-color: rgba(107, 123, 141, 0.05) !important;
+  color: #6B7B8D !important;
   font-weight: 500;
 }
 
 .batch-btn:hover:not(:disabled) {
-  background-color: rgba(102, 126, 234, 0.12) !important;
+  background-color: rgba(107, 123, 141, 0.10) !important;
 }
 
 .form-hint {
   margin-left: 8px;
-  color: #a8a29e;
+  color: #9E9E9E;
   font-size: 13px;
 }
 
@@ -610,16 +610,16 @@ function clearOutput() {
 }
 
 .chat-input-wrap :deep(.el-textarea__inner) {
-  background-color: #fafaf9;
-  border-color: #e7e5e4;
-  color: #1c1917;
+  background-color: #F7F6F3;
+  border-color: #E0DFDC;
+  color: #2C2C2C;
   resize: none;
   padding-right: 40px;
   border-radius: 8px;
 }
 
 .chat-input-wrap :deep(.el-textarea__inner):focus {
-  border-color: #667eea;
+  border-color: #6B7B8D;
 }
 
 .send-btn {
@@ -650,7 +650,7 @@ function clearOutput() {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #667eea;
+  color: #6B7B8D;
 }
 
 .output-actions {
@@ -659,11 +659,11 @@ function clearOutput() {
 }
 
 .output-actions .el-button {
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 .output-actions .el-button:hover {
-  color: #667eea;
+  color: #6B7B8D;
 }
 
 .stop-btn {
@@ -672,8 +672,8 @@ function clearOutput() {
 
 .output-content {
   flex: 1;
-  background: #fafaf9;
-  border: 1px solid #e7e5e4;
+  background: #F7F6F3;
+  border: 1px solid #E0DFDC;
   border-radius: 8px;
   padding: 12px;
   overflow-y: auto;
@@ -688,13 +688,13 @@ function clearOutput() {
 
 .output-word-count {
   font-size: 11px;
-  color: #a8a29e;
+  color: #9E9E9E;
 }
 
 .generated-text {
   font-size: 13px;
   line-height: 1.8;
-  color: #1c1917;
+  color: #2C2C2C;
   white-space: pre-wrap;
   word-break: break-word;
   font-family: 'Noto Serif SC', 'PingFang SC', sans-serif;
@@ -708,7 +708,7 @@ function clearOutput() {
 
 .cursor-blink {
   animation: blink 1s step-end infinite;
-  color: #667eea;
+  color: #6B7B8D;
 }
 
 @keyframes blink {
