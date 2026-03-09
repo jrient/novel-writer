@@ -602,7 +602,8 @@ class AIService:
             import httpx
 
             async with httpx.AsyncClient(timeout=300.0) as client:
-                response = await client.post(
+                async with client.stream(
+                    "POST",
                     f"{settings.OLLAMA_BASE_URL}/api/generate",
                     json={
                         "model": settings.OLLAMA_MODEL,
@@ -615,15 +616,14 @@ class AIService:
                         },
                     },
                     timeout=300.0,
-                )
-
-                async for line in response.aiter_lines():
-                    if line:
-                        data = json.loads(line)
-                        if data.get("response"):
-                            yield f"data: {json.dumps({'text': data['response']}, ensure_ascii=False)}\n\n"
-                        if data.get("done"):
-                            yield f"data: {json.dumps({'done': True})}\n\n"
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line:
+                            data = json.loads(line)
+                            if data.get("response"):
+                                yield f"data: {json.dumps({'text': data['response']}, ensure_ascii=False)}\n\n"
+                            if data.get("done"):
+                                yield f"data: {json.dumps({'done': True})}\n\n"
 
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
