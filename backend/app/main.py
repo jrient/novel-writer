@@ -39,12 +39,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS 中间件（开发环境允许所有来源）
+# CORS 中间件
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -65,4 +65,10 @@ app.include_router(knowledge_router)
 @app.get("/")
 async def root():
     """根路径健康检查"""
-    return {"message": "Novel Writer API", "version": "1.0.0"}
+    return {"status": "ok"}
+
+
+@app.get("/.env")
+async def block_env():
+    """阻止 .env 文件扫描"""
+    return {"status": "not found"}

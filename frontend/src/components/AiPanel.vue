@@ -218,6 +218,9 @@
         <p v-if="errorText" class="error-text">{{ errorText }}</p>
         <pre v-else class="generated-text">{{ outputText }}<span v-if="generating" class="cursor-blink">|</span></pre>
       </div>
+      <div class="output-footer" v-if="outputText">
+        <span class="output-word-count">{{ outputText.length }} 字</span>
+      </div>
     </div>
   </div>
 </template>
@@ -356,8 +359,14 @@ function startGeneration(data: AIGenerateRequest) {
     },
     () => {
       generating.value = false
-      // 改写润色、扩写完成后提示替换章节内容
-      if (['rewrite', 'expand'].includes(lastAction.value) && outputText.value) {
+      if (!outputText.value) return
+
+      if (lastAction.value === 'continue') {
+        // 续写完成后自动追加到编辑器
+        emit('insert-text', outputText.value)
+        ElMessage.success('续写内容已追加到章节末尾')
+      } else if (['rewrite', 'expand'].includes(lastAction.value)) {
+        // 改写润色、扩写完成后提示替换章节内容
         ElMessageBox.confirm('是否用 AI 生成的内容替换当前章节？', '替换确认', {
           confirmButtonText: '替换',
           cancelButtonText: '保留原文',
@@ -669,6 +678,17 @@ function clearOutput() {
   padding: 12px;
   overflow-y: auto;
   max-height: 400px;
+}
+
+.output-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 0;
+}
+
+.output-word-count {
+  font-size: 11px;
+  color: #a8a29e;
 }
 
 .generated-text {

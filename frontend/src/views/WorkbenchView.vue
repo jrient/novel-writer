@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Back, Download } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -201,7 +201,26 @@ watch(
   { immediate: true }
 )
 
+// 离开页面时提醒未保存内容
+const hasUnsavedChanges = ref(false)
+
+watch(currentContent, () => {
+  hasUnsavedChanges.value = true
+})
+
+watch(() => chapterStore.saving, (saving) => {
+  if (!saving) hasUnsavedChanges.value = false
+})
+
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (hasUnsavedChanges.value) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('beforeunload', handleBeforeUnload)
   await Promise.all([
     projectStore.fetchProject(projectId.value),
     chapterStore.fetchChapters(projectId.value),
@@ -210,6 +229,10 @@ onMounted(async () => {
   if (chapterStore.chapters.length > 0 && !chapterStore.currentChapter) {
     chapterStore.setCurrentChapter(chapterStore.chapters[0])
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 </script>
 

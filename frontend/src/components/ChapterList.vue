@@ -48,6 +48,9 @@
             <span class="chapter-title">{{ chapter.title }}</span>
           </div>
           <div class="chapter-meta">
+            <span class="chapter-status" :class="chapter.word_count > 0 ? 'has-content' : ''">
+              {{ chapter.word_count > 0 ? '已写' : '空' }}
+            </span>
             <span class="word-count">{{ chapter.word_count.toLocaleString() }} 字</span>
             <!-- 删除按钮，悬停显示 -->
             <el-button
@@ -267,6 +270,19 @@ async function handleDelete(chapter: Chapter) {
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+}
+
+.chapter-status {
+  font-size: 10px;
+  color: #a8a29e;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #f5f3f0;
+}
+
+.chapter-status.has-content {
+  color: #7abf7a;
+  background: rgba(122, 191, 122, 0.1);
 }
 
 .word-count {

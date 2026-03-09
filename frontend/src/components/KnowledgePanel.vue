@@ -19,7 +19,10 @@
     </div>
 
     <div class="knowledge-list">
-      <el-empty v-if="!loading && knowledgeList.length === 0" description="暂无知识条目" />
+      <div v-if="loading" class="loading-state">
+        <el-skeleton :rows="3" animated />
+      </div>
+      <el-empty v-else-if="knowledgeList.length === 0" description="暂无知识条目" />
       <el-card v-for="item in knowledgeList" :key="item.id" class="knowledge-item">
         <template #header>
           <div class="item-header">
@@ -313,5 +316,9 @@ onMounted(() => {
 
 .item-actions .delete-btn {
   color: #f56c6c !important;
+}
+
+.loading-state {
+  padding: 24px;
 }
 </style>

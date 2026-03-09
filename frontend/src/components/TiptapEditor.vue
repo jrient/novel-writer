@@ -156,6 +156,7 @@ const emit = defineEmits<{
 const lastSaved = ref(false)
 const isFullscreen = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
+let savedHideTimer: ReturnType<typeof setTimeout> | null = null
 
 // 纯文本转 HTML：将换行分隔的段落转为 <p> 标签
 function textToHtml(text: string): string {
@@ -203,7 +204,12 @@ const editor = useEditor({
     debounceTimer = setTimeout(() => {
       emit('change', text)
       lastSaved.value = true
-    }, 2000)
+      // 3秒后隐藏保存提示
+      if (savedHideTimer) clearTimeout(savedHideTimer)
+      savedHideTimer = setTimeout(() => {
+        lastSaved.value = false
+      }, 3000)
+    }, 1000)
   },
 })
 
@@ -221,18 +227,32 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value
 }
 
-function handleEsc(e: KeyboardEvent) {
+function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && isFullscreen.value) {
     isFullscreen.value = false
+  }
+  // Ctrl+S / Cmd+S 立即保存
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    if (!editor.value) return
+    const html = editor.value.getHTML()
+    const text = htmlToText(html)
+    if (debounceTimer) clearTimeout(debounceTimer)
+    emit('change', text)
+    lastSaved.value = true
+    if (savedHideTimer) clearTimeout(savedHideTimer)
+    savedHideTimer = setTimeout(() => {
+      lastSaved.value = false
+    }, 3000)
   }
 }
 
 onMounted(() => {
-  document.addEventListener('keydown', handleEsc)
+  document.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleEsc)
+  document.removeEventListener('keydown', handleKeydown)
 })
 
 watch(
@@ -250,6 +270,7 @@ watch(
 
 onBeforeUnmount(() => {
   if (debounceTimer) clearTimeout(debounceTimer)
+  if (savedHideTimer) clearTimeout(savedHideTimer)
   editor.value?.destroy()
 })
 </script>
