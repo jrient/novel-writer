@@ -260,7 +260,6 @@ async def batch_generate(
                 if provider == "demo":
                     # 演示模式
                     demo_text = f"　　这是第{chapter_index}章「{chapter_title}」的内容。\n\n　　{chapter_summary}\n\n　　故事在这里展开，角色们面临新的挑战和机遇。随着情节的推进，一切都在向着不可预知的方向发展。每一个选择都将影响未来的走路，而命运的齿轮已经开始转动。\n\n　　这一章的故事就此告一段落，但更精彩的内容还在后面等待着读者。"
-                    import asyncio
                     # 模拟逐块输出
                     chunk_size = 20
                     for ci in range(0, len(demo_text), chunk_size):
