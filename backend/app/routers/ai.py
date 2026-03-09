@@ -216,6 +216,7 @@ async def batch_generate(
 
             # 步骤二：逐章生成
             previous_summary = ""
+            previous_ending = ""
             for i, chapter_info in enumerate(outline_data):
                 chapter_index = i + 1
                 chapter_title = chapter_info.get("title", f"第{chapter_index}章")
@@ -224,6 +225,7 @@ async def batch_generate(
                 yield f"data: {_json.dumps({'type': 'progress', 'message': f'正在生成第 {chapter_index}/{len(outline_data)} 章：{chapter_title}'}, ensure_ascii=False)}\n\n"
 
                 prev_text = f"前一章摘要：{previous_summary}" if previous_summary else "这是小说的第一章。"
+                prev_ending_text = f"上一章结尾内容：\n{previous_ending}" if previous_ending else ""
 
                 chapter_prompt = PROMPTS["batch_chapter"].format(
                     chapter_index=chapter_index,
@@ -238,6 +240,7 @@ async def batch_generate(
                     chapter_title=chapter_title,
                     chapter_summary=chapter_summary,
                     previous_summary=prev_text,
+                    previous_ending=prev_ending_text,
                 )
 
                 # 流式生成章节内容
@@ -293,8 +296,9 @@ async def batch_generate(
                 # 发送章节完成事件
                 yield f"data: {_json.dumps({'type': 'chapter_done', 'chapter_index': chapter_index, 'title': chapter_title, 'chapter_id': new_chapter.id, 'word_count': len(chapter_content)}, ensure_ascii=False)}\n\n"
 
-                # 记录摘要供下一章参考
+                # 记录摘要和结尾供下一章参考
                 previous_summary = chapter_summary or chapter_content[:200]
+                previous_ending = chapter_content[-800:] if chapter_content else ""
 
             # 更新项目总字数
             all_chapters_result = await db.execute(
