@@ -389,15 +389,21 @@ class AIService:
         """构建上下文信息文本"""
         parts = []
         if characters:
-            char_info = "\n".join(
-                f"- {c.get('name', '未命名')}({c.get('role_type', '配角')}): {c.get('personality', '无描述')}"
-                for c in characters[:5]
-            )
-            parts.append(f"角色设定：\n{char_info}")
+            char_lines = []
+            for c in characters[:10]:
+                line = f"- {c.get('name', '未命名')}({c.get('role_type', '配角')})"
+                if c.get('personality'):
+                    line += f"，性格：{c['personality']}"
+                if c.get('background'):
+                    line += f"，背景：{c['background'][:200]}"
+                if c.get('appearance'):
+                    line += f"，外貌：{c['appearance'][:100]}"
+                char_lines.append(line)
+            parts.append(f"角色设定：\n" + "\n".join(char_lines))
         if worldbuilding:
             world_info = "\n".join(
-                f"- {w.get('name', '未命名')}: {w.get('description', '')[:100]}"
-                for w in worldbuilding[:5]
+                f"- {w.get('name', '未命名')}: {w.get('description', '')[:200]}"
+                for w in worldbuilding[:10]
             )
             parts.append(f"世界观设定：\n{world_info}")
         return "\n\n".join(parts) if parts else ""

@@ -46,7 +46,13 @@ async def ai_generate(
         select(Character).where(Character.project_id == project_id).limit(10)
     )
     characters = [
-        {"name": c.name, "role_type": c.role_type, "personality": c.personality_traits or ""}
+        {
+            "name": c.name,
+            "role_type": c.role_type,
+            "personality": c.personality_traits or "",
+            "background": c.background or "",
+            "appearance": c.appearance or "",
+        }
         for c in chars_result.scalars().all()
     ]
 
@@ -115,7 +121,13 @@ async def batch_generate(
         select(Character).where(Character.project_id == project_id).limit(10)
     )
     characters = [
-        {"name": c.name, "role_type": c.role_type, "personality": c.personality_traits or ""}
+        {
+            "name": c.name,
+            "role_type": c.role_type,
+            "personality": c.personality_traits or "",
+            "background": c.background or "",
+            "appearance": c.appearance or "",
+        }
         for c in chars_result.scalars().all()
     ]
 
