@@ -44,6 +44,11 @@ class ChapterResponse(BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class ChapterBatchDeleteRequest(BaseModel):
+    """批量删除请求体"""
+    ids: list[int]
+
+
 class ChapterReorderItem(BaseModel):
     """批量重排序时单条记录"""
     id: int

@@ -2,6 +2,8 @@
 AI 路由
 处理 AI 写作辅助的 SSE 流式请求
 """
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
@@ -171,7 +173,15 @@ async def batch_generate(
 
             yield f"data: {_json.dumps({'type': 'progress', 'message': '正在生成大纲...'}, ensure_ascii=False)}\n\n"
 
-            outline_raw = await AIService.generate_text(outline_prompt)
+            # 带心跳的大纲生成，防止长时间无输出导致 Nginx 超时
+            outline_raw = None
+            gen_task = asyncio.create_task(AIService.generate_text(outline_prompt))
+            while not gen_task.done():
+                try:
+                    await asyncio.wait_for(asyncio.shield(gen_task), timeout=15)
+                except asyncio.TimeoutError:
+                    yield f": heartbeat\n\n"
+            outline_raw = gen_task.result()
 
             # 发送大纲文本
             yield f"data: {_json.dumps({'type': 'outline', 'text': outline_raw}, ensure_ascii=False)}\n\n"

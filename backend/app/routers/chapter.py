@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.models.chapter import Chapter
 from app.models.project import Project
-from app.schemas.chapter import ChapterCreate, ChapterUpdate, ChapterResponse, ChapterReorderItem, ChapterReorderRequest
+from app.schemas.chapter import ChapterCreate, ChapterUpdate, ChapterResponse, ChapterBatchDeleteRequest, ChapterReorderItem, ChapterReorderRequest
 
 router = APIRouter(
     prefix="/api/v1/projects/{project_id}/chapters",
@@ -90,6 +90,40 @@ async def create_chapter(
     await db.commit()
     await db.refresh(chapter)
     return chapter
+
+
+@router.post("/batch-delete", status_code=204)
+async def batch_delete_chapters(
+    project_id: int,
+    payload: ChapterBatchDeleteRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """批量删除章节，同步减少项目字数"""
+    if not payload.ids:
+        return
+
+    project = await _get_project_or_404(project_id, db)
+
+    # 批量获取所有目标章节
+    stmt = select(Chapter).where(
+        Chapter.id.in_(payload.ids),
+        Chapter.project_id == project_id,
+    )
+    result = await db.execute(stmt)
+    chapters_to_delete = result.scalars().all()
+
+    if not chapters_to_delete:
+        raise HTTPException(status_code=404, detail="未找到要删除的章节")
+
+    # 计算总字数并同步项目字数
+    total_word_count = sum(c.word_count for c in chapters_to_delete)
+    project.current_word_count = max(0, project.current_word_count - total_word_count)
+
+    # 批量删除
+    for chapter in chapters_to_delete:
+        await db.delete(chapter)
+
+    await db.commit()
 
 
 @router.get("/{chapter_id}", response_model=ChapterResponse)

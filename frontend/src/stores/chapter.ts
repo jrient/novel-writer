@@ -5,6 +5,7 @@ import {
   createChapter,
   updateChapter,
   deleteChapter,
+  batchDeleteChapters,
   reorderChapters,
 } from '@/api/chapter'
 import type { Chapter, CreateChapterData, UpdateChapterData, ChapterOrder } from '@/api/chapter'
@@ -74,6 +75,15 @@ export const useChapterStore = defineStore('chapter', () => {
     }
   }
 
+  // 批量删除章节
+  async function removeChapters(projectId: number, chapterIds: number[]) {
+    await batchDeleteChapters(projectId, chapterIds)
+    chapters.value = chapters.value.filter((c) => !chapterIds.includes(c.id))
+    if (currentChapter.value && chapterIds.includes(currentChapter.value.id)) {
+      currentChapter.value = chapters.value.length > 0 ? chapters.value[0] : null
+    }
+  }
+
   // 设置当前编辑章节
   function setCurrentChapter(chapter: Chapter | null) {
     currentChapter.value = chapter
@@ -98,6 +108,7 @@ export const useChapterStore = defineStore('chapter', () => {
     createNewChapter,
     updateCurrentChapter,
     removeChapter,
+    removeChapters,
     setCurrentChapter,
     reorderCurrentChapters,
   }

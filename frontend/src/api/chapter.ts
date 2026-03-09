@@ -58,6 +58,11 @@ export async function deleteChapter(projectId: number, chapterId: number): Promi
   return request.delete(`/projects/${projectId}/chapters/${chapterId}/`)
 }
 
+// 批量删除章节
+export async function batchDeleteChapters(projectId: number, chapterIds: number[]): Promise<void> {
+  return request.post(`/projects/${projectId}/chapters/batch-delete/`, { ids: chapterIds })
+}
+
 // 重新排序章节
 export async function reorderChapters(projectId: number, orders: ChapterOrder[]): Promise<void> {
   return request.post(`/projects/${projectId}/chapters/reorder/`, { orders })

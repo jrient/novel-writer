@@ -3,14 +3,44 @@
     <!-- 列表头部 -->
     <div class="list-header">
       <span class="list-title">章节目录</span>
-      <el-button
-        size="small"
-        type="primary"
-        :icon="Plus"
-        circle
-        @click="showCreateDialog = true"
-        title="新建章节"
-      />
+      <div class="header-actions">
+        <el-button
+          v-if="!batchMode && chapters.length > 0"
+          size="small"
+          text
+          type="info"
+          @click="enterBatchMode"
+          title="批量管理"
+        >
+          批量
+        </el-button>
+        <el-button
+          size="small"
+          type="primary"
+          :icon="Plus"
+          circle
+          @click="showCreateDialog = true"
+          title="新建章节"
+        />
+      </div>
+    </div>
+
+    <!-- 批量操作栏 -->
+    <div v-if="batchMode" class="batch-bar">
+      <el-checkbox
+        :model-value="isAllSelected"
+        :indeterminate="isIndeterminate"
+        @change="toggleSelectAll"
+      >
+        全选
+      </el-checkbox>
+      <span class="batch-info">已选 {{ selectedIds.size }} 项</span>
+      <div class="batch-actions">
+        <el-button size="small" type="danger" :disabled="selectedIds.size === 0" @click="handleBatchDelete">
+          删除
+        </el-button>
+        <el-button size="small" @click="exitBatchMode">取消</el-button>
+      </div>
     </div>
 
     <!-- 章节列表 -->
@@ -24,13 +54,22 @@
         v-for="chapter in chapters"
         :key="chapter.id"
         class="chapter-item"
-        :class="{ active: currentChapter?.id === chapter.id }"
-        @click="selectChapter(chapter)"
-        @dblclick="startRename(chapter)"
+        :class="{ active: !batchMode && currentChapter?.id === chapter.id, selected: batchMode && selectedIds.has(chapter.id) }"
+        @click="batchMode ? toggleSelect(chapter.id) : selectChapter(chapter)"
+        @dblclick="batchMode ? undefined : startRename(chapter)"
       >
+        <!-- 批量模式：复选框 -->
+        <el-checkbox
+          v-if="batchMode"
+          :model-value="selectedIds.has(chapter.id)"
+          @change="toggleSelect(chapter.id)"
+          @click.stop
+          class="batch-checkbox"
+        />
+
         <!-- 重命名输入框 -->
         <el-input
-          v-if="renamingId === chapter.id"
+          v-if="!batchMode && renamingId === chapter.id"
           v-model="renameValue"
           size="small"
           class="rename-input"
@@ -52,8 +91,9 @@
               {{ chapter.word_count > 0 ? '已写' : '空' }}
             </span>
             <span class="word-count">{{ chapter.word_count.toLocaleString() }} 字</span>
-            <!-- 删除按钮，悬停显示 -->
+            <!-- 删除按钮，悬停显示（非批量模式） -->
             <el-button
+              v-if="!batchMode"
               class="delete-btn"
               size="small"
               text
@@ -93,8 +133,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { ref, reactive, computed, nextTick } from 'vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { useChapterStore } from '@/stores/chapter'
 import type { Chapter } from '@/api/chapter'
@@ -177,6 +217,51 @@ async function handleDelete(chapter: Chapter) {
     cancelButtonText: '取消',
   })
   await chapterStore.removeChapter(props.projectId, chapter.id)
+}
+
+// ========== 批量操作 ==========
+const batchMode = ref(false)
+const selectedIds = reactive(new Set<number>())
+
+const isAllSelected = computed(() => chapters.value.length > 0 && selectedIds.size === chapters.value.length)
+const isIndeterminate = computed(() => selectedIds.size > 0 && selectedIds.size < chapters.value.length)
+
+function enterBatchMode() {
+  batchMode.value = true
+  selectedIds.clear()
+}
+
+function exitBatchMode() {
+  batchMode.value = false
+  selectedIds.clear()
+}
+
+function toggleSelect(id: number) {
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id)
+  } else {
+    selectedIds.add(id)
+  }
+}
+
+function toggleSelectAll(checked: unknown) {
+  if (checked) {
+    chapters.value.forEach((c) => selectedIds.add(c.id))
+  } else {
+    selectedIds.clear()
+  }
+}
+
+async function handleBatchDelete() {
+  const count = selectedIds.size
+  await ElMessageBox.confirm(`确定要删除选中的 ${count} 个章节吗？此操作不可恢复。`, '批量删除确认', {
+    type: 'warning',
+    confirmButtonText: `删除 ${count} 章`,
+    cancelButtonText: '取消',
+  })
+  await chapterStore.removeChapters(props.projectId, Array.from(selectedIds))
+  ElMessage.success(`已删除 ${count} 个章节`)
+  exitBatchMode()
 }
 </script>
 
@@ -299,6 +384,46 @@ async function handleDelete(chapter: Chapter) {
 
 .chapter-item:hover .delete-btn {
   opacity: 1;
+}
+
+/* 头部操作按钮组 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 批量操作栏 */
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fef9ef;
+  border-bottom: 1px solid #f0ede6;
+  font-size: 13px;
+}
+
+.batch-info {
+  color: #a8a29e;
+  font-size: 12px;
+}
+
+.batch-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+/* 批量复选框 */
+.batch-checkbox {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* 批量选中状态 */
+.chapter-item.selected {
+  background-color: rgba(102, 126, 234, 0.08);
 }
 
 .rename-input {
