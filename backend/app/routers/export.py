@@ -2,6 +2,7 @@
 导出路由
 支持导出项目为 TXT 或 Markdown 格式
 """
+from datetime import datetime
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -50,7 +51,7 @@ async def export_txt(
             lines.append(ch.content)
         lines.append("")
 
-    lines.append(f"\n--- 共 {project.current_word_count} 字 ---")
+    lines.append(f"\n--- 共 {project.current_word_count} 字 | 导出于 {datetime.now().strftime('%Y-%m-%d %H:%M')} ---")
 
     content = "\n".join(lines)
     filename = quote(f"{project.title}.txt")
