@@ -11,17 +11,29 @@ const routes: RouteRecordRaw[] = [
     path: '/projects',
     name: 'ProjectList',
     component: () => import('@/views/ProjectListView.vue'),
+    meta: { title: '我的项目' },
   },
   {
     path: '/project/:id',
     name: 'Workbench',
     component: () => import('@/views/WorkbenchView.vue'),
+    meta: { title: '创作工作台' },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/projects',
   },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+// 动态页面标题
+router.afterEach((to) => {
+  const title = (to.meta.title as string) || 'AI小说创作平台'
+  document.title = `${title} - AI小说创作平台`
 })
 
 export default router

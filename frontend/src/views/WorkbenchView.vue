@@ -226,6 +226,11 @@ onMounted(async () => {
     chapterStore.fetchChapters(projectId.value),
   ])
 
+  // 设置页面标题为项目名
+  if (projectStore.currentProject?.title) {
+    document.title = `${projectStore.currentProject.title} - AI小说创作平台`
+  }
+
   if (chapterStore.chapters.length > 0 && !chapterStore.currentChapter) {
     chapterStore.setCurrentChapter(chapterStore.chapters[0])
   }

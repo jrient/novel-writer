@@ -59,12 +59,18 @@ export const useChapterStore = defineStore('chapter', () => {
     }
   }
 
-  // 删除章节
+  // 删除章节（删除后自动选中相邻章节）
   async function removeChapter(projectId: number, chapterId: number) {
+    const index = chapters.value.findIndex((c) => c.id === chapterId)
     await deleteChapter(projectId, chapterId)
     chapters.value = chapters.value.filter((c) => c.id !== chapterId)
     if (currentChapter.value?.id === chapterId) {
-      currentChapter.value = null
+      if (chapters.value.length > 0) {
+        const nextIndex = Math.min(index, chapters.value.length - 1)
+        currentChapter.value = chapters.value[nextIndex]
+      } else {
+        currentChapter.value = null
+      }
     }
   }
 
