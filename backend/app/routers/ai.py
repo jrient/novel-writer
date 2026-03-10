@@ -281,7 +281,7 @@ async def batch_generate(
                         yield f"data: {_json.dumps({'type': 'chapter_stream', 'chapter_index': chapter_index, 'title': chapter_title, 'text': chunk}, ensure_ascii=False)}\n\n"
                         await asyncio.sleep(0.05)
                 else:
-                    # 真实 AI 流式生成
+                    # 真实 AI 流式生成（带心跳防断连）
                     if provider == "openai":
                         stream_gen = AIService._stream_openai(chapter_prompt)
                     elif provider == "anthropic":
@@ -289,7 +289,19 @@ async def batch_generate(
                     else:
                         stream_gen = AIService._stream_ollama(chapter_prompt)
 
-                    async for sse_line in stream_gen:
+                    stream_iter = stream_gen.__aiter__()
+                    stream_done = False
+                    while not stream_done:
+                        try:
+                            sse_line = await asyncio.wait_for(stream_iter.__anext__(), timeout=15)
+                        except asyncio.TimeoutError:
+                            # 超过 15 秒未收到数据，发送心跳保持连接
+                            yield f": heartbeat\n\n"
+                            continue
+                        except StopAsyncIteration:
+                            stream_done = True
+                            break
+
                         if sse_line.startswith("data: "):
                             try:
                                 payload_data = _json.loads(sse_line[6:].strip())

@@ -16,4 +16,4 @@ RUN mkdir -p /app/data /app/uploads
 # 生产模式取消注释下行
 # COPY . .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "300", "--reload"]

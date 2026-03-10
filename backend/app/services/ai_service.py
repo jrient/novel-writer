@@ -465,6 +465,7 @@ class AIService:
                 client = AsyncOpenAI(
                     api_key=settings.OPENAI_API_KEY,
                     base_url=settings.OPENAI_BASE_URL,
+                    timeout=600.0,
                 )
                 resp = await client.chat.completions.create(
                     model=settings.OPENAI_MODEL,
@@ -482,7 +483,7 @@ class AIService:
         if actual_provider == "anthropic":
             try:
                 from anthropic import AsyncAnthropic
-                client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+                client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=600.0)
                 resp = await client.messages.create(
                     model=settings.ANTHROPIC_MODEL,
                     max_tokens=max_tokens,
@@ -558,6 +559,7 @@ class AIService:
             client = AsyncOpenAI(
                 api_key=settings.OPENAI_API_KEY,
                 base_url=settings.OPENAI_BASE_URL,
+                timeout=600.0,
             )
 
             stream = await client.chat.completions.create(
@@ -587,7 +589,7 @@ class AIService:
         try:
             from anthropic import AsyncAnthropic
 
-            client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+            client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=600.0)
 
             async with client.messages.stream(
                 model=settings.ANTHROPIC_MODEL,
