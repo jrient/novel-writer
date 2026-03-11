@@ -8,8 +8,24 @@
     <!-- 加载状态 -->
     <div v-if="wizardStore.generating" class="generating-state">
       <el-icon class="loading-icon" :size="48"><Loading /></el-icon>
-      <p class="loading-text">AI 正在创作中...</p>
-      <p class="loading-hint">这可能需要 10-30 秒，请耐心等待</p>
+      <p class="loading-text">{{ phaseText }}</p>
+      <el-progress
+        :percentage="phaseProgress"
+        :stroke-width="6"
+        :show-text="false"
+        class="progress-bar"
+      />
+      <p class="loading-hint">预计需要 10-30 秒</p>
+      <el-button type="danger" plain @click="cancelGenerate" class="cancel-btn">
+        取消生成
+      </el-button>
+    </div>
+
+    <!-- 取消状态 -->
+    <div v-else-if="wizardStore.generatePhase === 'cancelled'" class="cancelled-state">
+      <el-icon :size="48" color="#E6A23C"><Warning /></el-icon>
+      <p class="cancelled-text">生成已取消</p>
+      <el-button type="primary" @click="retryGenerate">重新生成</el-button>
     </div>
 
     <!-- 错误状态 -->
@@ -38,7 +54,7 @@
       <!-- 大纲编辑 -->
       <div class="section">
         <div class="section-header">
-          <h3>章节大纲</h3>
+          <h3>章节大纲 ({{ wizardStore.outline.length }} 章，约 {{ wordsPerChapter }} 字/章)</h3>
           <el-button type="primary" text @click="addChapter">
             <el-icon><Plus /></el-icon> 添加章节
           </el-button>
@@ -73,7 +89,7 @@
       <!-- 角色编辑 -->
       <div class="section">
         <div class="section-header">
-          <h3>角色设定</h3>
+          <h3>角色设定 ({{ wizardStore.characters.length }} 个角色)</h3>
           <el-button type="primary" text @click="addCharacter">
             <el-icon><Plus /></el-icon> 添加角色
           </el-button>
@@ -145,22 +161,60 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { ArrowRight, Plus, Delete, Loading, Refresh } from '@element-plus/icons-vue'
+import { computed, onMounted } from 'vue'
+import { ArrowRight, Plus, Delete, Loading, Refresh, Warning } from '@element-plus/icons-vue'
 import { useWizardStore } from '@/stores/wizard'
 import type { ChapterOutlineItem, CharacterOutlineItem } from '@/api/wizard'
 
 const wizardStore = useWizardStore()
 
+// 进度文本
+const phaseText = computed(() => {
+  switch (wizardStore.generatePhase) {
+    case 'generating':
+      return '正在生成大纲...'
+    case 'outline':
+      return '大纲生成完成，正在生成角色...'
+    case 'characters':
+      return '角色生成完成，正在整理...'
+    default:
+      return 'AI 正在创作中...'
+  }
+})
+
+// 进度百分比
+const phaseProgress = computed(() => {
+  switch (wizardStore.generatePhase) {
+    case 'generating':
+      return 30
+    case 'outline':
+      return 60
+    case 'characters':
+      return 90
+    default:
+      return 10
+  }
+})
+
+// 每章字数
+const wordsPerChapter = computed(() => {
+  const count = wizardStore.getWordsPerChapter()
+  return count >= 10000 ? (count / 10000).toFixed(1) + ' 万' : count.toLocaleString()
+})
+
 onMounted(async () => {
   // 如果还没有生成内容，自动开始生成
-  if (wizardStore.outline.length === 0 && !wizardStore.generating) {
+  if (wizardStore.outline.length === 0 && !wizardStore.generating && wizardStore.generatePhase !== 'cancelled') {
     await wizardStore.generateOutlineAndCharacters()
   }
 })
 
 async function retryGenerate() {
   await wizardStore.generateOutlineAndCharacters()
+}
+
+function cancelGenerate() {
+  wizardStore.cancelGenerate()
 }
 
 function addChapter() {
@@ -223,9 +277,10 @@ function handleNext() {
   color: #7A7A7A;
 }
 
-.generating-state {
+.generating-state,
+.cancelled-state {
   text-align: center;
-  padding: 80px 0;
+  padding: 60px 0;
   background: white;
   border-radius: 14px;
   border: 1px solid #E0DFDC;
@@ -248,10 +303,26 @@ function handleNext() {
   margin-top: 16px;
 }
 
+.progress-bar {
+  width: 200px;
+  margin: 16px auto;
+}
+
 .loading-hint {
   font-size: 13px;
   color: #9E9E9E;
   margin-top: 8px;
+}
+
+.cancel-btn {
+  margin-top: 16px;
+}
+
+.cancelled-text {
+  font-size: 18px;
+  font-weight: 500;
+  color: #2C2C2C;
+  margin: 16px 0;
 }
 
 .error-alert {

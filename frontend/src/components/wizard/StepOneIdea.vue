@@ -69,7 +69,10 @@
               :step="10000"
               style="width: 100%"
             />
-            <div class="field-hint">建议：短篇小说 3-10 万字，中篇 10-30 万字，长篇 30 万字以上</div>
+            <div class="field-hint">
+              <span :class="novelSizeClass">{{ novelSizeLabel }}</span>
+              · 短篇 3-10 万 · 中篇 10-30 万 · 长篇 30 万+
+            </div>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -80,7 +83,10 @@
               :max="100"
               style="width: 100%"
             />
-            <div class="field-hint">每章约 {{ averageWordsPerChapter }} 字</div>
+            <div class="field-hint">
+              <span class="words-highlight">每章约 {{ averageWordsPerChapter }} 字</span>
+              <span v-if="wordsPerChapterHint" class="words-hint">{{ wordsPerChapterHint }}</span>
+            </div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -111,7 +117,31 @@ const rules: FormRules = {
 
 const averageWordsPerChapter = computed(() => {
   const count = Math.round(wizardStore.ideaData.target_word_count / wizardStore.ideaData.chapter_count)
+  if (count >= 10000) {
+    return (count / 10000).toFixed(1) + ' 万'
+  }
   return count.toLocaleString()
+})
+
+const novelSizeLabel = computed(() => {
+  const words = wizardStore.ideaData.target_word_count
+  if (words < 100000) return '短篇小说'
+  if (words < 300000) return '中篇小说'
+  return '长篇小说'
+})
+
+const novelSizeClass = computed(() => {
+  const words = wizardStore.ideaData.target_word_count
+  if (words < 100000) return 'size-short'
+  if (words < 300000) return 'size-medium'
+  return 'size-long'
+})
+
+const wordsPerChapterHint = computed(() => {
+  const count = Math.round(wizardStore.ideaData.target_word_count / wizardStore.ideaData.chapter_count)
+  if (count < 2000) return '（偏短，建议增加字数或减少章节）'
+  if (count > 10000) return '（偏长，建议增加章节数）'
+  return ''
 })
 
 const canProceed = computed(() => {
@@ -163,6 +193,31 @@ async function handleNext() {
   font-size: 12px;
   color: #9E9E9E;
   margin-top: 4px;
+}
+
+.size-short {
+  color: #67C23A;
+  font-weight: 500;
+}
+
+.size-medium {
+  color: #E6A23C;
+  font-weight: 500;
+}
+
+.size-long {
+  color: #F56C6C;
+  font-weight: 500;
+}
+
+.words-highlight {
+  color: #6B7B8D;
+  font-weight: 500;
+}
+
+.words-hint {
+  color: #E6A23C;
+  margin-left: 8px;
 }
 
 .step-actions {
