@@ -32,6 +32,42 @@ router = APIRouter(
 )
 
 
+def _extract_json_array(text: str, marker: str) -> list:
+    """从文本中提取 JSON 数组，支持多种格式"""
+    # 尝试找到标记后的内容
+    marker_pos = text.find(marker)
+    if marker_pos == -1:
+        return []
+
+    after_marker = text[marker_pos + len(marker):].strip()
+
+    # 方法1: 找到完整的 JSON 数组（从 [ 到匹配的 ]）
+    if after_marker.startswith('['):
+        bracket_count = 0
+        for i, char in enumerate(after_marker):
+            if char == '[':
+                bracket_count += 1
+            elif char == ']':
+                bracket_count -= 1
+                if bracket_count == 0:
+                    # 找到匹配的结束括号
+                    json_str = after_marker[:i + 1]
+                    try:
+                        return json.loads(json_str)
+                    except json.JSONDecodeError:
+                        break
+
+    # 方法2: 正则匹配（后备方案）
+    json_match = re.search(r'\[[\s\S]*?\]', after_marker)
+    if json_match:
+        try:
+            return json.loads(json_match.group())
+        except json.JSONDecodeError:
+            pass
+
+    return []
+
+
 @router.post("/generate")
 async def wizard_generate(
     payload: WizardGenerateRequest,
@@ -88,20 +124,9 @@ async def wizard_generate(
                     yield f": heartbeat\n\n"
             raw_content = gen_task.result()
 
-            # 解析大纲
-            outline_data = []
-            outline_match = re.search(r'===OUTLINE===\s*(\[.*?\])', raw_content, re.DOTALL)
-            if outline_match:
-                try:
-                    outline_data = json.loads(outline_match.group(1))
-                except json.JSONDecodeError:
-                    # 尝试更宽松的提取
-                    json_match = re.search(r'\[\s*\{.*?\}\s*\]', outline_match.group(1), re.DOTALL)
-                    if json_match:
-                        try:
-                            outline_data = json.loads(json_match.group())
-                        except json.JSONDecodeError:
-                            pass
+            # 使用改进的 JSON 提取方法
+            outline_data = _extract_json_array(raw_content, "===OUTLINE===")
+            characters_data = _extract_json_array(raw_content, "===CHARACTERS===")
 
             # 如果解析失败，生成默认大纲
             if not outline_data:
@@ -115,20 +140,6 @@ async def wizard_generate(
 
             # 发送大纲
             yield f"data: {json.dumps({'type': 'outline', 'data': outline_data}, ensure_ascii=False)}\n\n"
-
-            # 解析角色
-            characters_data = []
-            char_match = re.search(r'===CHARACTERS===\s*(\[.*?\])', raw_content, re.DOTALL)
-            if char_match:
-                try:
-                    characters_data = json.loads(char_match.group(1))
-                except json.JSONDecodeError:
-                    json_match = re.search(r'\[\s*\{.*?\}\s*\]', char_match.group(1), re.DOTALL)
-                    if json_match:
-                        try:
-                            characters_data = json.loads(json_match.group())
-                        except json.JSONDecodeError:
-                            pass
 
             # 如果没有角色，生成默认主角
             if not characters_data:

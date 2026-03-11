@@ -27,6 +27,14 @@
 
     <!-- 生成结果 -->
     <div v-else class="generate-result">
+      <!-- 重新生成按钮 -->
+      <div class="regenerate-bar">
+        <span class="hint-text">如果不满意，可以重新生成</span>
+        <el-button type="default" @click="retryGenerate" :loading="wizardStore.generating">
+          <el-icon><Refresh /></el-icon> 重新生成
+        </el-button>
+      </div>
+
       <!-- 大纲编辑 -->
       <div class="section">
         <div class="section-header">
@@ -138,7 +146,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { ArrowRight, Plus, Delete, Loading } from '@element-plus/icons-vue'
+import { ArrowRight, Plus, Delete, Loading, Refresh } from '@element-plus/icons-vue'
 import { useWizardStore } from '@/stores/wizard'
 import type { ChapterOutlineItem, CharacterOutlineItem } from '@/api/wizard'
 
@@ -248,6 +256,21 @@ function handleNext() {
 
 .error-alert {
   margin-bottom: 24px;
+}
+
+.regenerate-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(107, 123, 141, 0.05);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.hint-text {
+  font-size: 13px;
+  color: #7A7A7A;
 }
 
 .section {

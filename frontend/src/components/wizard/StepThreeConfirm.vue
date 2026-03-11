@@ -126,11 +126,13 @@ onMounted(() => {
 async function fetchReferences() {
   loading.value = true
   try {
-    const resp = await fetch('/api/v1/references')
+    const resp = await fetch('/api/v1/references/')
     if (resp.ok) {
       const data = await resp.json()
       references.value = data.items || data
     }
+  } catch (e) {
+    console.error('获取参考小说列表失败:', e)
   } finally {
     loading.value = false
   }
