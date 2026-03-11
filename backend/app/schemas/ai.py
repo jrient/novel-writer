@@ -32,6 +32,7 @@ class BatchGenerateRequest(BaseModel):
     words_per_chapter: int = Field(default=1500, ge=500, le=5000, description="每章字数")
     reference_ids: List[int] = Field(default_factory=list, description="参考小说 ID 列表")
     use_knowledge: bool = Field(default=True, description="是否使用知识库")
+    remove_ai_traces: bool = Field(default=True, description="是否在每章生成后进行 AI 除痕处理")
 
 
 class AIConfigResponse(BaseModel):

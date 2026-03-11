@@ -327,8 +327,35 @@ async def batch_generate(
                 await db.commit()
                 await db.refresh(new_chapter)
 
+                # AI 除痕处理
+                if payload.remove_ai_traces and provider != "demo":
+                    yield f"data: {_json.dumps({'type': 'progress', 'message': f'正在优化第 {chapter_index} 章...'}, ensure_ascii=False)}\n\n"
+
+                    try:
+                        remove_prompt = PROMPTS["remove_ai_traces"].format(
+                            target_words=payload.words_per_chapter,
+                            current_words=len(chapter_content),
+                            chapter_title=chapter_title,
+                            content=chapter_content,
+                        )
+                        refined_content = await AIService.generate_text(remove_prompt, max_tokens=len(chapter_content) + 500)
+
+                        if refined_content and len(refined_content) > 100:
+                            # 更新章节内容
+                            new_chapter.content = refined_content
+                            new_chapter.word_count = len(refined_content)
+                            await db.commit()
+                            await db.refresh(new_chapter)
+
+                            # 发送除痕完成事件（包含优化后的内容差量）
+                            diff_words = len(refined_content) - len(chapter_content)
+                            yield f"data: {_json.dumps({'type': 'refine_done', 'chapter_index': chapter_index, 'word_diff': diff_words, 'final_words': len(refined_content)}, ensure_ascii=False)}\n\n"
+                    except Exception as e:
+                        # 除痕失败不影响主流程
+                        yield f"data: {_json.dumps({'type': 'warning', 'message': f'除痕处理失败: {str(e)[:50]}'}, ensure_ascii=False)}\n\n"
+
                 # 发送章节完成事件
-                yield f"data: {_json.dumps({'type': 'chapter_done', 'chapter_index': chapter_index, 'title': chapter_title, 'chapter_id': new_chapter.id, 'word_count': len(chapter_content)}, ensure_ascii=False)}\n\n"
+                yield f"data: {_json.dumps({'type': 'chapter_done', 'chapter_index': chapter_index, 'title': chapter_title, 'chapter_id': new_chapter.id, 'word_count': new_chapter.word_count}, ensure_ascii=False)}\n\n"
 
                 # 记录摘要和结尾供下一章参考
                 previous_summary = chapter_summary or chapter_content[:200]
