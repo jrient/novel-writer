@@ -7,7 +7,7 @@
           <span class="logo-icon">&#9997;</span>
           <h1 class="logo">AI小说创作平台</h1>
         </div>
-        <el-button type="primary" :icon="Plus" @click="showCreateDialog = true" round>
+        <el-button type="primary" :icon="Plus" @click="goToWizard" round>
           新建项目
         </el-button>
       </div>
@@ -45,7 +45,7 @@
         <div class="empty-icon">&#9997;</div>
         <h2 class="empty-title">开始你的创作之旅</h2>
         <p class="empty-desc">点击下方按钮创建第一个项目</p>
-        <el-button type="primary" size="large" @click="showCreateDialog = true" round>创建第一个项目</el-button>
+        <el-button type="primary" size="large" @click="goToWizard" round>创建第一个项目</el-button>
       </div>
 
       <!-- 项目网格 -->
@@ -267,6 +267,10 @@ function formatRelativeDate(dateStr: string) {
 
 function goToWorkbench(id: number) {
   router.push(`/project/${id}`)
+}
+
+function goToWizard() {
+  router.push('/wizard')
 }
 
 function handleCommand(command: string, project: Project) {

@@ -177,6 +177,40 @@ PROMPTS = {
 {previous_ending}
 
 请撰写第 {chapter_index} 章的正文内容（注意紧密衔接上一章的结尾）：""",
+
+    "wizard_outline_characters": """你是一位经验丰富的小说策划和角色设计师。请根据用户提供的故事构思，生成详细的章节大纲和主要角色设定。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+目标字数：{target_word_count} 字
+章节数量：{chapter_count} 章
+
+{style_reference}
+
+请严格按以下 JSON 格式输出（不要输出其他任何内容）：
+
+第一步输出大纲（用 "===OUTLINE===" 标记开始）：
+===OUTLINE===
+[
+  {{"chapter": 1, "title": "章节标题", "summary": "章节内容概要（3-5句话，包含主要情节和转折点）"}},
+  {{"chapter": 2, "title": "章节标题", "summary": "章节内容概要"}}
+]
+
+第二步输出角色（用 "===CHARACTERS===" 标记开始）：
+===CHARACTERS===
+[
+  {{"name": "角色名", "role_type": "protagonist/antagonist/supporting/minor", "gender": "性别", "age": "年龄", "occupation": "职业/身份", "personality_traits": "性格特征", "appearance": "外貌描写", "background": "背景故事"}}
+]
+
+要求：
+1. 大纲要完整覆盖故事起承转合，注意节奏起伏
+2. 每章概要要有具体的情节，不要笼统描述
+3. 角色要有个性，避免脸谱化
+4. 主角必须有完整的背景故事和成长动机
+5. 配角也要有基本的性格和作用说明
+""",
 }
 
 # 内置演示内容模板

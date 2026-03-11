@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '创作工作台' },
   },
   {
+    path: '/wizard',
+    name: 'CreationWizard',
+    component: () => import('@/views/CreationWizardView.vue'),
+    meta: { title: '创作向导' },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },

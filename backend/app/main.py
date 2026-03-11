@@ -21,6 +21,7 @@ from app.routers import (
     reference_router,
     search_router,
     knowledge_router,
+    wizard_router,
 )
 
 
@@ -60,6 +61,7 @@ app.include_router(export_router)
 app.include_router(reference_router)
 app.include_router(search_router)
 app.include_router(knowledge_router)
+app.include_router(wizard_router)
 
 
 @app.get("/")
