@@ -14,6 +14,7 @@ from app.middleware import RequestIDMiddleware, RequestLoggingMiddleware
 # 导入所有模型，确保 Base.metadata 包含完整表定义
 import app.models  # noqa: F401
 from app.routers import (
+    auth_router,
     project_router,
     chapter_router,
     character_router,
@@ -28,6 +29,7 @@ from app.routers import (
     wizard_router,
     event_router,
     note_router,
+    admin_router,
 )
 
 
@@ -105,6 +107,7 @@ app.add_middleware(RequestIDMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
 # 注册路由
+app.include_router(auth_router)
 app.include_router(project_router)
 app.include_router(chapter_router)
 app.include_router(character_router)
@@ -119,6 +122,7 @@ app.include_router(knowledge_router)
 app.include_router(wizard_router)
 app.include_router(event_router)
 app.include_router(note_router)
+app.include_router(admin_router)
 
 
 @app.get("/")

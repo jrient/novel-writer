@@ -7,8 +7,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.outline import OutlineNode
 from app.models.project import Project
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.outline import (
     OutlineNodeCreate,
     OutlineNodeUpdate,
@@ -46,13 +49,10 @@ def build_outline_tree(nodes: List[OutlineNode]) -> List[OutlineTreeResponse]:
 async def get_outline_nodes(
     project_id: int,
     node_type: str = None,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取项目的大纲节点（扁平列表）"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     query = select(OutlineNode).where(OutlineNode.project_id == project_id)
     if node_type:
         query = query.where(OutlineNode.node_type == node_type)
@@ -65,13 +65,10 @@ async def get_outline_nodes(
 @router.get("/tree", response_model=List[OutlineTreeResponse])
 async def get_outline_tree(
     project_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取大纲树形结构"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     query = select(OutlineNode).where(
         OutlineNode.project_id == project_id
     ).order_by(OutlineNode.sort_order)
@@ -86,13 +83,10 @@ async def get_outline_tree(
 async def create_outline_node(
     project_id: int,
     data: OutlineNodeCreate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """创建大纲节点"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     node = OutlineNode(project_id=project_id, **data.model_dump())
     db.add(node)
     await db.commit()
@@ -105,6 +99,7 @@ async def create_outline_node(
 async def get_outline_node(
     project_id: int,
     node_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取单个大纲节点"""
@@ -126,6 +121,7 @@ async def update_outline_node(
     project_id: int,
     node_id: int,
     data: OutlineNodeUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """更新大纲节点"""
@@ -153,6 +149,7 @@ async def update_outline_node(
 async def delete_outline_node(
     project_id: int,
     node_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除大纲节点"""
@@ -176,6 +173,7 @@ async def delete_outline_node(
 async def reorder_outline_nodes(
     project_id: int,
     orders: List[dict],
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """批量更新大纲节点排序"""

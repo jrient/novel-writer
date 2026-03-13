@@ -10,7 +10,10 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.project import Project
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.models.event import StoryEvent, Plotline
 from app.schemas.event import (
     PlotlineCreate, PlotlineUpdate, PlotlineResponse,
@@ -25,23 +28,15 @@ router = APIRouter(
 )
 
 
-async def _get_project_or_404(project_id: int, db: AsyncSession) -> Project:
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
-    return project
-
-
 # ============ Plotline CRUD ============
 
 @router.get("/plotlines/", response_model=List[PlotlineResponse])
 async def list_plotlines(
     project_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """列出项目所有剧情线"""
-    await _get_project_or_404(project_id, db)
     stmt = (
         select(Plotline)
         .where(Plotline.project_id == project_id)
@@ -55,11 +50,11 @@ async def list_plotlines(
 async def create_plotline(
     project_id: int,
     payload: PlotlineCreate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """创建剧情线"""
     try:
-        await _get_project_or_404(project_id, db)
         plotline = Plotline(
             **payload.model_dump(),
             project_id=project_id,
@@ -68,8 +63,6 @@ async def create_plotline(
         await db.commit()
         await db.refresh(plotline)
         return plotline
-    except HTTPException:
-        raise
     except Exception as e:
         await db.rollback()
         logger.error(f"创建剧情线失败: {e}", exc_info=True)
@@ -81,6 +74,7 @@ async def update_plotline(
     project_id: int,
     plotline_id: int,
     payload: PlotlineUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """更新剧情线"""
@@ -110,6 +104,7 @@ async def update_plotline(
 async def delete_plotline(
     project_id: int,
     plotline_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除剧情线"""
@@ -139,10 +134,10 @@ async def list_events(
     event_type: Optional[str] = Query(None, description="按事件类型筛选"),
     anchor_type: Optional[str] = Query(None, description="按锚定类型筛选"),
     status: Optional[str] = Query(None, description="按状态筛选"),
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """列出项目事件，支持多种筛选"""
-    await _get_project_or_404(project_id, db)
     stmt = (
         select(StoryEvent)
         .where(StoryEvent.project_id == project_id)
@@ -169,12 +164,11 @@ async def list_events(
 async def create_event(
     project_id: int,
     payload: StoryEventCreate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """创建事件"""
     try:
-        await _get_project_or_404(project_id, db)
-
         # 若未指定 sort_order，自动追加
         if payload.sort_order is None:
             max_result = await db.execute(
@@ -207,6 +201,7 @@ async def create_event(
 async def get_event(
     project_id: int,
     event_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取事件详情"""
@@ -224,6 +219,7 @@ async def update_event(
     project_id: int,
     event_id: int,
     payload: StoryEventUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """更新事件"""
@@ -253,6 +249,7 @@ async def update_event(
 async def delete_event(
     project_id: int,
     event_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除事件"""
@@ -277,6 +274,7 @@ async def delete_event(
 async def get_event_chain(
     project_id: int,
     event_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取事件的因果链（递归查询前因后果）"""

@@ -9,6 +9,22 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:8083"
 
+    # JWT Authentication
+    JWT_SECRET_KEY: str = "change-this-to-a-random-secret-key-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # GitHub OAuth
+    GITHUB_CLIENT_ID: Optional[str] = None
+    GITHUB_CLIENT_SECRET: Optional[str] = None
+    GITHUB_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/github/callback"
+
+    # WeChat OAuth
+    WECHAT_APP_ID: Optional[str] = None
+    WECHAT_APP_SECRET: Optional[str] = None
+    WECHAT_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/wechat/callback"
+
     # AI Providers
     DEFAULT_AI_PROVIDER: str = "openai"
 

@@ -10,9 +10,12 @@ from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.chapter import Chapter
 from app.models.chapter_version import ChapterVersion
 from app.models.project import Project
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.chapter import (
     ChapterCreate, ChapterUpdate, ChapterResponse,
     ChapterBatchDeleteRequest, ChapterReorderItem, ChapterReorderRequest,
@@ -35,22 +38,13 @@ def _calculate_word_count(content: str) -> int:
     return len(content.replace(" ", "").replace("\n", ""))
 
 
-async def _get_project_or_404(project_id: int, db: AsyncSession) -> Project:
-    """获取项目，不存在则抛出 404"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
-    return project
-
-
 @router.get("/", response_model=List[ChapterResponse])
 async def list_chapters(
     project_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """列出项目所有章节，按 sort_order 升序排列"""
-    await _get_project_or_404(project_id, db)
     stmt = (
         select(Chapter)
         .where(Chapter.project_id == project_id)
@@ -64,12 +58,11 @@ async def list_chapters(
 async def create_chapter(
     project_id: int,
     payload: ChapterCreate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """创建新章节，未指定 sort_order 时自动追加到末尾"""
     try:
-        await _get_project_or_404(project_id, db)
-
         # 若未指定排序，取当前最大值 + 1
         if payload.sort_order is None:
             max_result = await db.execute(
@@ -93,14 +86,11 @@ async def create_chapter(
         db.add(chapter)
 
         # 同步更新项目字数
-        project = await _get_project_or_404(project_id, db)
         project.current_word_count += word_count
 
         await db.commit()
         await db.refresh(chapter)
         return chapter
-    except HTTPException:
-        raise
     except Exception as e:
         await db.rollback()
         logger.error(f"创建章节失败: {e}", exc_info=True)
@@ -111,6 +101,7 @@ async def create_chapter(
 async def batch_delete_chapters(
     project_id: int,
     payload: ChapterBatchDeleteRequest,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """批量删除章节，同步减少项目字数"""
@@ -118,8 +109,6 @@ async def batch_delete_chapters(
         return
 
     try:
-        project = await _get_project_or_404(project_id, db)
-
         # 批量获取所有目标章节
         stmt = select(Chapter).where(
             Chapter.id.in_(payload.ids),
@@ -152,6 +141,7 @@ async def batch_delete_chapters(
 async def get_chapter(
     project_id: int,
     chapter_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取章节详情"""
@@ -172,6 +162,7 @@ async def update_chapter(
     project_id: int,
     chapter_id: int,
     payload: ChapterUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -206,7 +197,6 @@ async def update_chapter(
             update_data["word_count"] = new_word_count
 
             # 更新项目总字数
-            project = await _get_project_or_404(project_id, db)
             project.current_word_count = max(
                 0, project.current_word_count - old_word_count + new_word_count
             )
@@ -229,6 +219,7 @@ async def update_chapter(
 async def delete_chapter(
     project_id: int,
     chapter_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除章节，同步减少项目字数"""
@@ -244,7 +235,6 @@ async def delete_chapter(
             raise HTTPException(status_code=404, detail="章节不存在")
 
         # 同步减少项目字数
-        project = await _get_project_or_404(project_id, db)
         project.current_word_count = max(0, project.current_word_count - chapter.word_count)
 
         await db.delete(chapter)
@@ -261,13 +251,13 @@ async def delete_chapter(
 async def reorder_chapters(
     project_id: int,
     payload: ChapterReorderRequest,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """
     批量更新章节排序
     请求体为 {orders: [{id: int, sort_order: int}, ...]}
     """
-    await _get_project_or_404(project_id, db)
     items = payload.orders
 
     # 批量获取所有目标章节
@@ -349,6 +339,7 @@ async def _save_chapter_version(
 async def list_chapter_versions(
     project_id: int,
     chapter_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取章节版本历史列表"""
@@ -378,6 +369,7 @@ async def get_chapter_version(
     project_id: int,
     chapter_id: int,
     version_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取章节版本详情"""
@@ -411,6 +403,7 @@ async def restore_chapter_version(
     project_id: int,
     chapter_id: int,
     version_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """恢复到指定版本"""
@@ -444,7 +437,6 @@ async def restore_chapter_version(
         old_word_count = chapter.word_count
         new_word_count = version.word_count
 
-        project = await _get_project_or_404(project_id, db)
         project.current_word_count = max(
             0, project.current_word_count - old_word_count + new_word_count
         )

@@ -11,7 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.project import Project
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectListResponse
 
 logger = logging.getLogger(__name__)
@@ -22,10 +25,15 @@ router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
 @router.get("/", response_model=List[ProjectListResponse])
 async def list_projects(
     status: Optional[str] = Query(None, description="按状态过滤: draft/in_progress/completed"),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """列出所有项目，支持按 status 过滤"""
-    stmt = select(Project).order_by(Project.created_at.desc())
+    """列出当前用户的所有项目，支持按 status 过滤"""
+    stmt = (
+        select(Project)
+        .where(Project.owner_id == current_user.id)
+        .order_by(Project.created_at.desc())
+    )
     if status:
         stmt = stmt.where(Project.status == status)
     result = await db.execute(stmt)
@@ -36,11 +44,12 @@ async def list_projects(
 @router.post("/", response_model=ProjectResponse, status_code=201)
 async def create_project(
     payload: ProjectCreate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """创建新项目"""
     try:
-        project = Project(**payload.model_dump())
+        project = Project(**payload.model_dump(), owner_id=current_user.id)
         db.add(project)
         await db.commit()
         await db.refresh(project)
@@ -58,18 +67,9 @@ async def create_project(
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
     project_id: int,
-    db: AsyncSession = Depends(get_db),
+    project: Project = Depends(get_project_with_auth),
 ):
     """获取项目详情，包含所有章节"""
-    stmt = (
-        select(Project)
-        .where(Project.id == project_id)
-        .options(selectinload(Project.chapters))
-    )
-    result = await db.execute(stmt)
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
     return project
 
 
@@ -77,20 +77,11 @@ async def get_project(
 async def update_project(
     project_id: int,
     payload: ProjectUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """更新项目信息"""
     try:
-        stmt = (
-            select(Project)
-            .where(Project.id == project_id)
-            .options(selectinload(Project.chapters))
-        )
-        result = await db.execute(stmt)
-        project = result.scalar_one_or_none()
-        if not project:
-            raise HTTPException(status_code=404, detail="项目不存在")
-
         # 只更新有值的字段
         update_data = payload.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -99,8 +90,6 @@ async def update_project(
         await db.commit()
         await db.refresh(project)
         return project
-    except HTTPException:
-        raise
     except Exception as e:
         await db.rollback()
         logger.error(f"更新项目失败: {e}", exc_info=True)
@@ -110,19 +99,13 @@ async def update_project(
 @router.delete("/{project_id}", status_code=204)
 async def delete_project(
     project_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除项目（级联删除所有章节）"""
     try:
-        result = await db.execute(select(Project).where(Project.id == project_id))
-        project = result.scalar_one_or_none()
-        if not project:
-            raise HTTPException(status_code=404, detail="项目不存在")
-
         await db.delete(project)
         await db.commit()
-    except HTTPException:
-        raise
     except Exception as e:
         await db.rollback()
         logger.error(f"删除项目失败: {e}", exc_info=True)

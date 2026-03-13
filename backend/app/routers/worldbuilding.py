@@ -7,8 +7,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.worldbuilding import WorldbuildingEntry
 from app.models.project import Project
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.worldbuilding import (
     WorldbuildingCreate,
     WorldbuildingUpdate,
@@ -48,14 +51,10 @@ def build_tree(entries: List[WorldbuildingEntry]) -> List[WorldbuildingTreeRespo
 async def get_worldbuilding(
     project_id: int,
     category: str = None,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取项目的世界观设定（扁平列表）"""
-    # 验证项目存在
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     query = select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id)
     if category:
         query = query.where(WorldbuildingEntry.category == category)
@@ -68,13 +67,10 @@ async def get_worldbuilding(
 @router.get("/tree", response_model=List[WorldbuildingTreeResponse])
 async def get_worldbuilding_tree(
     project_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取世界观设定树形结构"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     query = select(WorldbuildingEntry).where(
         WorldbuildingEntry.project_id == project_id
     ).order_by(WorldbuildingEntry.sort_order)
@@ -89,13 +85,10 @@ async def get_worldbuilding_tree(
 async def create_worldbuilding(
     project_id: int,
     data: WorldbuildingCreate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """创建世界观设定"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     entry = WorldbuildingEntry(project_id=project_id, **data.model_dump())
     db.add(entry)
     await db.commit()
@@ -108,6 +101,7 @@ async def create_worldbuilding(
 async def get_worldbuilding_entry(
     project_id: int,
     entry_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取单个世界观设定"""
@@ -129,6 +123,7 @@ async def update_worldbuilding(
     project_id: int,
     entry_id: int,
     data: WorldbuildingUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """更新世界观设定"""
@@ -156,6 +151,7 @@ async def update_worldbuilding(
 async def delete_worldbuilding(
     project_id: int,
     entry_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除世界观设定"""

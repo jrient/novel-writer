@@ -1,5 +1,5 @@
 """
-知识库路由
+知识库路由 - 全局知识库，需要用户认证
 """
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +8,8 @@ from sqlalchemy import select
 
 from app.core.database import get_db
 from app.models.knowledge import KnowledgeEntry
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.knowledge import (
     KnowledgeEntryCreate,
     KnowledgeEntryUpdate,
@@ -23,6 +25,7 @@ router = APIRouter(prefix="/api/v1/knowledge", tags=["knowledge"])
 @router.post("/search", response_model=List[KnowledgeEntryResponse])
 async def search_and_learn(
     request: KnowledgeSearchRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """通过关键词搜索并学习知识"""
@@ -39,6 +42,7 @@ async def search_and_learn(
 @router.post("/", response_model=KnowledgeEntryResponse)
 async def create_knowledge(
     payload: KnowledgeEntryCreate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """手动创建知识条目"""
@@ -58,6 +62,7 @@ async def create_knowledge(
 @router.get("/", response_model=List[KnowledgeEntryResponse])
 async def list_knowledge(
     keyword: str = None,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """获取所有知识条目"""
@@ -72,6 +77,7 @@ async def list_knowledge(
 @router.get("/{entry_id}", response_model=KnowledgeEntryResponse)
 async def get_knowledge(
     entry_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """获取单个知识条目"""
@@ -88,6 +94,7 @@ async def get_knowledge(
 async def update_knowledge(
     entry_id: int,
     payload: KnowledgeEntryUpdate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """更新知识条目"""
@@ -117,6 +124,7 @@ async def update_knowledge(
 @router.delete("/{entry_id}", status_code=204)
 async def delete_knowledge(
     entry_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """删除知识条目"""

@@ -1,3 +1,4 @@
+from app.routers.auth import router as auth_router
 from app.routers.project import router as project_router
 from app.routers.chapter import router as chapter_router
 from app.routers.character import router as character_router
@@ -11,8 +12,10 @@ from app.routers.knowledge import router as knowledge_router
 from app.routers.wizard import router as wizard_router
 from app.routers.event import router as event_router
 from app.routers.note import router as note_router
+from app.routers.admin import router as admin_router
 
 __all__ = [
+    "auth_router",
     "project_router",
     "chapter_router",
     "character_router",
@@ -27,4 +30,5 @@ __all__ = [
     "wizard_router",
     "event_router",
     "note_router",
+    "admin_router",
 ]

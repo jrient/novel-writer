@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.reference import ReferenceNovel
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.reference import (
     ReferenceNovelCreate,
     ReferenceNovelUpdate,
@@ -196,6 +198,7 @@ async def upload_reference(
     tags: Optional[str] = Form(default=None),
     notes: Optional[str] = Form(default=None),
     rating: Optional[int] = Form(default=None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """上传参考小说文件（支持 .txt .md 格式）"""
@@ -263,6 +266,7 @@ async def upload_reference(
 @router.post("/", response_model=ReferenceNovelResponse, status_code=201)
 async def create_reference(
     payload: ReferenceNovelCreate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """手动创建参考小说记录"""
@@ -278,6 +282,7 @@ async def list_references(
     genre: Optional[str] = None,
     reference_type: Optional[str] = None,
     search: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """列出参考小说，支持按类型和参考类型筛选"""
@@ -300,6 +305,7 @@ async def list_references(
 
 @router.get("/stats", response_model=ReferenceStatsResponse)
 async def get_reference_stats(
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考库统计信息"""
@@ -330,6 +336,7 @@ async def get_reference_stats(
 @router.get("/{novel_id}", response_model=ReferenceNovelDetailResponse)
 async def get_reference(
     novel_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考小说详情"""
@@ -350,6 +357,7 @@ async def get_reference(
 async def update_reference(
     novel_id: int,
     payload: ReferenceNovelUpdate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """更新参考小说信息"""
@@ -370,6 +378,7 @@ async def update_reference(
 @router.delete("/{novel_id}", status_code=204)
 async def delete_reference(
     novel_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """删除参考小说"""
@@ -389,6 +398,7 @@ async def delete_reference(
 @router.get("/{novel_id}/chapters")
 async def get_reference_chapters(
     novel_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考小说的章节列表"""
@@ -405,6 +415,7 @@ async def get_reference_chapters(
 @router.get("/{novel_id}/analysis")
 async def get_reference_analysis(
     novel_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考小说的分析结果"""
@@ -421,6 +432,7 @@ async def get_reference_analysis(
 @router.post("/{novel_id}/vectorize")
 async def vectorize_reference(
     novel_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """将参考小说向量化"""
@@ -435,6 +447,7 @@ async def vectorize_reference(
 
 @router.post("/batch-vectorize")
 async def batch_vectorize_references(
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """批量向量化所有参考小说"""

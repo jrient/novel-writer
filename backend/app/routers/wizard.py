@@ -17,6 +17,8 @@ from app.models.chapter import Chapter
 from app.models.character import Character
 from app.models.outline import OutlineNode
 from app.models.reference import ReferenceNovel
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.wizard import (
     WizardGenerateRequest,
     WizardOutlineRequest,
@@ -82,6 +84,7 @@ def _extract_json_array(text: str, marker: str) -> list:
 async def wizard_generate(
     payload: WizardGenerateRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导生成：AI 生成大纲和角色（SSE 流式）
@@ -218,6 +221,7 @@ async def wizard_generate(
 async def wizard_generate_maps(
     payload: WizardMapsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤2：生成地图大纲（SSE 流式）
@@ -297,6 +301,7 @@ async def wizard_generate_maps(
 async def wizard_generate_parts(
     payload: WizardPartsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤3：为地图生成部分（SSE 流式）
@@ -361,6 +366,7 @@ async def wizard_generate_parts(
 async def wizard_generate_characters_for_part(
     payload: WizardCharactersForPartRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤4：为部分生成角色（SSE 流式）
@@ -443,6 +449,7 @@ async def wizard_generate_characters_for_part(
 async def wizard_create_v2(
     payload: WizardCreateV2Request,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导创建项目（新版本）：根据确认的地图结构和角色创建项目
@@ -474,6 +481,7 @@ async def wizard_create_v2(
             status="draft",
             outline=outline_text,
             maps=[m.model_dump() for m in payload.maps],
+            owner_id=current_user.id,
         )
         db.add(new_project)
         await db.flush()
@@ -540,6 +548,7 @@ async def wizard_create_v2(
 async def wizard_create(
     payload: WizardCreateRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导创建项目：根据确认的大纲和角色创建项目
@@ -621,6 +630,7 @@ async def wizard_create(
 async def wizard_generate_outline(
     payload: WizardOutlineRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导生成大纲（SSE 流式）
@@ -731,6 +741,7 @@ async def wizard_generate_outline(
 async def wizard_generate_maps(
     payload: WizardMapsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤2：生成地图大纲（SSE 流式）
@@ -810,6 +821,7 @@ async def wizard_generate_maps(
 async def wizard_generate_parts(
     payload: WizardPartsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤3：为地图生成部分（SSE 流式）
@@ -874,6 +886,7 @@ async def wizard_generate_parts(
 async def wizard_generate_characters_for_part(
     payload: WizardCharactersForPartRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤4：为部分生成角色（SSE 流式）
@@ -956,6 +969,7 @@ async def wizard_generate_characters_for_part(
 async def wizard_create_v2(
     payload: WizardCreateV2Request,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导创建项目（新版本）：根据确认的地图结构和角色创建项目
@@ -987,6 +1001,7 @@ async def wizard_create_v2(
             status="draft",
             outline=outline_text,
             maps=[m.model_dump() for m in payload.maps],
+            owner_id=current_user.id,
         )
         db.add(new_project)
         await db.flush()
@@ -1053,6 +1068,7 @@ async def wizard_create_v2(
 async def wizard_generate_characters(
     payload: WizardCharactersRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导生成角色（SSE 流式）
@@ -1134,6 +1150,7 @@ async def wizard_generate_characters(
 async def wizard_generate_maps(
     payload: WizardMapsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤2：生成地图大纲（SSE 流式）
@@ -1213,6 +1230,7 @@ async def wizard_generate_maps(
 async def wizard_generate_parts(
     payload: WizardPartsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤3：为地图生成部分（SSE 流式）
@@ -1277,6 +1295,7 @@ async def wizard_generate_parts(
 async def wizard_generate_characters_for_part(
     payload: WizardCharactersForPartRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     步骤4：为部分生成角色（SSE 流式）
@@ -1359,6 +1378,7 @@ async def wizard_generate_characters_for_part(
 async def wizard_create_v2(
     payload: WizardCreateV2Request,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     向导创建项目（新版本）：根据确认的地图结构和角色创建项目
@@ -1390,6 +1410,7 @@ async def wizard_create_v2(
             status="draft",
             outline=outline_text,
             maps=[m.model_dump() for m in payload.maps],
+            owner_id=current_user.id,
         )
         db.add(new_project)
         await db.flush()

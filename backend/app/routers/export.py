@@ -11,9 +11,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.project import Project
 from app.models.chapter import Chapter
 from app.models.character import Character
+from app.models.user import User
+from app.routers.auth import get_current_user
 
 router = APIRouter(
     prefix="/api/v1/projects/{project_id}/export",
@@ -24,14 +27,10 @@ router = APIRouter(
 @router.get("/txt")
 async def export_txt(
     project_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """导出项目为纯文本格式"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     chapters_result = await db.execute(
         select(Chapter)
         .where(Chapter.project_id == project_id)
@@ -68,14 +67,10 @@ async def export_txt(
 async def export_markdown(
     project_id: int,
     include_characters: bool = False,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """导出项目为 Markdown 格式"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
-
     chapters_result = await db.execute(
         select(Chapter)
         .where(Chapter.project_id == project_id)

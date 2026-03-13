@@ -1,6 +1,11 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
+// Token 存储 key
+const ACCESS_TOKEN_KEY = 'access_token'
+const REFRESH_TOKEN_KEY = 'refresh_token'
+const USER_KEY = 'user'
+
 // 创建 axios 实例
 const instance = axios.create({
   baseURL: '/api/v1',
@@ -10,10 +15,52 @@ const instance = axios.create({
   },
 })
 
-// 请求拦截器
+// 获取存储的 token
+export function getAccessToken(): string | null {
+  return localStorage.getItem(ACCESS_TOKEN_KEY)
+}
+
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_TOKEN_KEY)
+}
+
+// 设置 token
+export function setTokens(accessToken: string, refreshToken: string): void {
+  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
+  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+}
+
+// 清除 token
+export function clearTokens(): void {
+  localStorage.removeItem(ACCESS_TOKEN_KEY)
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
+  localStorage.removeItem(USER_KEY)
+}
+
+// 获取存储的用户信息
+export function getStoredUser(): any {
+  const user = localStorage.getItem(USER_KEY)
+  return user ? JSON.parse(user) : null
+}
+
+// 设置用户信息
+export function setStoredUser(user: any): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
+}
+
+// 检查是否在登录/注册页面
+function isAuthPage(): boolean {
+  const path = window.location.pathname
+  return path === '/login' || path === '/register'
+}
+
+// 请求拦截器 - 添加 Token
 instance.interceptors.request.use(
   (config) => {
-    // 可在此处添加 token 等认证信息
+    const token = getAccessToken()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -21,13 +68,58 @@ instance.interceptors.request.use(
   }
 )
 
-// 响应拦截器
+// 响应拦截器 - 处理错误和 Token 刷新
 instance.interceptors.response.use(
   (response) => {
-    // 直接返回响应数据
     return response.data
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config
+
+    // 401 错误且未尝试过刷新
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      const refreshToken = getRefreshToken()
+      if (refreshToken) {
+        try {
+          // 尝试刷新 token
+          const response = await axios.post('/api/v1/auth/refresh', {}, {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          })
+
+          const { access_token, refresh_token } = response.data
+          setTokens(access_token, refresh_token)
+
+          // 重试原请求
+          originalRequest.headers.Authorization = `Bearer ${access_token}`
+          return instance(originalRequest)
+        } catch {
+          // 刷新失败，清除登录状态
+          clearTokens()
+          // 只在非认证页面跳转到登录页
+          if (!isAuthPage()) {
+            window.location.href = '/login'
+          }
+          return Promise.reject(error)
+        }
+      } else {
+        // 没有 refresh token，清除状态
+        clearTokens()
+        // 只在非认证页面跳转到登录页
+        if (!isAuthPage()) {
+          window.location.href = '/login'
+        }
+      }
+    }
+
+    // 在认证页面不显示 401 错误消息
+    if (error.response?.status === 401 && isAuthPage()) {
+      return Promise.reject(error)
+    }
+
     // 统一错误处理
     const message =
       error.response?.data?.detail ||
@@ -39,7 +131,7 @@ instance.interceptors.response.use(
   }
 )
 
-// 封装请求方法，返回正确的类型
+// 封装请求方法
 export const request = {
   get<T>(url: string, config?: object): Promise<T> {
     return instance.get(url, config) as Promise<T>

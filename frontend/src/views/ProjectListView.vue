@@ -7,9 +7,18 @@
           <span class="logo-icon">&#9997;</span>
           <h1 class="logo">AI小说创作平台</h1>
         </div>
-        <el-button type="primary" :icon="Plus" @click="goToWizard" round>
-          新建项目
-        </el-button>
+        <div class="header-actions">
+          <el-button
+            v-if="userStore.is_superuser"
+            @click="$router.push('/admin')"
+            round
+          >
+            管理后台
+          </el-button>
+          <el-button type="primary" :icon="Plus" @click="goToWizard" round>
+            新建项目
+          </el-button>
+        </div>
       </div>
     </header>
 
@@ -194,10 +203,12 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Plus, Edit, Delete, Collection, MoreFilled, Download, Document, Clock } from '@element-plus/icons-vue'
 import { useProjectStore } from '@/stores/project'
+import { useUserStore } from '@/stores/user'
 import type { Project } from '@/api/project'
 
 const router = useRouter()
 const projectStore = useProjectStore()
+const userStore = useUserStore()
 
 const showCreateDialog = ref(false)
 const creating = ref(false)
@@ -363,6 +374,12 @@ onMounted(() => {
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
   align-items: center;
 }
 

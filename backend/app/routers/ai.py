@@ -11,13 +11,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.project import Project
 from app.models.chapter import Chapter
 from app.models.character import Character
 from app.models.worldbuilding import WorldbuildingEntry
 from app.models.reference import ReferenceNovel
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.ai import AIGenerateRequest, AIConfigResponse, BatchGenerateRequest
 from app.services.ai_service import AIService, PROMPTS
+from app.services.token_usage_service import log_token_usage, estimate_tokens
 
 router = APIRouter(
     prefix="/api/v1/projects/{project_id}/ai",
@@ -29,6 +33,8 @@ router = APIRouter(
 async def ai_generate(
     project_id: int,
     payload: AIGenerateRequest,
+    project: Project = Depends(get_project_with_auth),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -36,12 +42,6 @@ async def ai_generate(
     返回 SSE (Server-Sent Events) 流
     """
     import json as _json
-
-    # 验证项目存在
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
 
     # 获取上下文：角色和世界观
     chars_result = await db.execute(
@@ -79,10 +79,24 @@ async def ai_generate(
         if chapter:
             content = chapter.content or ""
 
+    # 确定实际使用的 provider 和 model（用于 token 记录）
+    actual_provider = AIService._get_available_provider(payload.provider)
+    provider_model_map = {
+        "openai": settings.OPENAI_MODEL,
+        "anthropic": settings.ANTHROPIC_MODEL,
+        "ollama": settings.OLLAMA_MODEL,
+        "demo": "demo",
+    }
+    actual_model = provider_model_map.get(actual_provider, "unknown")
+    input_text = content or ""
+
     async def stream_with_heartbeat():
         """带心跳的流式生成，防止长连接超时"""
         import logging
         logger = logging.getLogger(__name__)
+
+        collected_output = []
+        real_usage = [None]  # 用列表包装以便在闭包中修改
 
         stream_gen = AIService.generate_stream(
             action=payload.action,
@@ -117,6 +131,16 @@ async def ai_generate(
                     sse_line = pending_task.result()
                     pending_task = None
                     heartbeat_count = 0
+                    # 收集输出文本和真实 usage
+                    if sse_line.startswith("data: "):
+                        try:
+                            _d = _json.loads(sse_line[6:].strip())
+                            if _d.get("text"):
+                                collected_output.append(_d["text"])
+                            if _d.get("usage"):
+                                real_usage[0] = _d["usage"]
+                        except Exception:
+                            pass
                     yield sse_line
                 else:
                     # 超时但任务仍在运行，发送心跳
@@ -137,6 +161,26 @@ async def ai_generate(
                 yield f"data: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
                 break
 
+        # 记录 token 使用（优先使用 API 返回的真实数据）
+        if actual_provider != "demo":
+            if real_usage[0]:
+                in_tok = real_usage[0].get("input_tokens", 0)
+                out_tok = real_usage[0].get("output_tokens", 0)
+            else:
+                output_text = "".join(collected_output)
+                in_tok = estimate_tokens(input_text)
+                out_tok = estimate_tokens(output_text)
+            await log_token_usage(
+                db=db,
+                user_id=current_user.id,
+                provider=actual_provider,
+                model=actual_model,
+                action=payload.action,
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+                project_id=project_id,
+            )
+
     return StreamingResponse(
         stream_with_heartbeat(),
         media_type="text/event-stream",
@@ -152,6 +196,8 @@ async def ai_generate(
 async def batch_generate(
     project_id: int,
     payload: BatchGenerateRequest,
+    project: Project = Depends(get_project_with_auth),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -159,12 +205,6 @@ async def batch_generate(
     SSE 流式返回：outline -> chapter(逐章) -> done
     """
     import json as _json
-
-    # 验证项目存在
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
 
     # 获取角色和世界观
     chars_result = await db.execute(
@@ -220,6 +260,15 @@ async def batch_generate(
     genre = project.genre or ""
     description = project.description or ""
 
+    batch_provider = AIService._get_available_provider()
+    batch_model_map = {
+        "openai": settings.OPENAI_MODEL,
+        "anthropic": settings.ANTHROPIC_MODEL,
+        "ollama": settings.OLLAMA_MODEL,
+        "demo": "demo",
+    }
+    batch_model = batch_model_map.get(batch_provider, "unknown")
+
     async def event_stream():
         try:
             # 步骤一：生成大纲
@@ -247,6 +296,17 @@ async def batch_generate(
 
             # 发送大纲文本
             yield f"data: {_json.dumps({'type': 'outline', 'text': outline_raw}, ensure_ascii=False)}\n\n"
+
+            # 记录大纲生成的 token 使用
+            if batch_provider != "demo":
+                await log_token_usage(
+                    db=db, user_id=current_user.id,
+                    provider=batch_provider, model=batch_model,
+                    action="batch_outline",
+                    input_tokens=estimate_tokens(outline_prompt),
+                    output_tokens=estimate_tokens(outline_raw),
+                    project_id=project_id,
+                )
 
             # 解析大纲 JSON
             # 尝试从响应中提取 JSON 数组
@@ -377,6 +437,17 @@ async def batch_generate(
                 await db.commit()
                 await db.refresh(new_chapter)
 
+                # 记录章节生成的 token 使用
+                if provider != "demo":
+                    await log_token_usage(
+                        db=db, user_id=current_user.id,
+                        provider=batch_provider, model=batch_model,
+                        action="batch_chapter",
+                        input_tokens=estimate_tokens(chapter_prompt),
+                        output_tokens=estimate_tokens(chapter_content),
+                        project_id=project_id,
+                    )
+
                 # AI 除痕处理
                 if payload.remove_ai_traces and provider != "demo":
                     yield f"data: {_json.dumps({'type': 'progress', 'message': f'正在优化第 {chapter_index} 章...'}, ensure_ascii=False)}\n\n"
@@ -396,6 +467,16 @@ async def batch_generate(
                             new_chapter.word_count = len(refined_content)
                             await db.commit()
                             await db.refresh(new_chapter)
+
+                            # 记录除痕的 token 使用
+                            await log_token_usage(
+                                db=db, user_id=current_user.id,
+                                provider=batch_provider, model=batch_model,
+                                action="remove_ai_traces",
+                                input_tokens=estimate_tokens(remove_prompt),
+                                output_tokens=estimate_tokens(refined_content),
+                                project_id=project_id,
+                            )
 
                             # 发送除痕完成事件（包含优化后的内容差量）
                             diff_words = len(refined_content) - len(chapter_content)

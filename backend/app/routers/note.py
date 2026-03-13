@@ -10,8 +10,11 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_project_with_auth
 from app.models.note import Note
 from app.models.project import Project
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.models.character import Character
 from app.models.worldbuilding import WorldbuildingEntry
 from app.models.outline import OutlineNode
@@ -26,24 +29,14 @@ router = APIRouter(prefix="/notes", tags=["notes"])
 logger = logging.getLogger(__name__)
 
 
-async def _get_project_or_404(project_id: int, db: AsyncSession) -> Project:
-    """获取项目或返回404"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
-    return project
-
-
 @router.get("/", response_model=List[NoteResponse])
 async def list_notes(
     project_id: int,
     note_type: str = None,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取笔记列表"""
-    await _get_project_or_404(project_id, db)
-
     query = select(Note).where(Note.project_id == project_id)
     if note_type:
         query = query.where(Note.note_type == note_type)
@@ -57,11 +50,10 @@ async def list_notes(
 async def create_note(
     project_id: int,
     payload: NoteCreate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """创建笔记"""
-    await _get_project_or_404(project_id, db)
-
     note = Note(
         project_id=project_id,
         title=payload.title,
@@ -79,6 +71,7 @@ async def create_note(
 async def get_note(
     project_id: int,
     note_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """获取单个笔记"""
@@ -96,6 +89,7 @@ async def update_note(
     project_id: int,
     note_id: int,
     payload: NoteUpdate,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """更新笔记"""
@@ -119,6 +113,7 @@ async def update_note(
 async def delete_note(
     project_id: int,
     note_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """删除笔记"""
@@ -138,11 +133,10 @@ async def delete_note(
 async def quick_miaoji(
     project_id: int,
     content: str,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """快速创建妙记（自动生成标题）"""
-    await _get_project_or_404(project_id, db)
-
     # 从内容生成标题（取前20个字符）
     title = content[:20] + "..." if len(content) > 20 else content
 
@@ -163,6 +157,7 @@ async def quick_miaoji(
 async def parse_miaoji(
     project_id: int,
     note_id: int,
+    project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """解析妙记内容，AI自动分类并创建对应记录"""

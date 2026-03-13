@@ -914,20 +914,32 @@ class AIService:
                     {"role": "user", "content": prompt},
                 ],
                 stream=True,
+                stream_options={"include_usage": True},
                 temperature=0.8,
                 max_tokens=settings.AI_MAX_TOKENS_STREAM,
             )
             logger.info("OpenAI API 返回流，开始读取...")
 
             chunk_count = 0
+            usage_info = None
             async for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
                     text = chunk.choices[0].delta.content
                     chunk_count += 1
                     yield f"data: {json.dumps({'text': text}, ensure_ascii=False)}\n\n"
+                # 捕获最后一个 chunk 中的 usage 信息
+                if hasattr(chunk, 'usage') and chunk.usage:
+                    usage_info = {
+                        'input_tokens': chunk.usage.prompt_tokens,
+                        'output_tokens': chunk.usage.completion_tokens,
+                        'total_tokens': chunk.usage.total_tokens,
+                    }
 
             logger.info(f"OpenAI 流式生成完成，共 {chunk_count} 个 chunk")
-            yield f"data: {json.dumps({'done': True})}\n\n"
+            done_data = {'done': True}
+            if usage_info:
+                done_data['usage'] = usage_info
+            yield f"data: {json.dumps(done_data)}\n\n"
 
         except RateLimitError as e:
             logger.error(f"OpenAI 流式生成速率限制: {e}")
@@ -960,7 +972,16 @@ class AIService:
                 async for text in stream.text_stream:
                     yield f"data: {json.dumps({'text': text}, ensure_ascii=False)}\n\n"
 
-            yield f"data: {json.dumps({'done': True})}\n\n"
+            # 获取最终消息的 usage 信息
+            final_message = await stream.get_final_message()
+            done_data = {'done': True}
+            if final_message and final_message.usage:
+                done_data['usage'] = {
+                    'input_tokens': final_message.usage.input_tokens,
+                    'output_tokens': final_message.usage.output_tokens,
+                    'total_tokens': final_message.usage.input_tokens + final_message.usage.output_tokens,
+                }
+            yield f"data: {json.dumps(done_data)}\n\n"
 
         except RateLimitError as e:
             logger.error(f"Anthropic 流式生成速率限制: {e}")

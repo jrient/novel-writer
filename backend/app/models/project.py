@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import String, Text, Integer, JSON, func
+from sqlalchemy import String, Text, Integer, JSON, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from app.models.outline import OutlineNode
     from app.models.note import Note
     from app.models.event import StoryEvent, Plotline
+    from app.models.user import User
 
 
 class Project(Base):
@@ -24,6 +25,9 @@ class Project(Base):
 
     # 主键
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    # 所有者
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, comment="所有者ID")
 
     # 基本信息
     title: Mapped[str] = mapped_column(String(255), nullable=False, comment="项目标题")
@@ -105,4 +109,10 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan",
         order_by="Plotline.sort_order",
+    )
+
+    # 关联所有者
+    owner: Mapped["User"] = relationship(
+        "User",
+        back_populates="projects",
     )

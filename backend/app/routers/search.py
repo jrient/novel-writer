@@ -9,6 +9,8 @@ from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.models.embedding import NovelChunk
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.services.embedding import embedding_service
 
 
@@ -28,6 +30,7 @@ async def semantic_search(
     query: str = Query(..., description="搜索查询"),
     limit: int = Query(10, ge=1, le=50, description="返回结果数量"),
     reference_id: Optional[int] = Query(None, description="限定参考小说ID"),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """语义搜索参考小说片段"""
