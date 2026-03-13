@@ -188,7 +188,11 @@ async function startRename(chapter: Chapter) {
   renameValue.value = chapter.title
   // 等待输入框渲染后聚焦
   await nextTick()
-  renameInputRef.value?.[0]?.focus()
+  // v-for 中的 ref 在条件渲染时可能是单个元素或数组
+  const input = Array.isArray(renameInputRef.value)
+    ? renameInputRef.value[0]
+    : renameInputRef.value
+  input?.focus()
 }
 
 // 提交重命名

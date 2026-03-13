@@ -1,5 +1,5 @@
 <template>
-  <div class="step-four">
+  <div class="step-seven">
     <div class="success-state">
       <div class="success-icon">
         <el-icon :size="64" color="#6B7B8D"><CircleCheck /></el-icon>
@@ -14,16 +14,16 @@
         </div>
         <div class="summary-stats">
           <div class="stat">
-            <span class="stat-value">{{ wizardStore.outline.length }}</span>
-            <span class="stat-label">章节大纲</span>
+            <span class="stat-value">{{ wizardStore.maps.length }}</span>
+            <span class="stat-label">地图</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ wizardStore.totalChapters }}</span>
+            <span class="stat-label">章节</span>
           </div>
           <div class="stat">
             <span class="stat-value">{{ wizardStore.characters.length }}</span>
-            <span class="stat-label">角色设定</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value">{{ formatTargetWords }}</span>
-            <span class="stat-label">目标字数</span>
+            <span class="stat-label">角色</span>
           </div>
         </div>
       </div>
@@ -54,36 +54,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { CircleCheck, Edit, Plus, ArrowRight } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import { useWizardStore } from '@/stores/wizard'
 
 const router = useRouter()
 const wizardStore = useWizardStore()
 
-const formatTargetWords = computed(() => {
-  const count = wizardStore.ideaData.target_word_count
-  if (count >= 10000) {
-    return (count / 10000).toFixed(0) + ' 万'
-  }
-  return count.toLocaleString()
-})
-
 function goToWorkbench() {
-  if (wizardStore.createdProjectId) {
-    router.push(`/project/${wizardStore.createdProjectId}`)
+  const projectId = wizardStore.createdProjectId
+  console.log('goToWorkbench called, projectId:', projectId)
+  if (projectId) {
+    console.log('Navigating to:', `/project/${projectId}`)
+    router.push(`/project/${projectId}`)
+  } else {
+    console.error('No projectId found!')
   }
 }
 
 function createNew() {
   wizardStore.reset()
-  // 保持在向导页面，重新开始
 }
 </script>
 
 <style scoped>
-.step-four {
+.step-seven {
   max-width: 600px;
   margin: 0 auto;
 }

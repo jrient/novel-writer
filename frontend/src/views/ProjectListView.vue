@@ -156,6 +156,7 @@
             <el-option label="奇幻" value="奇幻" />
             <el-option label="科幻" value="科幻" />
             <el-option label="玄幻" value="玄幻" />
+            <el-option label="修仙" value="修仙" />
             <el-option label="言情" value="言情" />
             <el-option label="悬疑" value="悬疑" />
             <el-option label="历史" value="历史" />

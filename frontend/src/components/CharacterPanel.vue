@@ -66,7 +66,7 @@
       :close-on-press-escape="false"
       v-model="showEditDialog"
       :title="editingCharacter ? '编辑角色' : '新建角色'"
-      width="600px"
+      width="700px"
       :close-on-click-modal="false"
     >
       <el-form :model="formData" label-width="80px" label-position="left">
@@ -128,8 +128,22 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="showEditDialog = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveCharacter">保存</el-button>
+        <div class="dialog-footer">
+          <el-button
+            type="warning"
+            plain
+            :icon="MagicStick"
+            :loading="polishing"
+            @click="polishCharacter"
+            :disabled="!formData.name"
+          >
+            AI 润色
+          </el-button>
+          <div class="footer-right">
+            <el-button @click="showEditDialog = false">取消</el-button>
+            <el-button type="primary" :loading="saving" @click="saveCharacter">保存</el-button>
+          </div>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -137,10 +151,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { Plus, Edit, Delete, MagicStick } from '@element-plus/icons-vue'
 import { useCharacterStore } from '@/stores/character'
 import type { Character, CreateCharacterData, UpdateCharacterData } from '@/api/character'
+import { streamGenerate } from '@/api/ai'
 
 const props = defineProps<{
   projectId: number
@@ -161,6 +176,7 @@ const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const editingCharacter = ref<Character | null>(null)
 const saving = ref(false)
+const polishing = ref(false)
 
 // 表单数据
 const formData = ref<CreateCharacterData & UpdateCharacterData>({
@@ -186,14 +202,14 @@ function roleTagType(role: string) {
   return map[role] || 'info'
 }
 
-function roleLabel(role: string) {
+function roleLabel(role: string): string {
   const map: Record<string, string> = {
     protagonist: '主角',
     antagonist: '反派',
     supporting: '配角',
     minor: '次要',
   }
-  return map[role] || role
+  return map[role] || role || '配角'
 }
 
 function handleFilter() {
@@ -248,6 +264,69 @@ async function confirmDelete(character: Character) {
     type: 'warning',
   })
   await characterStore.removeCharacter(props.projectId, character.id)
+}
+
+// AI 润色角色设定
+async function polishCharacter() {
+  if (!formData.value.name) return
+
+  polishing.value = true
+  const content = [
+    `【外貌】${formData.value.appearance || '未填写'}`,
+    `【性格】${formData.value.personality_traits || '未填写'}`,
+    `【背景】${formData.value.background || '未填写'}`,
+    `【成长弧线】${formData.value.growth_arc || '未填写'}`,
+    `【备注】${formData.value.notes || '未填写'}`,
+  ].join('\n\n')
+
+  let result = ''
+
+  streamGenerate(
+    props.projectId,
+    {
+      action: 'polish_character',
+      content,
+      title: formData.value.name,
+      question: roleLabel(formData.value.role_type || 'supporting'),
+    },
+    (text) => {
+      result += text
+    },
+    () => {
+      polishing.value = false
+      // 解析 AI 返回的内容，更新表单
+      parseAndFillPolishedContent(result)
+      ElMessage.success('AI 润色完成')
+    },
+    (error) => {
+      polishing.value = false
+      ElMessage.error(`润色失败: ${error}`)
+    }
+  )
+}
+
+// 解析润色后的内容并填充表单
+function parseAndFillPolishedContent(text: string) {
+  // 尝试解析各个字段
+  const sections = text.split(/【[^】]+】/).filter(s => s.trim())
+  const labels = text.match(/【([^】]+)】/g) || []
+
+  const fieldMap: Record<string, keyof typeof formData.value> = {
+    '外貌': 'appearance',
+    '性格': 'personality_traits',
+    '背景': 'background',
+    '成长弧线': 'growth_arc',
+    '成长': 'growth_arc',
+    '备注': 'notes',
+  }
+
+  labels.forEach((label, index) => {
+    const cleanLabel = label.replace(/【|】/g, '')
+    const field = fieldMap[cleanLabel]
+    if (field && sections[index]) {
+      formData.value[field] = sections[index].trim()
+    }
+  })
 }
 
 function resetForm() {
@@ -404,5 +483,16 @@ onMounted(() => {
 .loading-state,
 .empty-state {
   padding: 24px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-right {
+  display: flex;
+  gap: 8px;
 }
 </style>

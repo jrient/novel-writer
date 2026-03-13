@@ -95,6 +95,24 @@
 
       <div class="toolbar-spacer" />
 
+      <!-- 保存按钮 -->
+      <div class="toolbar-group">
+        <el-tooltip :content="hasUnsavedChanges ? '保存 (Ctrl+S)' : '已保存'" placement="bottom">
+          <button
+            class="toolbar-btn save-btn"
+            :class="{ 'unsaved': hasUnsavedChanges, 'saved': !hasUnsavedChanges && !saving }"
+            @click="handleSave"
+            :disabled="saving"
+          >
+            <el-icon v-if="saving" class="rotating"><Loading /></el-icon>
+            <el-icon v-else-if="hasUnsavedChanges"><Document /></el-icon>
+            <el-icon v-else><Check /></el-icon>
+          </button>
+        </el-tooltip>
+      </div>
+
+      <div class="toolbar-divider" />
+
       <div class="toolbar-group">
         <el-tooltip :content="isFullscreen ? '退出专注 (Esc)' : '专注模式'" placement="bottom">
           <button class="toolbar-btn focus-btn" @click="toggleFullscreen">
@@ -115,9 +133,13 @@
         <el-icon class="rotating"><Loading /></el-icon>
         保存中...
       </span>
-      <span class="saved-indicator" v-else-if="lastSaved">
+      <span class="saved-indicator" v-else-if="!hasUnsavedChanges">
         <el-icon><Check /></el-icon>
         已保存
+      </span>
+      <span class="unsaved-indicator" v-else>
+        <el-icon><WarningFilled /></el-icon>
+        未保存
       </span>
       <div class="statusbar-right">
         <span class="word-count-display">
@@ -140,23 +162,31 @@ import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import {
   Loading, Check, Document, RefreshLeft, RefreshRight,
-  FullScreen, Close,
+  FullScreen, Close, WarningFilled,
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   modelValue: string
   saving: boolean
+  hasUnsavedChanges?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'change': [value: string]
+  'save': [value: string]
 }>()
 
 const lastSaved = ref(false)
 const isFullscreen = ref(false)
+const internalUnsaved = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let savedHideTimer: ReturnType<typeof setTimeout> | null = null
+
+// 计算是否有未保存的更改（优先使用外部传入的状态）
+const hasUnsavedChanges = computed(() => {
+  return props.hasUnsavedChanges !== undefined ? props.hasUnsavedChanges : internalUnsaved.value
+})
 
 // 纯文本转 HTML：将换行分隔的段落转为 <p> 标签
 function textToHtml(text: string): string {
@@ -200,9 +230,11 @@ const editor = useEditor({
     const html = editor.getHTML()
     const text = htmlToText(html)
     emit('update:modelValue', text)
+    internalUnsaved.value = true
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
       emit('change', text)
+      internalUnsaved.value = false
       lastSaved.value = true
       // 3秒后隐藏保存提示
       if (savedHideTimer) clearTimeout(savedHideTimer)
@@ -227,6 +259,21 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value
 }
 
+// 手动保存
+function handleSave() {
+  if (!editor.value || props.saving) return
+  const html = editor.value.getHTML()
+  const text = htmlToText(html)
+  if (debounceTimer) clearTimeout(debounceTimer)
+  emit('save', text)
+  internalUnsaved.value = false
+  lastSaved.value = true
+  if (savedHideTimer) clearTimeout(savedHideTimer)
+  savedHideTimer = setTimeout(() => {
+    lastSaved.value = false
+  }, 3000)
+}
+
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && isFullscreen.value) {
     isFullscreen.value = false
@@ -234,16 +281,7 @@ function handleKeydown(e: KeyboardEvent) {
   // Ctrl+S / Cmd+S 立即保存
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
-    if (!editor.value) return
-    const html = editor.value.getHTML()
-    const text = htmlToText(html)
-    if (debounceTimer) clearTimeout(debounceTimer)
-    emit('change', text)
-    lastSaved.value = true
-    if (savedHideTimer) clearTimeout(savedHideTimer)
-    savedHideTimer = setTimeout(() => {
-      lastSaved.value = false
-    }, 3000)
+    handleSave()
   }
 }
 
@@ -263,7 +301,8 @@ watch(
     const currentText = htmlToText(currentHtml)
     if (newVal !== currentText) {
       editor.value.commands.setContent(textToHtml(newVal || ''), false)
-      lastSaved.value = false
+      // 外部更新内容时，重置未保存状态
+      internalUnsaved.value = false
     }
   }
 )
@@ -377,6 +416,31 @@ onBeforeUnmount(() => {
   background-color: rgba(107, 123, 141, 0.08);
 }
 
+/* 保存按钮样式 */
+.save-btn {
+  width: auto;
+  padding: 0 10px;
+  gap: 4px;
+}
+
+.save-btn.unsaved {
+  color: #f56c6c;
+  background-color: rgba(245, 108, 108, 0.1);
+}
+
+.save-btn.unsaved:hover {
+  background-color: rgba(245, 108, 108, 0.15);
+}
+
+.save-btn.saved {
+  color: #67c23a;
+  background-color: rgba(103, 194, 58, 0.1);
+}
+
+.save-btn.saved:hover {
+  background-color: rgba(103, 194, 58, 0.15);
+}
+
 /* 编辑器容器 */
 .editor-container {
   flex: 1;
@@ -475,6 +539,13 @@ onBeforeUnmount(() => {
 
 .saved-indicator {
   color: #7abf7a;
+}
+
+.unsaved-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #f56c6c;
 }
 
 .word-count-display,

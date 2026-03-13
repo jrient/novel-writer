@@ -41,6 +41,17 @@
         </el-button>
       </el-tooltip>
 
+      <el-tooltip content="根据您的意见修改内容，完成后自动覆盖原文" placement="left">
+        <el-button
+          class="ai-btn revise-btn"
+          :disabled="generating || !currentContent"
+          @click="showReviseDialog = true"
+        >
+          <el-icon><EditPen /></el-icon>
+          意见修改
+        </el-button>
+      </el-tooltip>
+
       <el-tooltip content="扩写丰富当前内容，完成后可选择替换原文" placement="left">
         <el-button
           class="ai-btn"
@@ -155,6 +166,36 @@
       </template>
     </el-dialog>
 
+    <!-- 意见修改对话框 -->
+    <el-dialog
+      v-model="showReviseDialog"
+      title="意见修改"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-position="top">
+        <el-form-item label="修改意见">
+          <el-input
+            v-model="reviseOpinion"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入您的修改意见，例如：&#10;- 增加心理描写&#10;- 调整对话语气&#10;- 删除冗余段落"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showReviseDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          @click="handleRevise"
+          :loading="generating"
+          :disabled="!reviseOpinion.trim()"
+        >
+          开始修改
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- 自由对话输入 -->
     <div class="chat-input-area">
       <p class="section-title">自由提问</p>
@@ -230,7 +271,7 @@ import { ref, watch, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
-  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight,
+  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
@@ -270,6 +311,10 @@ const batchForm = ref({
   reference_ids: [] as number[],
   use_knowledge: true,
 })
+
+// 意见修改相关
+const showReviseDialog = ref(false)
+const reviseOpinion = ref('')
 
 let abortController: AbortController | null = null
 
@@ -338,6 +383,22 @@ function handleFreeChat() {
   chatQuestion.value = ''
 }
 
+// 意见修改：根据用户意见修改内容，完成后自动覆盖原文
+function handleRevise() {
+  if (!props.projectId || !reviseOpinion.value.trim() || !props.currentContent) return
+
+  showReviseDialog.value = false
+  lastAction.value = 'revise'
+
+  startGeneration({
+    action: 'revise',
+    content: props.currentContent,
+    question: reviseOpinion.value.trim(),
+    chapter_id: props.chapterId,
+  })
+  reviseOpinion.value = ''
+}
+
 function startGeneration(data: AIGenerateRequest) {
   if (generating.value) return
 
@@ -365,6 +426,10 @@ function startGeneration(data: AIGenerateRequest) {
         // 续写完成后自动追加到编辑器
         emit('insert-text', outputText.value)
         ElMessage.success('续写内容已追加到章节末尾')
+      } else if (lastAction.value === 'revise') {
+        // 意见修改完成后自动覆盖原文
+        emit('replace-text', outputText.value)
+        ElMessage.success('已根据意见修改并覆盖原文')
       } else if (['rewrite', 'expand'].includes(lastAction.value)) {
         // 改写润色、扩写完成后提示替换章节内容
         ElMessageBox.confirm('是否用 AI 生成的内容替换当前章节？', '替换确认', {
@@ -592,6 +657,18 @@ function clearOutput() {
 
 .batch-btn:hover:not(:disabled) {
   background-color: rgba(107, 123, 141, 0.10) !important;
+}
+
+.revise-btn {
+  border-color: #e6a23c !important;
+  background-color: rgba(230, 162, 60, 0.08) !important;
+  color: #b88230 !important;
+  font-weight: 500;
+}
+
+.revise-btn:hover:not(:disabled) {
+  background-color: rgba(230, 162, 60, 0.15) !important;
+  color: #cf9236 !important;
 }
 
 .form-hint {

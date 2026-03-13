@@ -67,3 +67,54 @@ export async function batchDeleteChapters(projectId: number, chapterIds: number[
 export async function reorderChapters(projectId: number, orders: ChapterOrder[]): Promise<void> {
   return request.post(`/projects/${projectId}/chapters/reorder/`, { orders })
 }
+
+// ========== 章节版本历史相关 ==========
+
+export interface ChapterVersion {
+  id: number
+  chapter_id: number
+  version_number: number
+  title: string
+  word_count: number
+  change_summary: string | null
+  created_at: string
+}
+
+export interface ChapterVersionDetail extends ChapterVersion {
+  content: string
+}
+
+export interface RestoreResult {
+  message: string
+  chapter: Chapter
+}
+
+// 获取章节版本列表
+export async function getChapterVersions(
+  projectId: number,
+  chapterId: number
+): Promise<ChapterVersion[]> {
+  return request.get<ChapterVersion[]>(`/projects/${projectId}/chapters/${chapterId}/versions/`)
+}
+
+// 获取版本详情
+export async function getChapterVersion(
+  projectId: number,
+  chapterId: number,
+  versionId: number
+): Promise<ChapterVersionDetail> {
+  return request.get<ChapterVersionDetail>(
+    `/projects/${projectId}/chapters/${chapterId}/versions/${versionId}/`
+  )
+}
+
+// 恢复到指定版本
+export async function restoreChapterVersion(
+  projectId: number,
+  chapterId: number,
+  versionId: number
+): Promise<RestoreResult> {
+  return request.post<RestoreResult>(
+    `/projects/${projectId}/chapters/${chapterId}/versions/${versionId}/restore/`
+  )
+}

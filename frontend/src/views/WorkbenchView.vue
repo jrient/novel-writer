@@ -15,10 +15,15 @@
           <el-radio-button label="characters">角色</el-radio-button>
           <el-radio-button label="worldbuilding">设定</el-radio-button>
           <el-radio-button label="outline">大纲</el-radio-button>
+          <el-radio-button label="events">事件</el-radio-button>
           <el-radio-button label="knowledge">知识库</el-radio-button>
         </el-radio-group>
       </div>
       <div class="header-right">
+        <el-button text size="small" class="miaoji-btn" @click="showMiaoji = true">
+          <el-icon><EditPen /></el-icon>
+          妙记
+        </el-button>
         <span class="total-words">
           {{ projectStore.currentProject?.current_word_count?.toLocaleString() || 0 }} 字
         </span>
@@ -60,12 +65,26 @@
               <el-button type="primary" @click="triggerCreateChapter">创建第一章</el-button>
             </el-empty>
           </div>
-          <TiptapEditor
-            v-else
-            v-model="currentContent"
-            :saving="chapterStore.saving"
-            @change="handleContentChange"
-          />
+          <template v-else>
+            <div class="editor-header">
+              <span class="chapter-title-display">{{ chapterStore.currentChapter.title }}</span>
+              <el-button
+                size="small"
+                @click="showVersionDrawer = true"
+                class="version-btn"
+              >
+                <el-icon><Clock /></el-icon>
+                历史版本
+              </el-button>
+            </div>
+            <TiptapEditor
+              v-model="currentContent"
+              :saving="chapterStore.saving"
+              :has-unsaved-changes="hasUnsavedChanges"
+              @change="handleContentChange"
+              @save="handleManualSave"
+            />
+          </template>
         </main>
         <aside class="sidebar-right">
           <AiPanel
@@ -86,17 +105,33 @@
           <CharacterPanel v-if="activeTab === 'characters'" :project-id="projectId" />
           <WorldbuildingPanel v-else-if="activeTab === 'worldbuilding'" :project-id="projectId" />
           <OutlinePanel v-else-if="activeTab === 'outline'" :project-id="projectId" />
+          <EventPanel v-else-if="activeTab === 'events'" :project-id="projectId" />
           <KnowledgePanel v-else-if="activeTab === 'knowledge'" />
         </div>
       </template>
     </div>
+
+    <!-- 版本历史抽屉（全局，不受 tab 切换影响） -->
+    <ChapterVersionDrawer
+      v-model="showVersionDrawer"
+      :project-id="projectId"
+      :chapter-id="chapterStore.currentChapter?.id || null"
+      @restored="handleVersionRestored"
+    />
+
+    <!-- 妙记面板 -->
+    <MiaojiPanel
+      v-model="showMiaoji"
+      :project-id="projectId"
+      @parsed="handleMiaojiParsed"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back, Download } from '@element-plus/icons-vue'
+import { Back, Download, Clock, EditPen } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useProjectStore } from '@/stores/project'
 import { useChapterStore } from '@/stores/chapter'
@@ -107,6 +142,9 @@ import CharacterPanel from '@/components/CharacterPanel.vue'
 import WorldbuildingPanel from '@/components/WorldbuildingPanel.vue'
 import OutlinePanel from '@/components/OutlinePanel.vue'
 import KnowledgePanel from '@/components/KnowledgePanel.vue'
+import EventPanel from '@/components/EventPanel.vue'
+import ChapterVersionDrawer from '@/components/ChapterVersionDrawer.vue'
+import MiaojiPanel from '@/components/MiaojiPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -116,6 +154,9 @@ const chapterStore = useChapterStore()
 const projectId = computed(() => Number(route.params.id))
 const currentContent = ref('')
 const activeTab = ref('editor')
+const showVersionDrawer = ref(false)
+const showMiaoji = ref(false)
+const hasUnsavedChanges = ref(false)
 
 const wordProgress = computed(() => {
   const p = projectStore.currentProject
@@ -148,6 +189,25 @@ async function handleChaptersUpdated() {
   await chapterStore.fetchChapters(projectId.value)
 }
 
+async function handleVersionRestored() {
+  // 版本恢复后刷新章节数据
+  if (chapterStore.currentChapter) {
+    await chapterStore.fetchChapters(projectId.value)
+    // 重新选中当前章节以获取最新内容
+    const updated = chapterStore.chapters.find(c => c.id === chapterStore.currentChapter?.id)
+    if (updated) {
+      chapterStore.setCurrentChapter(updated)
+      currentContent.value = updated.content || ''
+    }
+  }
+}
+
+// 妙记解析完成后刷新数据
+async function handleMiaojiParsed() {
+  // 刷新所有可能被更新的数据
+  await chapterStore.fetchChapters(projectId.value)
+}
+
 async function handleExport(format: string) {
   try {
     let url = `/api/v1/projects/${projectId.value}/export/`
@@ -175,11 +235,34 @@ async function handleExport(format: string) {
 async function handleContentChange(content: string) {
   if (!chapterStore.currentChapter) return
 
+  hasUnsavedChanges.value = true
   await chapterStore.updateCurrentChapter(
     projectId.value,
     chapterStore.currentChapter.id,
     { content }
   )
+  hasUnsavedChanges.value = false
+
+  const totalWords = chapterStore.chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0)
+  if (projectStore.currentProject && totalWords !== projectStore.currentProject.current_word_count) {
+    await projectStore.updateCurrentProject(projectId.value, {
+      current_word_count: totalWords,
+    })
+  }
+}
+
+// 手动保存（Ctrl+S 或点击保存按钮）
+async function handleManualSave(content: string) {
+  if (!chapterStore.currentChapter) return
+
+  hasUnsavedChanges.value = true
+  await chapterStore.updateCurrentChapter(
+    projectId.value,
+    chapterStore.currentChapter.id,
+    { content }
+  )
+  hasUnsavedChanges.value = false
+  ElMessage.success('保存成功')
 
   const totalWords = chapterStore.chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0)
   if (projectStore.currentProject && totalWords !== projectStore.currentProject.current_word_count) {
@@ -191,22 +274,21 @@ async function handleContentChange(content: string) {
 
 watch(
   () => chapterStore.currentChapter,
-  (chapter) => {
+  (chapter, oldChapter) => {
     if (chapter) {
-      currentContent.value = chapter.content || ''
+      // 只有章节切换时才重置内容，避免保存后光标跳动
+      const isChapterChanged = !oldChapter || chapter.id !== oldChapter.id
+      if (isChapterChanged || !hasUnsavedChanges.value) {
+        currentContent.value = chapter.content || ''
+        hasUnsavedChanges.value = false
+      }
     } else {
       currentContent.value = ''
+      hasUnsavedChanges.value = false
     }
   },
   { immediate: true }
 )
-
-// 离开页面时提醒未保存内容
-const hasUnsavedChanges = ref(false)
-
-watch(currentContent, () => {
-  hasUnsavedChanges.value = true
-})
 
 watch(() => chapterStore.saving, (saving) => {
   if (!saving) hasUnsavedChanges.value = false
@@ -324,6 +406,43 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: #F7F6F3;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px;
+  background: white;
+  border-bottom: 1px solid #E0DFDC;
+  flex-shrink: 0;
+}
+
+.chapter-title-display {
+  font-size: 14px;
+  font-weight: 500;
+  color: #5C5C5C;
+}
+
+.version-btn {
+  color: #6B7B8D;
+  border-color: #E0DFDC;
+}
+
+.version-btn:hover {
+  color: #5A6B7A;
+  border-color: #6B7B8D;
+  background-color: rgba(107, 123, 141, 0.05);
+}
+
+.miaoji-btn {
+  color: #e6a23c;
+  font-weight: 500;
+}
+
+.miaoji-btn:hover {
+  color: #cf9236;
+  background-color: rgba(230, 162, 60, 0.1);
 }
 
 .sidebar-right {

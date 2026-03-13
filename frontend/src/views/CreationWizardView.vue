@@ -16,10 +16,12 @@
     <!-- 步骤指示器 -->
     <div class="steps-container">
       <el-steps :active="wizardStore.currentStep - 1" align-center>
-        <el-step title="创作思路" description="描述你的故事构思" />
-        <el-step title="AI 生成" description="生成大纲和角色" />
-        <el-step title="确认风格" description="选择参考小说" />
-        <el-step title="完成" description="开始创作" />
+        <el-step title="创作思路" description="描述故事构思" />
+        <el-step title="生成地图" description="AI 生成场景地图" />
+        <el-step title="生成部分" description="划分故事部分" />
+        <el-step title="生成角色" description="创建角色库" />
+        <el-step title="添加笔记" description="伏笔与灵感" />
+        <el-step title="确认创建" description="开始创作" />
       </el-steps>
     </div>
 
@@ -27,9 +29,12 @@
     <main class="page-main">
       <transition name="fade" mode="out-in">
         <StepOneIdea v-if="wizardStore.currentStep === 1" />
-        <StepTwoGenerate v-else-if="wizardStore.currentStep === 2" />
-        <StepThreeConfirm v-else-if="wizardStore.currentStep === 3" />
-        <StepFourComplete v-else-if="wizardStore.currentStep === 4" />
+        <StepTwoMaps v-else-if="wizardStore.currentStep === 2" />
+        <StepThreeParts v-else-if="wizardStore.currentStep === 3" />
+        <StepFourCharacters v-else-if="wizardStore.currentStep === 4" />
+        <StepFiveNotes v-else-if="wizardStore.currentStep === 5" />
+        <StepSixConfirm v-else-if="wizardStore.currentStep === 6" />
+        <StepSevenComplete v-else-if="wizardStore.currentStep === 7" />
       </transition>
     </main>
   </div>
@@ -39,24 +44,46 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import { useWizardStore } from '@/stores/wizard'
+// 新的向导步骤组件
 import StepOneIdea from '@/components/wizard/StepOneIdea.vue'
-import StepTwoGenerate from '@/components/wizard/StepTwoGenerate.vue'
-import StepThreeConfirm from '@/components/wizard/StepThreeConfirm.vue'
-import StepFourComplete from '@/components/wizard/StepFourComplete.vue'
+import StepTwoMaps from '@/components/wizard/StepTwoMaps.vue'
+import StepThreeParts from '@/components/wizard/StepThreeParts.vue'
+import StepFourCharacters from '@/components/wizard/StepFourCharacters.vue'
+import StepFiveNotes from '@/components/wizard/StepFiveNotes.vue'
+import StepSixConfirm from '@/components/wizard/StepSixConfirm.vue'
+import StepSevenComplete from '@/components/wizard/StepSevenComplete.vue'
 
 const router = useRouter()
 const wizardStore = useWizardStore()
 
-onMounted(() => {
-  // 每次进入向导页面重置状态
-  wizardStore.reset()
+onMounted(async () => {
+  // 尝试加载草稿
+  const hasDraft = wizardStore.loadDraft()
+  if (hasDraft && wizardStore.currentStep > 1) {
+    try {
+      await ElMessageBox.confirm(
+        '检测到上次未完成的创作进度，是否继续？',
+        '恢复进度',
+        {
+          confirmButtonText: '继续',
+          cancelButtonText: '重新开始',
+          type: 'info',
+        }
+      )
+      // 用户选择继续，草稿已加载
+    } catch {
+      // 用户选择重新开始
+      wizardStore.reset()
+    }
+  }
 })
 
 onUnmounted(() => {
-  // 离开页面时如果还没完成，清理状态
-  if (wizardStore.currentStep < 4) {
-    wizardStore.reset()
+  // 离开页面时如果还没完成，保存草稿
+  if (wizardStore.currentStep < 7 && wizardStore.currentStep > 1) {
+    wizardStore.saveDraft()
   }
 })
 
@@ -112,7 +139,7 @@ function goHome() {
 }
 
 .steps-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 32px 32px 0;
 }
@@ -136,11 +163,11 @@ function goHome() {
 
 /* 覆盖 Element Plus 步骤样式 */
 :deep(.el-step__title) {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 :deep(.el-step__description) {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 :deep(.el-step.is-process .el-step__title) {
@@ -172,6 +199,10 @@ function goHome() {
 
   .page-main {
     padding: 16px;
+  }
+
+  :deep(.el-step__description) {
+    display: none;
   }
 }
 </style>

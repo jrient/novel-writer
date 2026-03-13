@@ -128,7 +128,7 @@ const categories = [
   { value: '地理', label: '地理' },
   { value: '历史', label: '历史' },
   { value: '势力', label: '势力' },
-  { value: '魔法体系', label: '魔法体系' },
+  { value: '体系', label: '体系' },
   { value: '社会制度', label: '社会制度' },
   { value: '文化习俗', label: '文化习俗' },
   { value: '物品', label: '物品' },

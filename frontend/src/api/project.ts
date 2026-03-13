@@ -9,6 +9,7 @@ export interface Project {
   target_word_count: number
   current_word_count: number
   status: 'draft' | 'planning' | 'writing' | 'completed' | 'archived'
+  outline: string
   created_at: string
   updated_at: string
 }
@@ -18,6 +19,7 @@ export interface CreateProjectData {
   description?: string
   genre?: string
   target_word_count?: number
+  outline?: string
 }
 
 export interface UpdateProjectData {
@@ -27,6 +29,7 @@ export interface UpdateProjectData {
   target_word_count?: number
   current_word_count?: number
   status?: string
+  outline?: string
 }
 
 // 获取项目列表
