@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
+// Element Plus 按需加载，通过 unplugin-vue-components 自动导入
+// 只需手动导入图标和样式
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus/dist/index.css'
 import './styles/main.css'
@@ -17,6 +18,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.use(createPinia())
 app.use(router)
-app.use(ElementPlus)
+// Element Plus 组件通过 unplugin-vue-components 自动注册，无需手动 use
 
 app.mount('#app')
