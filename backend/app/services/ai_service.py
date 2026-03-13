@@ -5,10 +5,15 @@ AI 服务层
 """
 import asyncio
 import json
+import logging
 import random
 from typing import AsyncGenerator
 
+import httpx
+
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Prompt 模板
 PROMPTS = {
@@ -120,6 +125,42 @@ PROMPTS = {
 
 请回答：""",
 
+    "revise": """你是一位经验丰富的文学编辑。请根据用户的修改意见，对以下章节内容进行修改。
+
+要求：
+- 仔细理解用户的修改意见，针对性地调整内容
+- 保持原文的整体风格和叙事节奏
+- 只修改需要修改的部分，保留其他内容的完整性
+- 修改后的内容要自然流畅，与上下文衔接紧密
+- 保持原文的叙事视角和人物性格
+
+{context}
+
+原始内容：
+{content}
+
+用户修改意见：{question}
+
+请输出修改后的完整内容：""",
+
+    "polish_character": """你是一位经验丰富的小说角色设计师。请对以下角色设定进行润色和格式整理。
+
+要求：
+- 保持原文的核心设定不变，只优化表达方式
+- 使描述更加生动具体，避免空洞的形容词
+- 整理内容格式，使其结构清晰、易于阅读
+- 可以适当补充细节，但不要改变角色的核心特征
+- 保持专业小说创作的风格
+
+角色基本信息：
+- 姓名：{title}
+- 类型：{question}
+
+角色设定内容：
+{content}
+
+请输出润色后的角色设定（保持原有的字段结构，直接输出内容即可）：""",
+
     "batch_outline": """你是一位经验丰富的小说策划。请根据以下信息，为小说生成一个包含 {chapter_count} 章的详细大纲。
 
 要求：
@@ -210,6 +251,213 @@ PROMPTS = {
 3. 角色要有个性，避免脸谱化
 4. 主角必须有完整的背景故事和成长动机
 5. 配角也要有基本的性格和作用说明
+""",
+
+    "wizard_outline_only": """你是一位经验丰富的小说策划。请根据用户提供的故事构思，生成详细的章节大纲。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+目标字数：{target_word_count} 字
+章节数量：{chapter_count} 章
+
+{style_reference}
+
+请严格按以下 JSON 格式输出大纲（不要输出其他任何内容）：
+
+===OUTLINE===
+[
+  {{"chapter": 1, "title": "章节标题", "summary": "章节内容概要（3-5句话，包含主要情节和转折点）"}},
+  {{"chapter": 2, "title": "章节标题", "summary": "章节内容概要"}}
+]
+
+要求：
+1. 大纲要完整覆盖故事起承转合，注意节奏起伏
+2. 每章概要要有具体的情节，不要笼统描述
+3. 第一章要有吸引人的开头，设置悬念或冲突
+4. 最后一章要收束所有线索，给出完整结局
+5. 注意故事节奏，高潮章节要有张力
+""",
+
+    "wizard_characters_from_outline": """你是一位经验丰富的角色设计师。请根据已确认的章节大纲，为主要角色创建详细的设定。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+已确认的章节大纲：
+{outline}
+
+请严格按以下 JSON 格式输出角色（不要输出其他任何内容）：
+
+===CHARACTERS===
+[
+  {{"name": "角色名", "role_type": "protagonist/antagonist/supporting/minor", "gender": "性别", "age": "年龄", "occupation": "职业/身份", "personality_traits": "性格特征", "appearance": "外貌描写", "background": "背景故事"}}
+]
+
+要求：
+1. 根据大纲中的情节，推断并创建需要的角色
+2. 角色要有个性，避免脸谱化
+3. 主角必须有完整的背景故事和成长动机
+4. 配角也要有基本的性格和作用说明
+5. 角色数量适中，一般3-6个主要角色即可
+""",
+
+    "wizard_maps": """你是一位经验丰富的小说策划。请根据用户提供的故事构思，生成故事的主要场景地图。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+{style_reference}
+
+请根据故事需要，设计主要的故事发生地点（地图）。
+
+请严格按以下 JSON 格式输出（不要输出其他任何内容）：
+
+===MAPS===
+[
+  {{"name": "地图名称（如：青云宗、北境荒漠）", "description": "地图的简要描述，包括环境特点、氛围等"}}
+]
+
+要求：
+1. 地图数量适中，一般2-5个主要场景
+2. 每个地图要有独特的氛围和特点
+3. 地图之间要有自然的联系，便于故事推进
+4. 考虑故事类型，设计合适的场景
+5. 地图名称要贴合故事背景
+""",
+
+    "wizard_parts": """你是一位经验丰富的小说策划。请根据故事构思和选定的地图，为该地图生成故事的部分划分。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+当前地图：
+地图名称：{map_name}
+地图描述：{map_description}
+
+{style_reference}
+
+请为这个地图生成故事的部分划分，每个部分包含若干章节。
+
+请严格按以下 JSON 格式输出（不要输出其他任何内容）：
+
+===PARTS===
+[
+  {{"name": "部分名称（如：初入青云、宗门大比）", "summary": "这部分的故事概要（2-3句话）", "chapter_count": 章节数量}}
+]
+
+要求：
+1. 部分数量适中，一般2-4个部分
+2. 每个部分有独立的故事弧线
+3. 部分之间要有情节递进
+4. 考虑地图的特点来设计情节
+""",
+
+    "wizard_chapters_for_part": """你是一位经验丰富的小说策划。请根据故事构思，为指定的部分生成详细的章节大纲。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+当前地图：{map_name}
+当前部分：{part_name}
+部分概要：{part_summary}
+
+{style_reference}
+
+请为这个部分生成详细的章节大纲。
+
+请严格按以下 JSON 格式输出（不要输出其他任何内容）：
+
+===CHAPTERS===
+[
+  {{"chapter": 章节序号, "title": "章节标题", "summary": "章节内容概要（3-5句话）"}}
+]
+
+要求：
+1. 章节数量要符合部分的设定
+2. 每章有明确的情节推进
+3. 章节之间有自然的过渡
+4. 注意故事节奏，有起有伏
+""",
+
+    "wizard_characters_for_part": """你是一位经验丰富的角色设计师。请根据已确认的部分大纲，为这部分创建出场角色设定。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+
+当前部分章节大纲：
+{outline}
+
+已有角色库（可以复用）：
+{existing_characters}
+
+请为这部分创建出场角色，如果已有角色库中有合适的角色，可以复用。
+
+请严格按以下 JSON 格式输出（不要输出其他任何内容）：
+
+===CHARACTERS===
+[
+  {{"name": "角色名", "role_type": "protagonist/antagonist/supporting/minor", "gender": "性别", "age": "年龄", "occupation": "职业/身份", "personality_traits": "性格特征", "appearance": "外貌描写", "background": "背景故事", "is_new": true/false（是否是新角色）}}
+]
+
+要求：
+1. 根据大纲中的情节，推断需要哪些角色
+2. 如果已有角色库中有合适的，标记 is_new: false
+3. 新角色要有个性，避免脸谱化
+4. 角色数量适中
+""",
+
+    "wizard_revision": """你是一位经验丰富的小说策划和角色设计师。用户对之前生成的大纲和角色设定提出了修改意见，请根据意见进行调整优化。
+
+项目信息：
+标题：{title}
+类型：{genre}
+简介：{description}
+目标字数：{target_word_count} 字
+章节数量：{chapter_count} 章
+
+{style_reference}
+
+当前大纲：
+{current_outline}
+
+当前角色：
+{current_characters}
+
+用户修改意见：
+{revision_request}
+
+请根据用户的修改意见，调整大纲和角色设定，然后严格按以下 JSON 格式输出（不要输出其他任何内容）：
+
+第一步输出修改后的大纲（用 "===OUTLINE===" 标记开始）：
+===OUTLINE===
+[
+  {{"chapter": 1, "title": "章节标题", "summary": "章节内容概要（3-5句话，包含主要情节和转折点）"}},
+  {{"chapter": 2, "title": "章节标题", "summary": "章节内容概要"}}
+]
+
+第二步输出修改后的角色（用 "===CHARACTERS===" 标记开始）：
+===CHARACTERS===
+[
+  {{"name": "角色名", "role_type": "protagonist/antagonist/supporting/minor", "gender": "性别", "age": "年龄", "occupation": "职业/身份", "personality_traits": "性格特征", "appearance": "外貌描写", "background": "背景故事"}}
+]
+
+要求：
+1. 认真理解用户的修改意见，做出针对性调整
+2. 保持大纲和角色设定的整体一致性
+3. 保留未被修改部分的优点
+4. 调整后的内容要更加符合用户期望
 """,
 
     "remove_ai_traces": """你是一位专业的文学编辑，擅长修改润色小说文本，消除 AI 生成的痕迹，使其更加自然、人性化。
@@ -520,16 +768,17 @@ class AIService:
                 yield chunk
 
     @staticmethod
-    async def generate_text(prompt: str, provider: str = None, max_tokens: int = 4000) -> str:
+    async def generate_text(prompt: str, provider: str = None, max_tokens: int = None) -> str:
         """非流式生成，收集完整响应文本"""
         actual_provider = AIService._get_available_provider(provider)
+        max_tokens = max_tokens or settings.AI_MAX_TOKENS_DEFAULT
 
         if actual_provider == "demo":
             return AIService._demo_outline_text()
 
         if actual_provider == "openai":
             try:
-                from openai import AsyncOpenAI
+                from openai import AsyncOpenAI, RateLimitError, APIConnectionError, APITimeoutError
                 client = AsyncOpenAI(
                     api_key=settings.OPENAI_API_KEY,
                     base_url=settings.OPENAI_BASE_URL,
@@ -545,12 +794,22 @@ class AIService:
                     max_tokens=max_tokens,
                 )
                 return resp.choices[0].message.content or ""
+            except RateLimitError as e:
+                logger.error(f"OpenAI 速率限制: {e}")
+                raise RuntimeError("AI 服务繁忙，请稍后重试")
+            except APIConnectionError as e:
+                logger.error(f"OpenAI 连接错误: {e}")
+                raise RuntimeError("无法连接到 AI 服务")
+            except APITimeoutError as e:
+                logger.error(f"OpenAI 超时: {e}")
+                raise RuntimeError("AI 服务响应超时")
             except Exception as e:
+                logger.error(f"OpenAI 未知错误: {e}", exc_info=True)
                 raise RuntimeError(f"OpenAI 调用失败: {e}")
 
         if actual_provider == "anthropic":
             try:
-                from anthropic import AsyncAnthropic
+                from anthropic import AsyncAnthropic, RateLimitError, APIConnectionError, APITimeoutError
                 client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=600.0)
                 resp = await client.messages.create(
                     model=settings.ANTHROPIC_MODEL,
@@ -560,12 +819,21 @@ class AIService:
                     temperature=0.8,
                 )
                 return resp.content[0].text if resp.content else ""
+            except RateLimitError as e:
+                logger.error(f"Anthropic 速率限制: {e}")
+                raise RuntimeError("AI 服务繁忙，请稍后重试")
+            except APIConnectionError as e:
+                logger.error(f"Anthropic 连接错误: {e}")
+                raise RuntimeError("无法连接到 AI 服务")
+            except APITimeoutError as e:
+                logger.error(f"Anthropic 超时: {e}")
+                raise RuntimeError("AI 服务响应超时")
             except Exception as e:
+                logger.error(f"Anthropic 未知错误: {e}", exc_info=True)
                 raise RuntimeError(f"Anthropic 调用失败: {e}")
 
         if actual_provider == "ollama":
             try:
-                import httpx
                 async with httpx.AsyncClient(timeout=300.0) as client:
                     response = await client.post(
                         f"{settings.OLLAMA_BASE_URL}/api/generate",
@@ -583,7 +851,14 @@ class AIService:
                     )
                     data = response.json()
                     return data.get("response", "")
+            except httpx.TimeoutException as e:
+                logger.error(f"Ollama 超时: {e}")
+                raise RuntimeError("AI 服务响应超时")
+            except httpx.ConnectError as e:
+                logger.error(f"Ollama 连接错误: {e}")
+                raise RuntimeError("无法连接到 Ollama 服务")
             except Exception as e:
+                logger.error(f"Ollama 未知错误: {e}", exc_info=True)
                 raise RuntimeError(f"Ollama 调用失败: {e}")
 
         return ""
@@ -621,8 +896,9 @@ class AIService:
     @staticmethod
     async def _stream_openai(prompt: str) -> AsyncGenerator[str, None]:
         """OpenAI 流式生成"""
+        logger.info(f"开始 OpenAI 流式生成, model={settings.OPENAI_MODEL}, base_url={settings.OPENAI_BASE_URL}")
         try:
-            from openai import AsyncOpenAI
+            from openai import AsyncOpenAI, RateLimitError, APIConnectionError, APITimeoutError
 
             client = AsyncOpenAI(
                 api_key=settings.OPENAI_API_KEY,
@@ -630,6 +906,7 @@ class AIService:
                 timeout=600.0,
             )
 
+            logger.info("正在调用 OpenAI API...")
             stream = await client.chat.completions.create(
                 model=settings.OPENAI_MODEL,
                 messages=[
@@ -638,30 +915,44 @@ class AIService:
                 ],
                 stream=True,
                 temperature=0.8,
-                max_tokens=8000,
+                max_tokens=settings.AI_MAX_TOKENS_STREAM,
             )
+            logger.info("OpenAI API 返回流，开始读取...")
 
+            chunk_count = 0
             async for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
                     text = chunk.choices[0].delta.content
+                    chunk_count += 1
                     yield f"data: {json.dumps({'text': text}, ensure_ascii=False)}\n\n"
 
+            logger.info(f"OpenAI 流式生成完成，共 {chunk_count} 个 chunk")
             yield f"data: {json.dumps({'done': True})}\n\n"
 
+        except RateLimitError as e:
+            logger.error(f"OpenAI 流式生成速率限制: {e}")
+            yield f"data: {json.dumps({'error': 'AI 服务繁忙，请稍后重试'}, ensure_ascii=False)}\n\n"
+        except APIConnectionError as e:
+            logger.error(f"OpenAI 流式生成连接错误: {e}")
+            yield f"data: {json.dumps({'error': '无法连接到 AI 服务'}, ensure_ascii=False)}\n\n"
+        except APITimeoutError as e:
+            logger.error(f"OpenAI 流式生成超时: {e}")
+            yield f"data: {json.dumps({'error': 'AI 服务响应超时'}, ensure_ascii=False)}\n\n"
         except Exception as e:
+            logger.error(f"OpenAI 流式生成未知错误: {e}", exc_info=True)
             yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
 
     @staticmethod
     async def _stream_anthropic(prompt: str) -> AsyncGenerator[str, None]:
         """Anthropic Claude 流式生成"""
         try:
-            from anthropic import AsyncAnthropic
+            from anthropic import AsyncAnthropic, RateLimitError, APIConnectionError, APITimeoutError
 
             client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=600.0)
 
             async with client.messages.stream(
                 model=settings.ANTHROPIC_MODEL,
-                max_tokens=8000,
+                max_tokens=settings.AI_MAX_TOKENS_STREAM,
                 messages=[{"role": "user", "content": prompt}],
                 system="你是一位专业的中文小说创作助手，擅长各类文学创作。",
                 temperature=0.8,
@@ -671,15 +962,23 @@ class AIService:
 
             yield f"data: {json.dumps({'done': True})}\n\n"
 
+        except RateLimitError as e:
+            logger.error(f"Anthropic 流式生成速率限制: {e}")
+            yield f"data: {json.dumps({'error': 'AI 服务繁忙，请稍后重试'}, ensure_ascii=False)}\n\n"
+        except APIConnectionError as e:
+            logger.error(f"Anthropic 流式生成连接错误: {e}")
+            yield f"data: {json.dumps({'error': '无法连接到 AI 服务'}, ensure_ascii=False)}\n\n"
+        except APITimeoutError as e:
+            logger.error(f"Anthropic 流式生成超时: {e}")
+            yield f"data: {json.dumps({'error': 'AI 服务响应超时'}, ensure_ascii=False)}\n\n"
         except Exception as e:
+            logger.error(f"Anthropic 流式生成未知错误: {e}", exc_info=True)
             yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
 
     @staticmethod
     async def _stream_ollama(prompt: str) -> AsyncGenerator[str, None]:
         """Ollama 本地模型流式生成"""
         try:
-            import httpx
-
             async with httpx.AsyncClient(timeout=300.0) as client:
                 async with client.stream(
                     "POST",
@@ -704,5 +1003,12 @@ class AIService:
                             if data.get("done"):
                                 yield f"data: {json.dumps({'done': True})}\n\n"
 
+        except httpx.TimeoutException as e:
+            logger.error(f"Ollama 流式生成超时: {e}")
+            yield f"data: {json.dumps({'error': 'AI 服务响应超时'}, ensure_ascii=False)}\n\n"
+        except httpx.ConnectError as e:
+            logger.error(f"Ollama 流式生成连接错误: {e}")
+            yield f"data: {json.dumps({'error': '无法连接到 Ollama 服务'}, ensure_ascii=False)}\n\n"
         except Exception as e:
+            logger.error(f"Ollama 流式生成未知错误: {e}", exc_info=True)
             yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"

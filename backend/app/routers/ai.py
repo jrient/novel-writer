@@ -35,6 +35,8 @@ async def ai_generate(
     AI 流式生成内容
     返回 SSE (Server-Sent Events) 流
     """
+    import json as _json
+
     # 验证项目存在
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
@@ -43,7 +45,7 @@ async def ai_generate(
 
     # 获取上下文：角色和世界观
     chars_result = await db.execute(
-        select(Character).where(Character.project_id == project_id).limit(10)
+        select(Character).where(Character.project_id == project_id).limit(settings.AI_CONTEXT_CHARACTER_LIMIT)
     )
     characters = [
         {
@@ -57,7 +59,7 @@ async def ai_generate(
     ]
 
     world_result = await db.execute(
-        select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id).limit(10)
+        select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id).limit(settings.AI_CONTEXT_WORLDBUILDING_LIMIT)
     )
     worldbuilding = [
         {"name": w.title, "description": w.content or "", "category": w.category}
@@ -77,8 +79,12 @@ async def ai_generate(
         if chapter:
             content = chapter.content or ""
 
-    return StreamingResponse(
-        AIService.generate_stream(
+    async def stream_with_heartbeat():
+        """带心跳的流式生成，防止长连接超时"""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        stream_gen = AIService.generate_stream(
             action=payload.action,
             content=content,
             provider=payload.provider,
@@ -88,7 +94,51 @@ async def ai_generate(
             question=payload.question or "",
             characters=characters,
             worldbuilding=worldbuilding,
-        ),
+        )
+
+        heartbeat_count = 0
+        max_heartbeats = 40  # 最多 40 次心跳（10分钟）后放弃
+
+        # 创建一个任务来获取下一个元素
+        stream_iter = stream_gen.__aiter__()
+        pending_task = None
+
+        while True:
+            try:
+                # 如果没有待处理的任务，创建一个
+                if pending_task is None:
+                    pending_task = asyncio.create_task(stream_iter.__anext__())
+
+                # 等待任务完成或超时
+                done, _ = await asyncio.wait([pending_task], timeout=15.0)
+
+                if done:
+                    # 任务完成了
+                    sse_line = pending_task.result()
+                    pending_task = None
+                    heartbeat_count = 0
+                    yield sse_line
+                else:
+                    # 超时但任务仍在运行，发送心跳
+                    heartbeat_count += 1
+                    if heartbeat_count > max_heartbeats:
+                        logger.error(f"AI 生成超时，已发送 {max_heartbeats} 次心跳仍无响应")
+                        pending_task.cancel()
+                        yield f"data: {_json.dumps({'error': 'AI 服务响应超时'}, ensure_ascii=False)}\n\n"
+                        break
+                    logger.debug(f"AI 生成等待中，发送心跳 #{heartbeat_count}")
+                    yield f": heartbeat\n\n"
+
+            except StopAsyncIteration:
+                # 流正常结束
+                break
+            except Exception as e:
+                logger.error(f"AI 生成异常: {e}", exc_info=True)
+                yield f"data: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+                break
+
+    return StreamingResponse(
+        stream_with_heartbeat(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -118,7 +168,7 @@ async def batch_generate(
 
     # 获取角色和世界观
     chars_result = await db.execute(
-        select(Character).where(Character.project_id == project_id).limit(10)
+        select(Character).where(Character.project_id == project_id).limit(settings.AI_CONTEXT_CHARACTER_LIMIT)
     )
     characters = [
         {
@@ -132,7 +182,7 @@ async def batch_generate(
     ]
 
     world_result = await db.execute(
-        select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id).limit(10)
+        select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id).limit(settings.AI_CONTEXT_WORLDBUILDING_LIMIT)
     )
     worldbuilding = [
         {"name": w.title, "description": w.content or "", "category": w.category}

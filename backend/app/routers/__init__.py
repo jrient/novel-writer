@@ -9,6 +9,8 @@ from app.routers.reference import router as reference_router
 from app.routers.search import router as search_router
 from app.routers.knowledge import router as knowledge_router
 from app.routers.wizard import router as wizard_router
+from app.routers.event import router as event_router
+from app.routers.note import router as note_router
 
 __all__ = [
     "project_router",
@@ -23,4 +25,6 @@ __all__ = [
     "search_router",
     "knowledge_router",
     "wizard_router",
+    "event_router",
+    "note_router",
 ]

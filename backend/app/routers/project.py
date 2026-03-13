@@ -2,6 +2,7 @@
 项目路由
 处理小说项目的 CRUD 操作
 """
+import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -12,6 +13,8 @@ from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.models.project import Project
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectListResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
 
@@ -36,15 +39,20 @@ async def create_project(
     db: AsyncSession = Depends(get_db),
 ):
     """创建新项目"""
-    project = Project(**payload.model_dump())
-    db.add(project)
-    await db.commit()
-    await db.refresh(project)
-    # 刷新后加载关联章节（新建项目章节为空）
-    await db.execute(
-        select(Project).where(Project.id == project.id).options(selectinload(Project.chapters))
-    )
-    return project
+    try:
+        project = Project(**payload.model_dump())
+        db.add(project)
+        await db.commit()
+        await db.refresh(project)
+        # 刷新后加载关联章节（新建项目章节为空）
+        await db.execute(
+            select(Project).where(Project.id == project.id).options(selectinload(Project.chapters))
+        )
+        return project
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"创建项目失败: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="创建项目失败")
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
@@ -72,24 +80,31 @@ async def update_project(
     db: AsyncSession = Depends(get_db),
 ):
     """更新项目信息"""
-    stmt = (
-        select(Project)
-        .where(Project.id == project_id)
-        .options(selectinload(Project.chapters))
-    )
-    result = await db.execute(stmt)
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
+    try:
+        stmt = (
+            select(Project)
+            .where(Project.id == project_id)
+            .options(selectinload(Project.chapters))
+        )
+        result = await db.execute(stmt)
+        project = result.scalar_one_or_none()
+        if not project:
+            raise HTTPException(status_code=404, detail="项目不存在")
 
-    # 只更新有值的字段
-    update_data = payload.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(project, key, value)
+        # 只更新有值的字段
+        update_data = payload.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(project, key, value)
 
-    await db.commit()
-    await db.refresh(project)
-    return project
+        await db.commit()
+        await db.refresh(project)
+        return project
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"更新项目失败: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="更新项目失败")
 
 
 @router.delete("/{project_id}", status_code=204)
@@ -98,10 +113,17 @@ async def delete_project(
     db: AsyncSession = Depends(get_db),
 ):
     """删除项目（级联删除所有章节）"""
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
+    try:
+        result = await db.execute(select(Project).where(Project.id == project_id))
+        project = result.scalar_one_or_none()
+        if not project:
+            raise HTTPException(status_code=404, detail="项目不存在")
 
-    await db.delete(project)
-    await db.commit()
+        await db.delete(project)
+        await db.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"删除项目失败: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="删除项目失败")

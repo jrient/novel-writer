@@ -1,7 +1,7 @@
 """
 角色管理路由
 """
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,14 +23,14 @@ router = APIRouter(prefix="/api/v1/projects/{project_id}/characters", tags=["cha
 @router.get("/", response_model=List[CharacterResponse])
 async def get_characters(
     project_id: int,
-    role_type: str = None,
+    role_type: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-):
+) -> List[CharacterResponse]:
     """获取项目的所有角色"""
     # 验证项目存在
     result = await db.execute(select(Project).where(Project.id == project_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=f"项目不存在 (ID: {project_id})")
 
     # 构建查询
     query = select(Character).where(Character.project_id == project_id)
@@ -42,17 +42,17 @@ async def get_characters(
     return result.scalars().all()
 
 
-@router.post("/", response_model=CharacterResponse)
+@router.post("/", response_model=CharacterResponse, status_code=201)
 async def create_character(
     project_id: int,
     data: CharacterCreate,
     db: AsyncSession = Depends(get_db),
-):
+) -> CharacterResponse:
     """创建角色"""
     # 验证项目存在
     result = await db.execute(select(Project).where(Project.id == project_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=f"项目不存在 (ID: {project_id})")
 
     character = Character(project_id=project_id, **data.model_dump())
     db.add(character)
@@ -67,7 +67,7 @@ async def get_character(
     project_id: int,
     character_id: int,
     db: AsyncSession = Depends(get_db),
-):
+) -> CharacterResponse:
     """获取单个角色详情"""
     result = await db.execute(
         select(Character).where(
@@ -77,7 +77,7 @@ async def get_character(
     )
     character = result.scalar_one_or_none()
     if not character:
-        raise HTTPException(status_code=404, detail="角色不存在")
+        raise HTTPException(status_code=404, detail=f"角色不存在 (ID: {character_id})")
 
     return character
 
@@ -88,7 +88,7 @@ async def update_character(
     character_id: int,
     data: CharacterUpdate,
     db: AsyncSession = Depends(get_db),
-):
+) -> CharacterResponse:
     """更新角色"""
     result = await db.execute(
         select(Character).where(
@@ -98,7 +98,7 @@ async def update_character(
     )
     character = result.scalar_one_or_none()
     if not character:
-        raise HTTPException(status_code=404, detail="角色不存在")
+        raise HTTPException(status_code=404, detail=f"角色不存在 (ID: {character_id})")
 
     # 更新字段
     update_data = data.model_dump(exclude_unset=True)
@@ -111,12 +111,12 @@ async def update_character(
     return character
 
 
-@router.delete("/{character_id}")
+@router.delete("/{character_id}", status_code=204)
 async def delete_character(
     project_id: int,
     character_id: int,
     db: AsyncSession = Depends(get_db),
-):
+) -> None:
     """删除角色"""
     result = await db.execute(
         select(Character).where(
@@ -126,9 +126,7 @@ async def delete_character(
     )
     character = result.scalar_one_or_none()
     if not character:
-        raise HTTPException(status_code=404, detail="角色不存在")
+        raise HTTPException(status_code=404, detail=f"角色不存在 (ID: {character_id})")
 
     await db.delete(character)
     await db.commit()
-
-    return {"message": "角色已删除"}

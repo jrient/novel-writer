@@ -14,6 +14,7 @@ class ProjectCreate(BaseModel):
     genre: Optional[str] = None
     target_word_count: int = 0
     status: str = "draft"
+    outline: Optional[str] = None
 
 
 class ProjectUpdate(BaseModel):
@@ -24,6 +25,7 @@ class ProjectUpdate(BaseModel):
     target_word_count: Optional[int] = None
     current_word_count: Optional[int] = None
     status: Optional[str] = None
+    outline: Optional[str] = None
 
 
 class ChapterSummary(BaseModel):
@@ -51,6 +53,7 @@ class ProjectResponse(BaseModel):
     target_word_count: int
     current_word_count: int
     status: str
+    outline: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     chapters: List[ChapterSummary] = []
@@ -67,5 +70,6 @@ class ProjectListResponse(BaseModel):
     target_word_count: int
     current_word_count: int
     status: str
+    outline: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None

@@ -1,10 +1,13 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, List
 
 
 class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/novel_writer.db"
+
+    # CORS
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:8083"
 
     # AI Providers
     DEFAULT_AI_PROVIDER: str = "openai"
@@ -33,6 +36,12 @@ class Settings(BaseSettings):
     # Server
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
+
+    # AI Context Limits
+    AI_CONTEXT_CHARACTER_LIMIT: int = 10
+    AI_CONTEXT_WORLDBUILDING_LIMIT: int = 10
+    AI_MAX_TOKENS_DEFAULT: int = 4000
+    AI_MAX_TOKENS_STREAM: int = 8000
 
     class Config:
         env_file = ".env"

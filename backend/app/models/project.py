@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import String, Text, Integer, func
+from sqlalchemy import String, Text, Integer, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from app.models.character import Character
     from app.models.worldbuilding import WorldbuildingEntry
     from app.models.outline import OutlineNode
+    from app.models.note import Note
+    from app.models.event import StoryEvent, Plotline
 
 
 class Project(Base):
@@ -34,6 +36,12 @@ class Project(Base):
 
     # 状态: draft(草稿) / in_progress(写作中) / completed(已完成)
     status: Mapped[str] = mapped_column(String(50), default="draft", comment="项目状态")
+
+    # 大纲内容（纯文本）
+    outline: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="故事大纲")
+
+    # 地图结构（JSON格式，存储地图->部分->章节层级）
+    maps: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, default=list, comment="地图结构")
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
@@ -73,4 +81,28 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan",
         order_by="OutlineNode.sort_order",
+    )
+
+    # 关联笔记
+    notes: Mapped[List["Note"]] = relationship(
+        "Note",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="Note.sort_order",
+    )
+
+    # 关联故事事件
+    story_events: Mapped[List["StoryEvent"]] = relationship(
+        "StoryEvent",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="StoryEvent.timeline_order",
+    )
+
+    # 关联剧情线
+    plotlines: Mapped[List["Plotline"]] = relationship(
+        "Plotline",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="Plotline.sort_order",
     )

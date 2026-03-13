@@ -179,20 +179,29 @@ async def reorder_outline_nodes(
     db: AsyncSession = Depends(get_db),
 ):
     """批量更新大纲节点排序"""
+    if not orders:
+        return {"message": "排序已更新"}
+
+    # 批量查询所有需要更新的节点
+    node_ids = [item.get("id") for item in orders if item.get("id")]
+    if not node_ids:
+        return {"message": "排序已更新"}
+
+    result = await db.execute(
+        select(OutlineNode).where(
+            OutlineNode.id.in_(node_ids),
+            OutlineNode.project_id == project_id,
+        )
+    )
+    nodes = {n.id: n for n in result.scalars().all()}
+
+    # 批量更新
     for item in orders:
         node_id = item.get("id")
-        sort_order = item.get("sort_order")
-        parent_id = item.get("parent_id")
-
-        result = await db.execute(
-            select(OutlineNode).where(
-                OutlineNode.id == node_id,
-                OutlineNode.project_id == project_id,
-            )
-        )
-        node = result.scalar_one_or_none()
-        if node:
-            node.sort_order = sort_order
+        if node_id in nodes:
+            node = nodes[node_id]
+            node.sort_order = item.get("sort_order", 0)
+            parent_id = item.get("parent_id")
             if parent_id is not None:
                 node.parent_id = parent_id
 

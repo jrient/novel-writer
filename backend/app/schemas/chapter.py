@@ -2,7 +2,7 @@
 章节 Pydantic 模式
 """
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict
 
@@ -58,3 +58,38 @@ class ChapterReorderItem(BaseModel):
 class ChapterReorderRequest(BaseModel):
     """批量重排序请求体"""
     orders: list[ChapterReorderItem]
+
+
+# ========== 章节版本历史相关 ==========
+
+class ChapterVersionResponse(BaseModel):
+    """章节版本响应"""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    chapter_id: int
+    version_number: int
+    title: str
+    word_count: int
+    change_summary: Optional[str] = None
+    created_at: datetime
+
+
+class ChapterVersionDetail(BaseModel):
+    """章节版本详情（包含内容）"""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    chapter_id: int
+    version_number: int
+    title: str
+    content: str
+    word_count: int
+    change_summary: Optional[str] = None
+    created_at: datetime
+
+
+class ChapterVersionRestore(BaseModel):
+    """版本恢复响应"""
+    message: str
+    chapter: "ChapterResponse"

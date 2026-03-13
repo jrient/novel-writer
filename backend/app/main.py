@@ -1,12 +1,16 @@
 """
 FastAPI 应用入口
 """
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from app.core.config import settings
 from app.core.database import init_db
+from app.middleware import RequestIDMiddleware, RequestLoggingMiddleware
 # 导入所有模型，确保 Base.metadata 包含完整表定义
 import app.models  # noqa: F401
 from app.routers import (
@@ -22,6 +26,8 @@ from app.routers import (
     search_router,
     knowledge_router,
     wizard_router,
+    event_router,
+    note_router,
 )
 
 
@@ -32,6 +38,36 @@ async def lifespan(app: FastAPI):
     yield
 
 
+# 配置日志
+import sys
+
+# 创建日志格式（兼容没有 request_id 的情况）
+class RequestIdFilter(logging.Filter):
+    """为日志记录添加 request_id 字段"""
+    def filter(self, record):
+        if not hasattr(record, 'request_id'):
+            record.request_id = '-'
+        return True
+
+# 配置根日志
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+# 为所有日志记录器添加 request_id 过滤器
+for handler in logging.root.handlers:
+    handler.addFilter(RequestIdFilter())
+
+# 创建 API 专用日志记录器
+api_logger = logging.getLogger("api_logger")
+api_logger.setLevel(logging.INFO)
+api_logger.addFilter(RequestIdFilter())
+
+logger = logging.getLogger(__name__)
+
+
 # 创建 FastAPI 应用实例
 app = FastAPI(
     title="Novel Writer API",
@@ -40,14 +76,33 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS 中间件
+
+# 全局异常处理
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """全局异常处理器，统一错误返回格式"""
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "服务器内部错误，请稍后再试"}
+    )
+
+
+# CORS 中间件 - 使用环境变量配置允许的来源
+allowed_origins = settings.ALLOWED_ORIGINS.split(",") if settings.ALLOWED_ORIGINS else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# 请求 ID 中间件
+app.add_middleware(RequestIDMiddleware)
+
+# 请求日志中间件
+app.add_middleware(RequestLoggingMiddleware)
 
 # 注册路由
 app.include_router(project_router)
@@ -62,6 +117,8 @@ app.include_router(reference_router)
 app.include_router(search_router)
 app.include_router(knowledge_router)
 app.include_router(wizard_router)
+app.include_router(event_router)
+app.include_router(note_router)
 
 
 @app.get("/")

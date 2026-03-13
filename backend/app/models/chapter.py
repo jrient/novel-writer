@@ -2,7 +2,7 @@
 章节模型
 """
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import String, Text, Integer, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -12,6 +12,7 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.project import Project
     from app.models.outline import OutlineNode
+    from app.models.chapter_version import ChapterVersion
 
 
 class Chapter(Base):
@@ -57,4 +58,12 @@ class Chapter(Base):
     # 关联的大纲节点（一对一）
     outline_node: Mapped[Optional["OutlineNode"]] = relationship(
         "OutlineNode", back_populates="chapter", uselist=False
+    )
+
+    # 关联的版本历史
+    versions: Mapped[List["ChapterVersion"]] = relationship(
+        "ChapterVersion",
+        back_populates="chapter",
+        cascade="all, delete-orphan",
+        order_by="desc(ChapterVersion.version_number)",
     )
