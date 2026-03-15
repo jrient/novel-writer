@@ -19,7 +19,7 @@ export const useChapterStore = defineStore('chapter', () => {
   // 获取章节列表（按 sort_order 排序）
   async function fetchChapters(projectId: number) {
     const data = await getChapters(projectId)
-    chapters.value = data.sort((a, b) => a.sort_order - b.sort_order)
+    chapters.value = data.sort((a, b) => b.sort_order - a.sort_order)
   }
 
   // 创建章节
@@ -33,7 +33,7 @@ export const useChapterStore = defineStore('chapter', () => {
       sort_order: data.sort_order ?? maxOrder + 1,
     })
     chapters.value.push(chapter)
-    chapters.value.sort((a, b) => a.sort_order - b.sort_order)
+    chapters.value.sort((a, b) => b.sort_order - a.sort_order)
     return chapter
   }
 
@@ -97,7 +97,7 @@ export const useChapterStore = defineStore('chapter', () => {
       const chapter = chapters.value.find((c) => c.id === id)
       if (chapter) chapter.sort_order = sort_order
     })
-    chapters.value.sort((a, b) => a.sort_order - b.sort_order)
+    chapters.value.sort((a, b) => b.sort_order - a.sort_order)
   }
 
   return {

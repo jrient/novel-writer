@@ -25,7 +25,7 @@ from app.schemas.note import (
 )
 from app.services.ai_service import AIService
 
-router = APIRouter(prefix="/notes", tags=["notes"])
+router = APIRouter(prefix="/api/v1/projects/{project_id}/notes", tags=["notes"])
 logger = logging.getLogger(__name__)
 
 

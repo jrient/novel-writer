@@ -111,7 +111,11 @@ async def ai_generate(
         )
 
         heartbeat_count = 0
-        max_heartbeats = 40  # 最多 40 次心跳（10分钟）后放弃
+        max_heartbeats = 120  # 最多 120 次心跳（10分钟）后放弃
+        heartbeat_interval = 5.0  # 每 5 秒发一次心跳
+
+        # 立即发送初始心跳，确保连接建立并有数据流过
+        yield ": connected\n\n"
 
         # 创建一个任务来获取下一个元素
         stream_iter = stream_gen.__aiter__()
@@ -124,7 +128,7 @@ async def ai_generate(
                     pending_task = asyncio.create_task(stream_iter.__anext__())
 
                 # 等待任务完成或超时
-                done, _ = await asyncio.wait([pending_task], timeout=15.0)
+                done, _ = await asyncio.wait([pending_task], timeout=heartbeat_interval)
 
                 if done:
                     # 任务完成了

@@ -2,6 +2,7 @@
  * AI 服务 API
  * 支持 SSE 流式调用
  */
+import { getAccessToken } from './request'
 
 export interface AIGenerateRequest {
   action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character'
@@ -65,9 +66,15 @@ export function streamGenerate(
 ): AbortController {
   const controller = new AbortController()
 
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   fetch(`/api/v1/projects/${projectId}/ai/generate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(data),
     signal: controller.signal,
   })
@@ -138,9 +145,15 @@ export function streamBatchGenerate(
 ): AbortController {
   const controller = new AbortController()
 
+  const batchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+  const batchToken = getAccessToken()
+  if (batchToken) {
+    batchHeaders['Authorization'] = `Bearer ${batchToken}`
+  }
+
   fetch(`/api/v1/projects/${projectId}/ai/batch-generate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: batchHeaders,
     body: JSON.stringify(data),
     signal: controller.signal,
   })

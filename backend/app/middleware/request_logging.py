@@ -1,35 +1,26 @@
 """
-请求日志中间件
+请求日志中间件（纯 ASGI 实现）
 记录所有 API 请求和响应信息，便于问题排查
+SSE 流式接口直接透传，不做任何缓冲
 """
 import json
 import time
 import logging
-from typing import Callable
-from datetime import datetime
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import StreamingResponse
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger("api_logger")
 
 # 不记录请求体的路径（避免记录大文件或敏感数据）
 SKIP_BODY_PATHS = [
-    "/api/v1/ai/",  # AI 相关接口可能有大文本
+    "/api/v1/ai/",
 ]
 
-# 不记录响应体的路径
-SKIP_RESPONSE_BODY_PATHS = [
-    "/api/v1/wizard/generate",  # SSE 流式接口
-    "/api/v1/wizard/generate-maps",
-    "/api/v1/wizard/generate-parts",
-    "/api/v1/wizard/generate-characters",
-    "/api/v1/wizard/generate-characters-for-part",
-    "/api/v1/wizard/generate-outline",
-    "/api/v1/ai/write-chapter",
-    "/api/v1/ai/chat",
-]
+# SSE 流式接口路径关键词，直接透传不做处理
+SSE_PATH_KEYWORDS = ["/ai/generate", "/ai/batch-generate"]
+
+# 跳过日志的路径
+SKIP_PATHS = ["/", "/favicon.ico"]
 
 # 最大记录的请求/响应体长度
 MAX_BODY_LENGTH = 2000
@@ -48,7 +39,6 @@ def safe_json_loads(body: bytes) -> str:
         decoded = body.decode("utf-8")
         try:
             parsed = json.loads(decoded)
-            # 美化 JSON，但限制长度
             formatted = json.dumps(parsed, ensure_ascii=False, indent=2)
             return truncate_body(formatted)
         except json.JSONDecodeError:
@@ -57,108 +47,58 @@ def safe_json_loads(body: bytes) -> str:
         return f"<binary data, {len(body)} bytes>"
 
 
-class RequestLoggingMiddleware(BaseHTTPMiddleware):
+class RequestLoggingMiddleware:
     """
-    请求日志中间件
-
-    记录每个请求的：
-    - 请求方法和路径
-    - 请求头（可选）
-    - 请求体
-    - 响应状态码
-    - 响应体（可选）
-    - 处理时间
+    纯 ASGI 请求日志中间件，不缓冲流式响应
     """
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # 跳过健康检查等静态请求
-        if request.url.path in ["/", "/favicon.ico"] or request.url.path.startswith("/assets"):
-            return await call_next(request)
+    def __init__(self, app: ASGIApp):
+        self.app = app
 
-        # 获取请求 ID
-        request_id = getattr(request.state, "request_id", "unknown")
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        # 记录开始时间
+        path = scope.get("path", "")
+
+        # 跳过静态路径
+        if path in SKIP_PATHS or path.startswith("/assets"):
+            await self.app(scope, receive, send)
+            return
+
+        # SSE 流式接口直接透传，避免任何缓冲
+        if any(kw in path for kw in SSE_PATH_KEYWORDS):
+            await self.app(scope, receive, send)
+            return
+
+        # 获取请求信息
+        request_id = scope.get("state", {}).get("request_id", "unknown")
+        method = scope.get("method", "?")
+        client = scope.get("client", ("unknown", 0))
+        client_ip = client[0] if client else "unknown"
+
         start_time = time.time()
 
-        # 收集请求信息
-        request_info = {
-            "request_id": request_id,
-            "method": request.method,
-            "path": request.url.path,
-            "query": str(request.query_params) or None,
-            "client_ip": request.client.host if request.client else "unknown",
-            "user_agent": request.headers.get("user-agent", ""),
-        }
+        # 记录请求
+        logger.info(f"[{request_id}] --> {method} {path} | client: {client_ip} | body: N/A")
 
-        # 记录请求体（仅 POST/PUT/PATCH）
-        should_log_body = not any(
-            request.url.path.startswith(p) for p in SKIP_BODY_PATHS
-        )
+        # 拦截响应以记录状态码
+        status_code = [0]
 
-        if should_log_body and request.method in ["POST", "PUT", "PATCH", "DELETE"]:
-            try:
-                body = await request.body()
-                if body:
-                    request_info["body"] = safe_json_loads(body)
-            except Exception as e:
-                request_info["body_error"] = str(e)
+        async def send_with_logging(message):
+            if message["type"] == "http.response.start":
+                status_code[0] = message.get("status", 0)
+            elif message["type"] == "http.response.body":
+                if status_code[0]:
+                    process_time = (time.time() - start_time) * 1000
+                    status_emoji = "✓" if status_code[0] < 400 else "✗"
+                    body = message.get("body", b"")
+                    response_text = safe_json_loads(body) if body and len(body) < MAX_BODY_LENGTH * 2 else "N/A"
+                    logger.info(
+                        f"[{request_id}] <-- {status_emoji} {status_code[0]} | "
+                        f"time: {round(process_time, 2)}ms | response: {response_text}"
+                    )
+            await send(message)
 
-        # 打印请求日志
-        logger.info(f"--> {request_info['method']} {request_info['path']} | "
-                   f"client: {request_info['client_ip']} | "
-                   f"body: {request_info.get('body', 'N/A')}")
-
-        # 调用下一个处理器
-        response = await call_next(request)
-
-        # 计算处理时间
-        process_time = (time.time() - start_time) * 1000
-
-        # 记录响应信息
-        response_info = {
-            "request_id": request_id,
-            "status_code": response.status_code,
-            "process_time_ms": round(process_time, 2),
-        }
-
-        # 记录响应体（非流式响应）
-        should_log_response = not any(
-            request.url.path.startswith(p) for p in SKIP_RESPONSE_BODY_PATHS
-        )
-
-        if should_log_response and not isinstance(response, StreamingResponse):
-            try:
-                # 获取响应体
-                response_body = b""
-                async for chunk in response.body_iterator:
-                    response_body += chunk
-
-                # 重新包装响应体以便返回
-                from fastapi.responses import Response as FastAPIResponse
-
-                new_response = FastAPIResponse(
-                    content=response_body,
-                    status_code=response.status_code,
-                    headers=dict(response.headers),
-                    media_type=response.media_type,
-                )
-
-                if response_body:
-                    response_info["response"] = safe_json_loads(response_body)
-
-            except Exception as e:
-                response_info["response_error"] = str(e)
-                new_response = response
-        else:
-            new_response = response
-            if isinstance(response, StreamingResponse):
-                response_info["response"] = "<streaming response>"
-
-        # 打印响应日志
-        status_emoji = "✓" if response.status_code < 400 else "✗"
-        logger.info(f"<-- {status_emoji} {response_info['status_code']} | "
-                   f"time: {response_info['process_time_ms']}ms | "
-                   f"response: {response_info.get('response', 'N/A')}")
-
-        return new_response
+        await self.app(scope, receive, send_with_logging)

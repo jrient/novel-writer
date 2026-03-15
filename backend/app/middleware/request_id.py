@@ -1,13 +1,12 @@
 """
-请求追踪中间件
+请求追踪中间件（纯 ASGI 实现）
 为每个 API 请求生成唯一 ID，便于日志追踪和问题排查
 """
 import uuid
 import logging
-from typing import Callable
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import Request
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
@@ -15,55 +14,45 @@ logger = logging.getLogger(__name__)
 REQUEST_ID_HEADER = "X-Request-ID"
 
 
-class RequestIDMiddleware(BaseHTTPMiddleware):
+class RequestIDMiddleware:
     """
-    请求 ID 中间件
-
-    为每个请求生成唯一 ID，并：
-    1. 注入到请求状态中
-    2. 添加到响应头中
-    3. 注入到日志上下文中
+    纯 ASGI 请求 ID 中间件，不缓冲流式响应
     """
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # 生成或获取请求 ID
-        request_id = request.headers.get(REQUEST_ID_HEADER) or str(uuid.uuid4())
+    def __init__(self, app: ASGIApp):
+        self.app = app
 
-        # 存储到请求状态
-        request.state.request_id = request_id
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        # 注入到日志上下文
-        old_factory = logging.getLogRecordFactory()
+        # 从请求头获取或生成请求 ID
+        headers = dict(scope.get("headers", []))
+        request_id = None
+        for key, value in scope.get("headers", []):
+            if key.decode("latin-1").lower() == "x-request-id":
+                request_id = value.decode("latin-1")
+                break
+        if not request_id:
+            request_id = str(uuid.uuid4())
 
-        def record_factory(*args, **kwargs):
-            record = old_factory(*args, **kwargs)
-            record.request_id = request_id
-            return record
+        # 存储到 scope state
+        if "state" not in scope:
+            scope["state"] = {}
+        scope["state"]["request_id"] = request_id
 
-        logging.setLogRecordFactory(record_factory)
+        # 注入请求 ID 到响应头
+        async def send_with_request_id(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers.append((b"x-request-id", request_id.encode("latin-1")))
+                message["headers"] = headers
+            await send(message)
 
-        try:
-            # 处理请求
-            response = await call_next(request)
-
-            # 添加请求 ID 到响应头
-            response.headers[REQUEST_ID_HEADER] = request_id
-
-            return response
-
-        finally:
-            # 恢复原始日志工厂
-            logging.setLogRecordFactory(old_factory)
+        await self.app(scope, receive, send_with_request_id)
 
 
 def get_request_id(request: Request) -> str:
-    """
-    从请求中获取请求 ID
-
-    Args:
-        request: FastAPI 请求对象
-
-    Returns:
-        str: 请求 ID
-    """
+    """从请求中获取请求 ID"""
     return getattr(request.state, "request_id", "unknown")

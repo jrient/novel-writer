@@ -895,64 +895,93 @@ class AIService:
 
     @staticmethod
     async def _stream_openai(prompt: str) -> AsyncGenerator[str, None]:
-        """OpenAI 流式生成"""
+        """OpenAI 流式生成（带重试）"""
         logger.info(f"开始 OpenAI 流式生成, model={settings.OPENAI_MODEL}, base_url={settings.OPENAI_BASE_URL}")
-        try:
-            from openai import AsyncOpenAI, RateLimitError, APIConnectionError, APITimeoutError
+        from openai import AsyncOpenAI, RateLimitError, APIConnectionError, APITimeoutError
 
-            client = AsyncOpenAI(
-                api_key=settings.OPENAI_API_KEY,
-                base_url=settings.OPENAI_BASE_URL,
-                timeout=600.0,
-            )
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            try:
+                client = AsyncOpenAI(
+                    api_key=settings.OPENAI_API_KEY,
+                    base_url=settings.OPENAI_BASE_URL,
+                    timeout=httpx.Timeout(connect=30.0, read=600.0, write=30.0, pool=30.0),
+                )
 
-            logger.info("正在调用 OpenAI API...")
-            stream = await client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
-                messages=[
-                    {"role": "system", "content": "你是一位专业的中文小说创作助手，擅长各类文学创作。"},
-                    {"role": "user", "content": prompt},
-                ],
-                stream=True,
-                stream_options={"include_usage": True},
-                temperature=0.8,
-                max_tokens=settings.AI_MAX_TOKENS_STREAM,
-            )
-            logger.info("OpenAI API 返回流，开始读取...")
+                logger.info(f"正在调用 OpenAI API...（第 {attempt} 次尝试）")
+                stream = await client.chat.completions.create(
+                    model=settings.OPENAI_MODEL,
+                    messages=[
+                        {"role": "system", "content": "你是一位专业的中文小说创作助手，擅长各类文学创作。"},
+                        {"role": "user", "content": prompt},
+                    ],
+                    stream=True,
+                    stream_options={"include_usage": True},
+                    temperature=0.8,
+                    max_tokens=settings.AI_MAX_TOKENS_STREAM,
+                )
+                logger.info("OpenAI API 返回流，开始读取...")
 
-            chunk_count = 0
-            usage_info = None
-            async for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    text = chunk.choices[0].delta.content
-                    chunk_count += 1
-                    yield f"data: {json.dumps({'text': text}, ensure_ascii=False)}\n\n"
-                # 捕获最后一个 chunk 中的 usage 信息
-                if hasattr(chunk, 'usage') and chunk.usage:
-                    usage_info = {
-                        'input_tokens': chunk.usage.prompt_tokens,
-                        'output_tokens': chunk.usage.completion_tokens,
-                        'total_tokens': chunk.usage.total_tokens,
-                    }
+                chunk_count = 0
+                usage_info = None
+                async for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        text = chunk.choices[0].delta.content
+                        chunk_count += 1
+                        yield f"data: {json.dumps({'text': text}, ensure_ascii=False)}\n\n"
+                    # 捕获最后一个 chunk 中的 usage 信息
+                    if hasattr(chunk, 'usage') and chunk.usage:
+                        usage_info = {
+                            'input_tokens': chunk.usage.prompt_tokens,
+                            'output_tokens': chunk.usage.completion_tokens,
+                            'total_tokens': chunk.usage.total_tokens,
+                        }
 
-            logger.info(f"OpenAI 流式生成完成，共 {chunk_count} 个 chunk")
-            done_data = {'done': True}
-            if usage_info:
-                done_data['usage'] = usage_info
-            yield f"data: {json.dumps(done_data)}\n\n"
+                logger.info(f"OpenAI 流式生成完成，共 {chunk_count} 个 chunk")
+                done_data = {'done': True}
+                if usage_info:
+                    done_data['usage'] = usage_info
+                yield f"data: {json.dumps(done_data)}\n\n"
+                return  # 成功完成，退出重试循环
 
-        except RateLimitError as e:
-            logger.error(f"OpenAI 流式生成速率限制: {e}")
-            yield f"data: {json.dumps({'error': 'AI 服务繁忙，请稍后重试'}, ensure_ascii=False)}\n\n"
-        except APIConnectionError as e:
-            logger.error(f"OpenAI 流式生成连接错误: {e}")
-            yield f"data: {json.dumps({'error': '无法连接到 AI 服务'}, ensure_ascii=False)}\n\n"
-        except APITimeoutError as e:
-            logger.error(f"OpenAI 流式生成超时: {e}")
-            yield f"data: {json.dumps({'error': 'AI 服务响应超时'}, ensure_ascii=False)}\n\n"
-        except Exception as e:
-            logger.error(f"OpenAI 流式生成未知错误: {e}", exc_info=True)
-            yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            except RateLimitError as e:
+                logger.error(f"OpenAI 流式生成速率限制: {e}")
+                yield f"data: {json.dumps({'error': 'AI 服务繁忙，请稍后重试'}, ensure_ascii=False)}\n\n"
+                return
+            except APIConnectionError as e:
+                logger.error(f"OpenAI 流式生成连接错误（第 {attempt} 次）: {e}")
+                if attempt < max_retries:
+                    wait = attempt * 2
+                    logger.info(f"等待 {wait}s 后重试...")
+                    retry_msg = f"\n[连接中断，正在重试（{attempt}/{max_retries}）...]\n"
+                    yield f"data: {json.dumps({'text': retry_msg}, ensure_ascii=False)}\n\n"
+                    await asyncio.sleep(wait)
+                else:
+                    yield f"data: {json.dumps({'error': '无法连接到 AI 服务，请稍后重试'}, ensure_ascii=False)}\n\n"
+            except APITimeoutError as e:
+                logger.error(f"OpenAI 流式生成超时（第 {attempt} 次）: {e}")
+                if attempt < max_retries:
+                    wait = attempt * 2
+                    logger.info(f"等待 {wait}s 后重试...")
+                    retry_msg = f"\n[请求超时，正在重试（{attempt}/{max_retries}）...]\n"
+                    yield f"data: {json.dumps({'text': retry_msg}, ensure_ascii=False)}\n\n"
+                    await asyncio.sleep(wait)
+                else:
+                    yield f"data: {json.dumps({'error': 'AI 服务响应超时，请稍后重试'}, ensure_ascii=False)}\n\n"
+            except (httpx.RemoteProtocolError, httpx.ReadError) as e:
+                logger.error(f"OpenAI 流式传输中断（第 {attempt} 次）: {e}")
+                if attempt < max_retries:
+                    wait = attempt * 2
+                    logger.info(f"等待 {wait}s 后重试...")
+                    retry_msg = f"\n[传输中断，正在重试（{attempt}/{max_retries}）...]\n"
+                    yield f"data: {json.dumps({'text': retry_msg}, ensure_ascii=False)}\n\n"
+                    await asyncio.sleep(wait)
+                else:
+                    yield f"data: {json.dumps({'error': 'AI 服务连接不稳定，请稍后重试'}, ensure_ascii=False)}\n\n"
+            except Exception as e:
+                logger.error(f"OpenAI 流式生成未知错误: {e}", exc_info=True)
+                yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+                return
 
     @staticmethod
     async def _stream_anthropic(prompt: str) -> AsyncGenerator[str, None]:

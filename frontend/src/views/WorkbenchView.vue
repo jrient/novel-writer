@@ -180,7 +180,8 @@ function handleInsertText(text: string) {
 
 function handleReplaceText(text: string) {
   if (!chapterStore.currentChapter) return
-  currentContent.value = text
+  // 规范化换行：将连续3个及以上换行压缩为两个，保持段落间距一致
+  currentContent.value = text.replace(/\n{3,}/g, '\n\n')
   handleContentChange(currentContent.value)
 }
 
