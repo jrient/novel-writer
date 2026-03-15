@@ -229,6 +229,11 @@
           {{ generating ? 'AI 生成中...' : 'AI 输出' }}
         </span>
         <div class="output-actions" v-if="outputText && !generating">
+          <el-tooltip content="全屏查看">
+            <el-button size="small" text @click="showFullscreen = true">
+              <el-icon><FullScreen /></el-icon>
+            </el-button>
+          </el-tooltip>
           <el-tooltip content="复制到剪贴板">
             <el-button size="small" text @click="copyOutput">
               <el-icon><CopyDocument /></el-icon>
@@ -263,6 +268,28 @@
         <span class="output-word-count">{{ outputText.length }} 字</span>
       </div>
     </div>
+
+    <!-- 全屏查看对话框 -->
+    <el-dialog
+      v-model="showFullscreen"
+      title="AI 输出"
+      width="90%"
+      top="5vh"
+      :close-on-click-modal="true"
+      class="fullscreen-dialog"
+    >
+      <pre class="fullscreen-text">{{ outputText }}</pre>
+      <template #footer>
+        <div class="fullscreen-footer">
+          <span class="output-word-count">{{ outputText.length }} 字</span>
+          <div class="fullscreen-actions">
+            <el-button @click="copyOutput">复制</el-button>
+            <el-button v-if="['rewrite', 'expand', 'analyze_expand'].includes(lastAction)" type="primary" @click="replaceContent(); showFullscreen = false">替换原文</el-button>
+            <el-button @click="showFullscreen = false">关闭</el-button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -271,7 +298,7 @@ import { ref, watch, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
-  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen,
+  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen, FullScreen,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
@@ -314,6 +341,7 @@ const batchForm = ref({
 
 // 意见修改相关
 const showReviseDialog = ref(false)
+const showFullscreen = ref(false)
 const reviseOpinion = ref('')
 
 let abortController: AbortController | null = null
@@ -800,5 +828,33 @@ function clearOutput() {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* 全屏对话框 */
+.fullscreen-text {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 15px;
+  line-height: 2;
+  color: #2C2C2C;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 16px;
+  background: #FAFAF8;
+  border-radius: 8px;
+  font-family: inherit;
+  margin: 0;
+}
+
+.fullscreen-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.fullscreen-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>
