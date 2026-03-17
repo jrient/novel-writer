@@ -125,6 +125,27 @@
     <!-- 编辑器主体 -->
     <div class="editor-container">
       <editor-content :editor="editor" class="editor-content" />
+
+      <!-- 浮动AI菜单 -->
+      <floating-menu :editor="editor" :tippy-options="{ duration: 150 }" v-if="editor">
+        <div class="ai-floating-menu" v-show="showFloatingMenu">
+          <el-tooltip content="AI润色" placement="top">
+            <button class="floating-btn" @click="handleAIAction('polish')">
+              <el-icon><MagicStick /></el-icon>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="AI改写" placement="top">
+            <button class="floating-btn" @click="handleAIAction('rewrite')">
+              <el-icon><Edit /></el-icon>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="AI扩写" placement="top">
+            <button class="floating-btn" @click="handleAIAction('expand')">
+              <el-icon><Plus /></el-icon>
+            </button>
+          </el-tooltip>
+        </div>
+      </floating-menu>
     </div>
 
     <!-- 底部状态栏 -->
@@ -156,13 +177,14 @@
 
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue'
-import { useEditor, EditorContent } from '@tiptap/vue-3'
+import { useEditor, EditorContent, FloatingMenu } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
+import FloatingMenuExt from '@tiptap/extension-floating-menu'
 import {
   Loading, Check, Document, RefreshLeft, RefreshRight,
-  FullScreen, Close, WarningFilled,
+  FullScreen, Close, WarningFilled, MagicStick, Edit, Plus,
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
@@ -175,11 +197,13 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
   'change': [value: string]
   'save': [value: string]
+  'aiAction': [action: string, selectedText: string]
 }>()
 
 const lastSaved = ref(false)
 const isFullscreen = ref(false)
 const internalUnsaved = ref(false)
+const showFloatingMenu = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let savedHideTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -220,6 +244,23 @@ const editor = useEditor({
       placeholder: '开始创作你的故事...',
     }),
     CharacterCount,
+    FloatingMenuExt.configure({
+      tippyOptions: {
+        duration: 150,
+      },
+      shouldShow: ({ editor: _editor, state }) => {
+        const { selection } = state
+        const { $from, $to } = selection
+        // 选中文本时显示
+        if ($from.pos !== $to.pos) {
+          const text = state.doc.textBetween($from.pos, $to.pos)
+          showFloatingMenu.value = text.length > 0 && text.length <= 500
+          return showFloatingMenu.value
+        }
+        showFloatingMenu.value = false
+        return false
+      },
+    }),
   ],
   editorProps: {
     attributes: {
@@ -282,6 +323,16 @@ function handleKeydown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
     handleSave()
+  }
+}
+
+// AI操作处理
+function handleAIAction(action: string) {
+  if (!editor.value) return
+  const { from, to } = editor.value.state.selection
+  const selectedText = editor.value.state.doc.textBetween(from, to) || ''
+  if (selectedText) {
+    emit('aiAction', action, selectedText)
   }
 }
 
@@ -567,5 +618,35 @@ onBeforeUnmount(() => {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* 浮动AI菜单 */
+.ai-floating-menu {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid #E0DFDC;
+}
+
+.floating-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #6B7B8D;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.floating-btn:hover {
+  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
+  color: white;
 }
 </style>

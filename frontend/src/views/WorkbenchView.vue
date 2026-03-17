@@ -85,6 +85,7 @@
               :has-unsaved-changes="hasUnsavedChanges"
               @change="handleContentChange"
               @save="handleManualSave"
+              @ai-action="handleAIActionFromEditor"
             />
           </template>
         </main>
@@ -242,6 +243,17 @@ function handleReplaceText(text: string) {
   // 规范化换行：将连续3个及以上换行压缩为两个，保持段落间距一致
   currentContent.value = text.replace(/\n{3,}/g, '\n\n')
   handleContentChange(currentContent.value)
+}
+
+// 从编辑器浮动菜单触发的AI操作
+function handleAIActionFromEditor(action: string, selectedText: string) {
+  // 切换到编辑模式并触发右侧面板的AI功能
+  activeTab.value = 'editor'
+  // 通过 ContextPanel 处理，需要传递选中文字和操作类型
+  // 这里我们直接调用全局事件让 ContextPanel 接收
+  window.dispatchEvent(new CustomEvent('editor-ai-action', {
+    detail: { action, selectedText }
+  }))
 }
 
 // 采纳版本对比中选中的文本

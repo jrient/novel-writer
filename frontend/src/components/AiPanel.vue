@@ -455,7 +455,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
@@ -548,6 +548,32 @@ onMounted(async () => {
     // 静默失败
   }
   loadReferences()
+  // 监听编辑器浮动菜单的AI操作事件
+  window.addEventListener('editor-ai-action', handleEditorAIAction)
+})
+
+// 处理编辑器浮动菜单触发的AI操作
+function handleEditorAIAction(e: Event) {
+  const customEvent = e as CustomEvent<{ action: string; selectedText: string }>
+  const { action, selectedText } = customEvent.detail
+  if (!props.projectId || !selectedText) return
+  // 映射操作类型：polish -> rewrite, expand -> expand
+  const actionMap: Record<string, AIGenerateRequest['action']> = {
+    polish: 'rewrite',
+    rewrite: 'rewrite',
+    expand: 'expand',
+  }
+  const mappedAction = actionMap[action] || 'rewrite'
+  lastAction.value = mappedAction
+  startGeneration({
+    action: mappedAction,
+    content: selectedText,
+    chapter_id: props.chapterId,
+  })
+}
+
+onUnmounted(() => {
+  window.removeEventListener('editor-ai-action', handleEditorAIAction)
 })
 
 // 切换章节时清空 AI 输出和停止生成
