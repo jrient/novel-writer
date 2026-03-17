@@ -182,10 +182,14 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import FloatingMenuExt from '@tiptap/extension-floating-menu'
+import { Extension } from '@tiptap/core'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import {
   Loading, Check, Document, RefreshLeft, RefreshRight,
   FullScreen, Close, WarningFilled, MagicStick, Edit, Plus,
 } from '@element-plus/icons-vue'
+import { streamGenerate } from '@/api/ai'
 
 const props = defineProps<{
   modelValue: string
@@ -204,8 +208,12 @@ const lastSaved = ref(false)
 const isFullscreen = ref(false)
 const internalUnsaved = ref(false)
 const showFloatingMenu = ref(false)
+const ghostText = ref('')
+const showGhostText = ref(false)
+const isGeneratingGhost = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let savedHideTimer: ReturnType<typeof setTimeout> | null = null
+let ghostDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 // 计算是否有未保存的更改（优先使用外部传入的状态）
 const hasUnsavedChanges = computed(() => {
@@ -236,6 +244,62 @@ function htmlToText(html: string): string {
     .join('\n')
 }
 
+// Ghost Text 扩展 - 显示灰色建议文本
+const GhostTextExtension = Extension.create({
+  name: 'ghostText',
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('ghostText'),
+        state: {
+          init: () => ({ text: '', show: false }),
+          apply: (tr, prevState) => {
+            const meta = tr.getMeta('ghostText')
+            if (meta) {
+              return { text: meta.text, show: meta.show }
+            }
+            return prevState
+          },
+        },
+        props: {
+          decorations(state) {
+            const pluginState = this.getState(state) as { text: string; show: boolean } | undefined
+            if (!pluginState || !pluginState.show || !pluginState.text) return DecorationSet.empty
+
+            const { $to } = state.selection
+            const decorations: Decoration[] = []
+
+            // 创建虚拟文本装饰
+            const text = pluginState.text
+            const currentPos = $to.pos
+
+            for (let i = 0; i < text.length; i++) {
+              const char = text[i]
+              decorations.push(
+                Decoration.widget(
+                  currentPos,
+                  () => {
+                    const span = document.createElement('span')
+                    span.className = 'ghost-text-char'
+                    span.textContent = char
+                    span.style.color = '#b0b0b0'
+                    span.style.opacity = '0.5'
+                    return span
+                  },
+                  { side: 0 }
+                )
+              )
+            }
+
+            return DecorationSet.create(state.doc, decorations)
+          },
+        },
+      }),
+    ]
+  },
+})
+
 const editor = useEditor({
   content: textToHtml(props.modelValue || ''),
   extensions: [
@@ -261,6 +325,8 @@ const editor = useEditor({
         return false
       },
     }),
+    // 添加 Ghost Text 扩展
+    GhostTextExtension,
   ],
   editorProps: {
     attributes: {
@@ -272,6 +338,10 @@ const editor = useEditor({
     const text = htmlToText(html)
     emit('update:modelValue', text)
     internalUnsaved.value = true
+
+    // 触发AI补全
+    triggerAICompletion(text)
+
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
       emit('change', text)
@@ -324,6 +394,93 @@ function handleKeydown(e: KeyboardEvent) {
     e.preventDefault()
     handleSave()
   }
+  // Tab 键接受 AI 补全
+  if (e.key === 'Tab' && showGhostText.value && ghostText.value) {
+    e.preventDefault()
+    acceptGhostText()
+  }
+}
+
+// AI 内联补全触发
+function triggerAICompletion(currentText: string) {
+  // 清除之前的定时器
+  if (ghostDebounceTimer) clearTimeout(ghostDebounceTimer)
+
+  // 隐藏当前的 ghost text
+  clearGhostText()
+
+  // 获取最后一段文字
+  const paragraphs = currentText.split('\n').filter(p => p.trim())
+  const lastParagraph = paragraphs[paragraphs.length - 1] || ''
+
+  // 只在段落长度在 50-500 字之间时触发
+  if (lastParagraph.length < 50 || lastParagraph.length > 500) return
+
+  // 延迟 1.5 秒后触发 AI 补全
+  ghostDebounceTimer = setTimeout(() => {
+    if (isGeneratingGhost.value) return
+    generateAICompletion(lastParagraph)
+  }, 1500)
+}
+
+// 生成 AI 补全
+function generateAICompletion(context: string) {
+  isGeneratingGhost.value = true
+
+  let result = ''
+
+  streamGenerate(
+    0, // projectId (可选)
+    {
+      action: 'continue',
+      content: context,
+    },
+    (text) => {
+      result += text
+      // 实时更新 ghost text（最多显示 100 字）
+      if (result.length > 0) {
+        ghostText.value = result.slice(0, 100)
+        showGhostText.value = true
+        updateGhostTextDecoration(ghostText.value)
+      }
+    },
+    () => {
+      isGeneratingGhost.value = false
+    },
+    (error) => {
+      isGeneratingGhost.value = false
+      console.error('AI completion error:', error)
+    }
+  )
+}
+
+// 更新 ghost text 装饰
+function updateGhostTextDecoration(text: string) {
+  if (!editor.value) return
+  editor.value.view.dispatch(
+    editor.value.state.tr.setMeta('ghostText', { text, show: true })
+  )
+}
+
+// 清除 ghost text
+function clearGhostText() {
+  if (!editor.value) return
+  ghostText.value = ''
+  showGhostText.value = false
+  editor.value.view.dispatch(
+    editor.value.state.tr.setMeta('ghostText', { text: '', show: false })
+  )
+}
+
+// 接受 ghost text
+function acceptGhostText() {
+  if (!editor.value || !ghostText.value) return
+
+  // 在当前光标位置插入文本
+  editor.value.chain().focus().insertContent(ghostText.value).run()
+
+  // 清除 ghost text
+  clearGhostText()
 }
 
 // AI操作处理
@@ -361,6 +518,7 @@ watch(
 onBeforeUnmount(() => {
   if (debounceTimer) clearTimeout(debounceTimer)
   if (savedHideTimer) clearTimeout(savedHideTimer)
+  if (ghostDebounceTimer) clearTimeout(ghostDebounceTimer)
   editor.value?.destroy()
 })
 </script>
