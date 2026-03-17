@@ -44,32 +44,33 @@
     </div>
 
     <!-- 章节列表 -->
-    <div class="chapters-scroll">
+    <div class="chapters-scroll" v-bind="containerProps">
       <div v-if="chapters.length === 0" class="empty-chapters">
         <p>暂无章节</p>
         <el-button size="small" text @click="showCreateDialog = true">+ 添加第一章</el-button>
       </div>
 
-      <div
-        v-for="(chapter, index) in chapters"
-        :key="chapter.id"
-        :data-id="chapter.id"
-        class="chapter-item"
-        :class="{
-          active: !batchMode && currentChapter?.id === chapter.id,
-          selected: batchMode && selectedIds.has(chapter.id),
-          dragging: draggedId === chapter.id,
-          'drag-over': dragOverIndex === index && draggedId !== chapter.id
-        }"
-        :draggable="!batchMode"
-        @click="batchMode ? toggleSelect(chapter.id) : selectChapter(chapter)"
-        @dblclick="batchMode ? undefined : startRename(chapter)"
-        @dragstart="handleDragStart($event, chapter, index)"
-        @dragend="handleDragEnd"
-        @dragover.prevent="handleDragOver($event, index)"
-        @dragleave="handleDragLeave"
-        @drop="handleDrop($event, index)"
-      >
+      <div v-else v-bind="wrapperProps">
+        <div
+          v-for="{ data: chapter, index } in virtualList"
+          :key="chapter.id"
+          :data-id="chapter.id"
+          class="chapter-item"
+          :class="{
+            active: !batchMode && currentChapter?.id === chapter.id,
+            selected: batchMode && selectedIds.has(chapter.id),
+            dragging: draggedId === chapter.id,
+            'drag-over': dragOverIndex === index && draggedId !== chapter.id
+          }"
+          :draggable="!batchMode"
+          @click="batchMode ? toggleSelect(chapter.id) : selectChapter(chapter)"
+          @dblclick="batchMode ? undefined : startRename(chapter)"
+          @dragstart="handleDragStart($event, chapter, index)"
+          @dragend="handleDragEnd"
+          @dragover.prevent="handleDragOver($event, index)"
+          @dragleave="handleDragLeave"
+          @drop="handleDrop($event, index)"
+        >
         <!-- 批量模式：复选框 -->
         <el-checkbox
           v-if="batchMode"
@@ -115,6 +116,7 @@
             />
           </div>
         </template>
+        </div>
       </div>
     </div>
 
@@ -145,9 +147,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick } from 'vue'
+import { ref, reactive, computed, nextTick, watch } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import { useVirtualList } from '@vueuse/core'
 import { useChapterStore } from '@/stores/chapter'
 import { reorderChapters } from '@/api/chapter'
 import type { Chapter } from '@/api/chapter'
@@ -162,6 +165,22 @@ const chapterStore = useChapterStore()
 // 从 store 获取响应式数据
 const chapters = computed(() => chapterStore.chapters)
 const currentChapter = computed(() => chapterStore.currentChapter)
+
+// 虚拟滚动配置
+const { list: virtualList, containerProps, wrapperProps, scrollTo } = useVirtualList(chapters, {
+  itemHeight: 52, // 章节条目高度
+  overscan: 5, // 预渲染数量
+})
+
+// 监听当前章节变化，自动滚动到可见区域
+watch(() => chapterStore.currentChapter, (chapter) => {
+  if (chapter) {
+    const index = chapters.value.findIndex(c => c.id === chapter.id)
+    if (index > -1) {
+      scrollTo(index)
+    }
+  }
+})
 
 // 新建章节状态
 const showCreateDialog = ref(false)

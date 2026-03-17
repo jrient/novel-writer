@@ -7,6 +7,87 @@
       <el-tag v-if="currentProvider" size="small" type="info" class="provider-tag">
         {{ currentProvider }}
       </el-tag>
+      <div class="header-actions">
+        <el-tooltip content="历史记录">
+          <el-button
+            size="small"
+            text
+            :icon="Clock"
+            @click="showHistoryPanel = !showHistoryPanel"
+            :class="{ active: showHistoryPanel }"
+          />
+        </el-tooltip>
+        <el-tooltip content="提示词模板">
+          <el-button
+            size="small"
+            text
+            :icon="Collection"
+            @click="showTemplatePanel = !showTemplatePanel"
+            :class="{ active: showTemplatePanel }"
+          />
+        </el-tooltip>
+      </div>
+    </div>
+
+    <!-- 历史记录面板 -->
+    <div v-if="showHistoryPanel" class="history-panel">
+      <div class="panel-section-header">
+        <span>历史记录</span>
+        <el-button v-if="history.length > 0" size="small" text type="danger" @click="handleClearHistory">
+          清空
+        </el-button>
+      </div>
+      <div class="history-list" v-if="history.length > 0">
+        <div
+          v-for="item in history.slice(0, 20)"
+          :key="item.id"
+          class="history-item"
+          @click="useHistoryItem(item)"
+        >
+          <div class="history-header">
+            <span class="history-action">{{ item.actionLabel }}</span>
+            <span class="history-time">{{ formatHistoryTime(item.timestamp) }}</span>
+          </div>
+          <div class="history-preview">{{ item.output.slice(0, 60) }}...</div>
+          <div class="history-meta">
+            <span v-if="item.chapterTitle">「{{ item.chapterTitle }}」</span>
+            <span>{{ item.wordCount }} 字</span>
+          </div>
+        </div>
+      </div>
+      <el-empty v-else description="暂无历史记录" :image-size="60" />
+    </div>
+
+    <!-- 提示词模板面板 -->
+    <div v-if="showTemplatePanel" class="template-panel">
+      <div class="panel-section-header">
+        <span>提示词模板</span>
+        <el-button size="small" text type="primary" @click="openCreateTemplate">
+          + 新建
+        </el-button>
+      </div>
+      <div class="template-categories">
+        <div v-for="(tpls, cat) in categorizedTemplates" :key="cat" class="template-category">
+          <div v-if="tpls.length > 0" class="category-label">{{ getCategoryLabel(cat as any) }}</div>
+          <div class="template-list">
+            <div
+              v-for="tpl in tpls"
+              :key="tpl.id"
+              class="template-item"
+              @click="useTemplate(tpl)"
+            >
+              <div class="template-info">
+                <span class="template-name">{{ tpl.name }}</span>
+                <span class="template-desc">{{ tpl.description }}</span>
+              </div>
+              <div class="template-actions" v-if="!tpl.isBuiltIn">
+                <el-button size="small" text :icon="Edit" @click.stop="openEditTemplate(tpl)" />
+                <el-button size="small" text type="danger" :icon="Delete" @click.stop="handleDeleteTemplate(tpl.id)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 当前章节信息 -->
@@ -332,21 +413,62 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 自定义模板对话框 -->
+    <el-dialog
+      v-model="showCustomTemplateDialog"
+      :title="editingTemplate ? '编辑模板' : '新建模板'"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-position="top">
+        <el-form-item label="模板名称">
+          <el-input v-model="customTemplateForm.name" placeholder="例如：场景增强" />
+        </el-form-item>
+        <el-form-item label="模板描述">
+          <el-input v-model="customTemplateForm.description" placeholder="简要描述模板用途" />
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-select v-model="customTemplateForm.category" style="width: 100%">
+            <el-option label="创作" value="creative" />
+            <el-option label="润色" value="revision" />
+            <el-option label="分析" value="analysis" />
+            <el-option label="自定义" value="custom" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="提示词内容">
+          <el-input
+            v-model="customTemplateForm.prompt"
+            type="textarea"
+            :rows="5"
+            placeholder="使用 {{内容}} 作为占位符，生成时会自动替换为当前章节内容"
+          />
+        </el-form-item>
+        <p class="template-hint" v-pre>提示：使用 {{内容}} 作为占位符，应用模板时会自动替换为当前章节内容</p>
+      </el-form>
+      <template #footer>
+        <el-button @click="showCustomTemplateDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveCustomTemplate">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
   Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen, FullScreen, Connection,
+  Clock, Collection,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
 import type { AIGenerateRequest, BatchGenerateEvent } from '@/api/ai'
 import { getReferences } from '@/api/reference'
 import type { ReferenceNovel } from '@/api/reference'
+import { useAIHistory, getActionLabel, type AIHistoryItem } from '@/composables/useAIHistory'
+import { usePromptTemplates, type PromptTemplate } from '@/composables/usePromptTemplates'
 
 const props = defineProps<{
   currentChapterTitle?: string
@@ -389,6 +511,20 @@ const reviseOpinion = ref('')
 // 剧情完善相关
 const showPlotEnhanceDialog = ref(false)
 const plotDescription = ref('')
+
+// 历史记录和模板
+const { history, addHistory, clearHistory } = useAIHistory()
+const { templates, getTemplatesByCategory, applyTemplate, addTemplate, removeTemplate, getCategoryLabel } = usePromptTemplates()
+const showHistoryPanel = ref(false)
+const showTemplatePanel = ref(false)
+const showCustomTemplateDialog = ref(false)
+const editingTemplate = ref<PromptTemplate | null>(null)
+const customTemplateForm = ref({
+  name: '',
+  description: '',
+  category: 'custom' as PromptTemplate['category'],
+  prompt: '',
+})
 
 let abortController: AbortController | null = null
 
@@ -496,6 +632,10 @@ function startGeneration(data: AIGenerateRequest) {
   outputText.value = ''
   errorText.value = ''
 
+  // 保存当前请求信息用于历史记录
+  const currentAction = data.action
+  const currentQuestion = data.question
+
   abortController = streamGenerate(
     props.projectId!,
     data,
@@ -511,6 +651,15 @@ function startGeneration(data: AIGenerateRequest) {
     () => {
       generating.value = false
       if (!outputText.value) return
+
+      // 保存到历史记录
+      addHistory({
+        action: currentAction,
+        actionLabel: getActionLabel(currentAction),
+        output: outputText.value,
+        chapterTitle: props.currentChapterTitle,
+        question: currentQuestion,
+      })
 
       if (lastAction.value === 'continue') {
         // 续写完成后自动追加到编辑器
@@ -644,6 +793,129 @@ function replaceContent() {
 function clearOutput() {
   outputText.value = ''
   errorText.value = ''
+}
+
+// ========== 历史记录功能 ==========
+
+function formatHistoryTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  if (days < 7) return `${days}天前`
+
+  return date.toLocaleDateString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function useHistoryItem(item: AIHistoryItem) {
+  outputText.value = item.output
+  showHistoryPanel.value = false
+  ElMessage.success('已加载历史记录')
+}
+
+function handleClearHistory() {
+  ElMessageBox.confirm('确定要清空所有历史记录吗？', '清空确认', {
+    type: 'warning',
+    confirmButtonText: '清空',
+    cancelButtonText: '取消',
+  }).then(() => {
+    clearHistory()
+    ElMessage.success('历史记录已清空')
+  }).catch(() => {})
+}
+
+// ========== 提示词模板功能 ==========
+
+const categorizedTemplates = computed(() => ({
+  creative: getTemplatesByCategory('creative'),
+  revision: getTemplatesByCategory('revision'),
+  analysis: getTemplatesByCategory('analysis'),
+  custom: getTemplatesByCategory('custom'),
+}))
+
+function useTemplate(template: PromptTemplate) {
+  if (!props.currentContent) {
+    ElMessage.warning('当前章节没有内容')
+    return
+  }
+
+  const prompt = applyTemplate(template, { '内容': props.currentContent })
+  chatQuestion.value = prompt
+  showTemplatePanel.value = false
+  ElMessage.info('模板已填入输入框，可直接发送或修改')
+}
+
+function openCreateTemplate() {
+  editingTemplate.value = null
+  customTemplateForm.value = {
+    name: '',
+    description: '',
+    category: 'custom',
+    prompt: '请{{操作描述}}：\n\n{{内容}}',
+  }
+  showCustomTemplateDialog.value = true
+}
+
+function openEditTemplate(template: PromptTemplate) {
+  if (template.isBuiltIn) {
+    ElMessage.warning('内置模板不可编辑，可复制后创建新模板')
+    return
+  }
+  editingTemplate.value = template
+  customTemplateForm.value = {
+    name: template.name,
+    description: template.description,
+    category: template.category,
+    prompt: template.prompt,
+  }
+  showCustomTemplateDialog.value = true
+}
+
+function saveCustomTemplate() {
+  if (!customTemplateForm.value.name.trim() || !customTemplateForm.value.prompt.trim()) {
+    ElMessage.warning('请填写模板名称和内容')
+    return
+  }
+
+  if (editingTemplate.value) {
+    updateTemplate(editingTemplate.value.id, customTemplateForm.value)
+    ElMessage.success('模板已更新')
+  } else {
+    addTemplate(customTemplateForm.value)
+    ElMessage.success('模板已创建')
+  }
+
+  showCustomTemplateDialog.value = false
+}
+
+function handleDeleteTemplate(id: string) {
+  ElMessageBox.confirm('确定要删除这个模板吗？', '删除确认', {
+    type: 'warning',
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+  }).then(() => {
+    removeTemplate(id)
+    ElMessage.success('模板已删除')
+  }).catch(() => {})
+}
+
+// 辅助函数：用于更新模板（非内置）
+function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
+  const index = templates.value.findIndex(t => t.id === id)
+  if (index !== -1 && !templates.value[index].isBuiltIn) {
+    templates.value[index] = { ...templates.value[index], ...updates }
+  }
 }
 </script>
 
@@ -937,5 +1209,188 @@ function clearOutput() {
 .fullscreen-actions {
   display: flex;
   gap: 8px;
+}
+
+/* 头部操作按钮 */
+.header-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.header-actions .el-button.active {
+  background-color: rgba(107, 123, 141, 0.1);
+  color: #6B7B8D;
+}
+
+/* 历史记录面板 */
+.history-panel {
+  background: #FAFAF8;
+  border: 1px solid #E0DFDC;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.panel-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5C5C5C;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E0DFDC;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-item {
+  background: white;
+  border: 1px solid #E0DFDC;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  border-color: #6B7B8D;
+  background-color: rgba(107, 123, 141, 0.03);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.history-action {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6B7B8D;
+}
+
+.history-time {
+  font-size: 11px;
+  color: #9E9E9E;
+}
+
+.history-preview {
+  font-size: 12px;
+  color: #5C5C5C;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #9E9E9E;
+}
+
+/* 提示词模板面板 */
+.template-panel {
+  background: #FAFAF8;
+  border: 1px solid #E0DFDC;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.template-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.template-category {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.category-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9E9E9E;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.template-item {
+  background: white;
+  border: 1px solid #E0DFDC;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.template-item:hover {
+  border-color: #6B7B8D;
+  background-color: rgba(107, 123, 141, 0.03);
+}
+
+.template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2C2C2C;
+}
+
+.template-desc {
+  font-size: 11px;
+  color: #9E9E9E;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.template-item:hover .template-actions {
+  opacity: 1;
+}
+
+.template-hint {
+  font-size: 11px;
+  color: #9E9E9E;
+  margin-top: 4px;
 }
 </style>
