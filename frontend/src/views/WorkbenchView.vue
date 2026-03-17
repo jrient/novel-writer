@@ -54,11 +54,12 @@
 
     <!-- 主内容区 -->
     <div class="workbench-main">
-      <!-- 写作模式：三栏布局 -->
+      <!-- 写作模式：可调整大小的三栏布局 -->
       <template v-if="activeTab === 'editor'">
-        <aside class="sidebar-left">
+        <aside class="sidebar-left" :style="{ width: leftPanelWidth + 'px' }">
           <ChapterList :project-id="projectId" />
         </aside>
+        <DraggableDivider @drag="handleLeftPanelDrag" />
         <main class="editor-column">
           <div v-if="!chapterStore.currentChapter" class="no-chapter-selected">
             <el-empty description="请选择或创建一个章节开始创作">
@@ -86,8 +87,9 @@
             />
           </template>
         </main>
-        <aside class="sidebar-right">
-          <AiPanel
+        <DraggableDivider @drag="handleRightPanelDrag" />
+        <aside class="sidebar-right" :style="{ width: rightPanelWidth + 'px' }">
+          <ContextPanel
             :current-chapter-title="chapterStore.currentChapter?.title"
             :current-content="currentContent"
             :project-id="projectId"
@@ -137,7 +139,6 @@ import { useProjectStore } from '@/stores/project'
 import { useChapterStore } from '@/stores/chapter'
 import ChapterList from '@/components/ChapterList.vue'
 import TiptapEditor from '@/components/TiptapEditor.vue'
-import AiPanel from '@/components/AiPanel.vue'
 import CharacterPanel from '@/components/CharacterPanel.vue'
 import WorldbuildingPanel from '@/components/WorldbuildingPanel.vue'
 import OutlinePanel from '@/components/OutlinePanel.vue'
@@ -145,6 +146,8 @@ import KnowledgePanel from '@/components/KnowledgePanel.vue'
 import EventPanel from '@/components/EventPanel.vue'
 import ChapterVersionDrawer from '@/components/ChapterVersionDrawer.vue'
 import MiaojiPanel from '@/components/MiaojiPanel.vue'
+import DraggableDivider from '@/components/DraggableDivider.vue'
+import ContextPanel from '@/components/ContextPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -158,6 +161,16 @@ const showVersionDrawer = ref(false)
 const showMiaoji = ref(false)
 const hasUnsavedChanges = ref(false)
 
+// 可调整的面板宽度
+const leftPanelWidth = ref(260)
+const rightPanelWidth = ref(380)
+
+// 面板宽度限制
+const MIN_LEFT_WIDTH = 180
+const MAX_LEFT_WIDTH = 400
+const MIN_RIGHT_WIDTH = 280
+const MAX_RIGHT_WIDTH = 500
+
 const wordProgress = computed(() => {
   const p = projectStore.currentProject
   if (!p || !p.target_word_count) return 0
@@ -170,6 +183,18 @@ function triggerCreateChapter() {
 
 function goBack() {
   router.push('/projects')
+}
+
+// 处理左侧面板拖拽
+function handleLeftPanelDrag(delta: number) {
+  const newWidth = leftPanelWidth.value + delta
+  leftPanelWidth.value = Math.max(MIN_LEFT_WIDTH, Math.min(MAX_LEFT_WIDTH, newWidth))
+}
+
+// 处理右侧面板拖拽
+function handleRightPanelDrag(delta: number) {
+  const newWidth = rightPanelWidth.value - delta // 注意：向右拖动应该减小宽度
+  rightPanelWidth.value = Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, newWidth))
 }
 
 function handleInsertText(text: string) {
@@ -394,11 +419,12 @@ onUnmounted(() => {
 }
 
 .sidebar-left {
-  width: 260px;
   flex-shrink: 0;
   border-right: 1px solid #E0DFDC;
   overflow: hidden;
   background: white;
+  min-width: 180px;
+  max-width: 400px;
 }
 
 .editor-column {
@@ -447,11 +473,12 @@ onUnmounted(() => {
 }
 
 .sidebar-right {
-  width: 340px;
   flex-shrink: 0;
   border-left: 1px solid #E0DFDC;
   overflow: hidden;
   background: white;
+  min-width: 280px;
+  max-width: 500px;
 }
 
 .no-chapter-selected {
