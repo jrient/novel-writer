@@ -22,6 +22,7 @@ from app.models.user import User
 from app.routers.auth import get_current_user
 from app.schemas.ai import AIGenerateRequest, AIConfigResponse, BatchGenerateRequest
 from app.services.ai_service import AIService, PROMPTS
+from app.services.smart_context import SmartContextService
 from app.services.token_usage_service import log_token_usage, estimate_tokens
 
 router = APIRouter(
@@ -44,30 +45,10 @@ async def ai_generate(
     """
     import json as _json
 
-    # 获取上下文：角色和世界观
-    chars_result = await db.execute(
-        select(Character).where(Character.project_id == project_id).limit(settings.AI_CONTEXT_CHARACTER_LIMIT)
-    )
-    characters = [
-        {
-            "name": c.name,
-            "role_type": c.role_type,
-            "personality": c.personality_traits or "",
-            "background": c.background or "",
-            "appearance": c.appearance or "",
-        }
-        for c in chars_result.scalars().all()
-    ]
+    # 使用智能上下文服务获取相关角色、世界观、事件等
+    smart_context = SmartContextService(db, project_id)
 
-    world_result = await db.execute(
-        select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id).limit(settings.AI_CONTEXT_WORLDBUILDING_LIMIT)
-    )
-    worldbuilding = [
-        {"name": w.title, "description": w.content or "", "category": w.category}
-        for w in world_result.scalars().all()
-    ]
-
-    # 如果指定了章节，获取章节内容作为补充
+    # 如果指定了章节，获取章节内容
     content = payload.content
     if payload.chapter_id and not content:
         chapter_result = await db.execute(
@@ -79,6 +60,19 @@ async def ai_generate(
         chapter = chapter_result.scalar_one_or_none()
         if chapter:
             content = chapter.content or ""
+
+    # 构建智能上下文（基于内容语义匹配最相关的设定）
+    context_data = await smart_context.build_smart_context(
+        content=content or "",
+        action=payload.action,
+        chapter_id=payload.chapter_id,
+        include_events=True,
+        include_notes=True,
+        include_outline=True,
+    )
+
+    # 提取格式化后的上下文文本
+    context_text = context_data.get("context_text", "")
 
     # 剧情完善：获取前几章内容和大纲作为额外上下文
     outline_context = ""
@@ -149,8 +143,7 @@ async def ai_generate(
             genre=project.genre or "",
             description=project.description or "",
             question=payload.question or "",
-            characters=characters,
-            worldbuilding=worldbuilding,
+            context_text=context_text,
             outline_context=outline_context,
             previous_chapters=previous_chapters,
         )
@@ -255,30 +248,16 @@ async def batch_generate(
     """
     import json as _json
 
-    # 获取角色和世界观
-    chars_result = await db.execute(
-        select(Character).where(Character.project_id == project_id).limit(settings.AI_CONTEXT_CHARACTER_LIMIT)
+    # 使用智能上下文服务获取相关设定
+    smart_context = SmartContextService(db, project_id)
+    context_data = await smart_context.build_smart_context(
+        content=f"{project.title} {project.genre or ''} {project.description or ''}",
+        action="batch_generate",
+        include_events=False,
+        include_notes=True,
+        include_outline=True,
     )
-    characters = [
-        {
-            "name": c.name,
-            "role_type": c.role_type,
-            "personality": c.personality_traits or "",
-            "background": c.background or "",
-            "appearance": c.appearance or "",
-        }
-        for c in chars_result.scalars().all()
-    ]
-
-    world_result = await db.execute(
-        select(WorldbuildingEntry).where(WorldbuildingEntry.project_id == project_id).limit(settings.AI_CONTEXT_WORLDBUILDING_LIMIT)
-    )
-    worldbuilding = [
-        {"name": w.title, "description": w.content or "", "category": w.category}
-        for w in world_result.scalars().all()
-    ]
-
-    context = AIService._get_context_text(characters, worldbuilding)
+    context = context_data.get("context_text", "")
 
     # 获取参考小说风格
     style_reference = ""

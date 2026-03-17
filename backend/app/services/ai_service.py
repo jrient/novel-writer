@@ -779,13 +779,18 @@ class AIService:
         worldbuilding: list = None,
         outline_context: str = "",
         previous_chapters: str = "",
+        context_text: str = "",
     ) -> AsyncGenerator[str, None]:
         """
         流式生成 AI 内容
         返回 SSE 格式的文本流
         """
         actual_provider = AIService._get_available_provider(provider)
-        context = AIService._get_context_text(characters, worldbuilding)
+        # 优先使用直接传入的智能上下文，否则从 characters/worldbuilding 构建
+        if context_text:
+            context = context_text
+        else:
+            context = AIService._get_context_text(characters, worldbuilding)
 
         # 构建 prompt
         prompt_template = PROMPTS.get(action, PROMPTS["continue"])
