@@ -51,12 +51,24 @@
       </div>
 
       <div
-        v-for="chapter in chapters"
+        v-for="(chapter, index) in chapters"
         :key="chapter.id"
+        :data-id="chapter.id"
         class="chapter-item"
-        :class="{ active: !batchMode && currentChapter?.id === chapter.id, selected: batchMode && selectedIds.has(chapter.id) }"
+        :class="{
+          active: !batchMode && currentChapter?.id === chapter.id,
+          selected: batchMode && selectedIds.has(chapter.id),
+          dragging: draggedId === chapter.id,
+          'drag-over': dragOverIndex === index && draggedId !== chapter.id
+        }"
+        draggable="!batchMode"
         @click="batchMode ? toggleSelect(chapter.id) : selectChapter(chapter)"
         @dblclick="batchMode ? undefined : startRename(chapter)"
+        @dragstart="handleDragStart($event, chapter, index)"
+        @dragend="handleDragEnd"
+        @dragover.prevent="handleDragOver($event, index)"
+        @dragleave="handleDragLeave"
+        @drop="handleDrop($event, index)"
       >
         <!-- 批量模式：复选框 -->
         <el-checkbox
@@ -137,6 +149,7 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { useChapterStore } from '@/stores/chapter'
+import { reorderChapters } from '@/api/chapter'
 import type { Chapter } from '@/api/chapter'
 
 // 接收项目 ID
@@ -266,6 +279,65 @@ async function handleBatchDelete() {
   await chapterStore.removeChapters(props.projectId, Array.from(selectedIds))
   ElMessage.success(`已删除 ${count} 个章节`)
   exitBatchMode()
+}
+
+// ========== 拖拽排序 ==========
+const draggedId = ref<number | null>(null)
+const draggedIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
+
+function handleDragStart(e: DragEvent, chapter: Chapter, index: number) {
+  if (batchMode.value) return
+  draggedId.value = chapter.id
+  draggedIndex.value = index
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(chapter.id))
+  }
+}
+
+function handleDragEnd() {
+  draggedId.value = null
+  draggedIndex.value = null
+  dragOverIndex.value = null
+}
+
+function handleDragOver(_e: DragEvent, index: number) {
+  if (batchMode.value) return
+  dragOverIndex.value = index
+}
+
+function handleDragLeave() {
+  dragOverIndex.value = null
+}
+
+async function handleDrop(_e: DragEvent, dropIndex: number) {
+  if (batchMode.value) return
+  dragOverIndex.value = null
+
+  if (draggedIndex.value === null || draggedIndex.value === dropIndex) {
+    return
+  }
+
+  // 计算新的排序
+  const newChapters = [...chapters.value]
+  const [draggedChapter] = newChapters.splice(draggedIndex.value, 1)
+  newChapters.splice(dropIndex, 0, draggedChapter)
+
+  // 构建 reorder 请求
+  const orders = newChapters.map((ch, idx) => ({
+    id: ch.id,
+    sort_order: idx
+  }))
+
+  try {
+    await reorderChapters(props.projectId, orders)
+    // 刷新章节列表
+    await chapterStore.fetchChapters(props.projectId)
+    ElMessage.success('章节顺序已更新')
+  } catch {
+    ElMessage.error('排序失败，请重试')
+  }
 }
 </script>
 
@@ -432,5 +504,23 @@ async function handleBatchDelete() {
 
 .rename-input {
   width: 100%;
+}
+
+/* 拖拽样式 */
+.chapter-item[draggable="true"] {
+  cursor: grab;
+}
+
+.chapter-item[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.chapter-item.dragging {
+  opacity: 0.5;
+  background: #e8f4fd;
+}
+
+.chapter-item.drag-over {
+  border-top: 2px solid #6B7B8D;
 }
 </style>
