@@ -61,7 +61,7 @@
           dragging: draggedId === chapter.id,
           'drag-over': dragOverIndex === index && draggedId !== chapter.id
         }"
-        draggable="!batchMode"
+        :draggable="!batchMode"
         @click="batchMode ? toggleSelect(chapter.id) : selectChapter(chapter)"
         @dblclick="batchMode ? undefined : startRename(chapter)"
         @dragstart="handleDragStart($event, chapter, index)"

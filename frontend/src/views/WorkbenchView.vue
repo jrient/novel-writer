@@ -118,7 +118,9 @@
       v-model="showVersionDrawer"
       :project-id="projectId"
       :chapter-id="chapterStore.currentChapter?.id || null"
+      :current-content="currentContent"
       @restored="handleVersionRestored"
+      @adopt-text="handleAdoptText"
     />
 
     <!-- 妙记面板 -->
@@ -207,6 +209,13 @@ function handleReplaceText(text: string) {
   if (!chapterStore.currentChapter) return
   // 规范化换行：将连续3个及以上换行压缩为两个，保持段落间距一致
   currentContent.value = text.replace(/\n{3,}/g, '\n\n')
+  handleContentChange(currentContent.value)
+}
+
+// 采纳版本对比中选中的文本
+function handleAdoptText(text: string) {
+  if (!chapterStore.currentChapter) return
+  currentContent.value = currentContent.value + '\n\n' + text
   handleContentChange(currentContent.value)
 }
 

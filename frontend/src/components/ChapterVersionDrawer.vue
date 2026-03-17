@@ -3,7 +3,7 @@
     v-model="visible"
     title="历史版本"
     direction="rtl"
-    size="450px"
+    size="600px"
     :append-to-body="true"
     class="version-drawer"
   >
@@ -21,63 +21,115 @@
         <span>编辑章节内容后会自动保存版本</span>
       </div>
 
-      <!-- 版本列表 -->
-      <div v-else class="version-list">
-        <div
-          v-for="version in versions"
-          :key="version.id"
-          class="version-item"
-          :class="{ active: selectedVersion?.id === version.id }"
-          @click="selectVersion(version)"
-        >
-          <div class="version-header">
-            <span class="version-number">版本 #{{ version.version_number }}</span>
-            <span class="version-time">{{ formatTime(version.created_at) }}</span>
+      <!-- 版本列表和对比 -->
+      <div v-else class="version-container">
+        <!-- 版本列表 -->
+        <div class="version-list-section">
+          <div class="section-title">选择版本</div>
+          <div class="version-list">
+            <div
+              v-for="version in versions"
+              :key="version.id"
+              class="version-item"
+              :class="{ active: selectedVersion?.id === version.id }"
+              @click="selectVersion(version)"
+            >
+              <div class="version-header">
+                <span class="version-number">版本 #{{ version.version_number }}</span>
+                <span class="version-time">{{ formatTime(version.created_at) }}</span>
+              </div>
+              <div class="version-info">
+                <span class="version-title">{{ version.title }}</span>
+                <span class="version-words">{{ version.word_count.toLocaleString() }} 字</span>
+              </div>
+              <div v-if="version.change_summary" class="version-summary">
+                {{ version.change_summary }}
+              </div>
+            </div>
           </div>
-          <div class="version-info">
-            <span class="version-title">{{ version.title }}</span>
-            <span class="version-words">{{ version.word_count.toLocaleString() }} 字</span>
+        </div>
+
+        <!-- 对比面板 -->
+        <div v-if="selectedVersion" class="compare-section">
+          <div class="compare-header">
+            <el-radio-group v-model="compareMode" size="small">
+              <el-radio-button label="preview">预览</el-radio-button>
+              <el-radio-button label="compare">对比</el-radio-button>
+            </el-radio-group>
+            <div class="compare-actions">
+              <el-button size="small" text @click="copyVersionContent" title="复制版本内容">
+                <el-icon><CopyDocument /></el-icon>
+              </el-button>
+            </div>
           </div>
-          <div v-if="version.change_summary" class="version-summary">
-            {{ version.change_summary }}
+
+          <div class="compare-content">
+            <div v-if="previewLoading" class="preview-loading">
+              <el-icon class="rotating"><Loading /></el-icon>
+            </div>
+            <template v-else>
+              <!-- 预览模式 -->
+              <div v-if="compareMode === 'preview'" class="preview-mode">
+                <div class="preview-text" @mouseup="handleTextSelect">{{ previewContent }}</div>
+              </div>
+
+              <!-- 对比模式 -->
+              <div v-else class="compare-mode">
+                <div class="compare-column">
+                  <div class="column-header">
+                    <span>当前版本</span>
+                    <span class="word-info">{{ currentContent?.length || 0 }} 字</span>
+                  </div>
+                  <div class="column-content current" @mouseup="handleTextSelect($event, 'current')">{{ currentContent }}</div>
+                </div>
+                <div class="compare-divider"></div>
+                <div class="compare-column">
+                  <div class="column-header">
+                    <span>版本 #{{ selectedVersion.version_number }}</span>
+                    <span class="word-info">{{ previewContent?.length || 0 }} 字</span>
+                  </div>
+                  <div class="column-content historical" @mouseup="handleTextSelect($event, 'historical')">{{ previewContent }}</div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- 选中文本操作 -->
+          <div v-if="selectedText" class="selection-panel">
+            <div class="selection-info">
+              <span>已选中 {{ selectedText.length }} 字</span>
+              <el-button size="small" text @click="copySelectedText">
+                <el-icon><CopyDocument /></el-icon>
+                复制
+              </el-button>
+              <el-button size="small" text type="primary" @click="adoptSelectedText">
+                <el-icon><Position /></el-icon>
+                采纳
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="compare-footer">
+            <el-button @click="selectedVersion = null">取消选择</el-button>
+            <el-button
+              type="primary"
+              :loading="restoring"
+              @click="handleRestore"
+            >
+              恢复此版本
+            </el-button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- 预览面板 -->
-    <template #footer v-if="selectedVersion">
-      <div class="preview-panel">
-        <div class="preview-header">
-          <span>预览版本 #{{ selectedVersion.version_number }}</span>
-          <el-button size="small" text @click="selectedVersion = null">
-            <el-icon><Close /></el-icon>
-          </el-button>
-        </div>
-        <div class="preview-content" v-if="previewContent">
-          <div v-if="previewLoading" class="preview-loading">
-            <el-icon class="rotating"><Loading /></el-icon>
-          </div>
-          <div v-else class="preview-text">{{ previewContent }}</div>
-        </div>
-        <div class="preview-actions">
-          <el-button
-            type="primary"
-            :loading="restoring"
-            @click="handleRestore"
-          >
-            恢复此版本
-          </el-button>
-        </div>
-      </div>
-    </template>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { Loading, Document, Close } from '@element-plus/icons-vue'
+import { Loading, Document, CopyDocument, Position } from '@element-plus/icons-vue'
 import {
   getChapterVersions,
   getChapterVersion,
@@ -90,11 +142,13 @@ const props = defineProps<{
   modelValue: boolean
   projectId: number
   chapterId: number | null
+  currentContent?: string
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'restored': []
+  'adopt-text': [text: string]
 }>()
 
 const visible = computed({
@@ -108,6 +162,9 @@ const selectedVersion = ref<ChapterVersion | null>(null)
 const previewContent = ref<string>('')
 const previewLoading = ref(false)
 const restoring = ref(false)
+const compareMode = ref<'preview' | 'compare'>('preview')
+const selectedText = ref<string>('')
+const selectionSource = ref<'current' | 'historical'>('historical')
 
 // 监听抽屉打开
 watch(visible, async (val) => {
@@ -118,6 +175,7 @@ watch(visible, async (val) => {
     versions.value = []
     selectedVersion.value = null
     previewContent.value = ''
+    selectedText.value = ''
   }
 })
 
@@ -140,6 +198,7 @@ async function selectVersion(version: ChapterVersion) {
   selectedVersion.value = version
   previewContent.value = ''
   previewLoading.value = true
+  selectedText.value = ''
 
   try {
     const detail: ChapterVersionDetail = await getChapterVersion(
@@ -154,6 +213,38 @@ async function selectVersion(version: ChapterVersion) {
   } finally {
     previewLoading.value = false
   }
+}
+
+// 处理文本选择
+function handleTextSelect(_event: MouseEvent, source: 'current' | 'historical' = 'historical') {
+  const selection = window.getSelection()
+  if (selection && selection.toString().trim()) {
+    selectedText.value = selection.toString().trim()
+    selectionSource.value = source
+  } else {
+    selectedText.value = ''
+  }
+}
+
+// 复制选中文字
+function copySelectedText() {
+  if (!selectedText.value) return
+  navigator.clipboard.writeText(selectedText.value)
+  ElMessage.success('已复制到剪贴板')
+}
+
+// 采纳选中文字（插入到当前编辑器）
+function adoptSelectedText() {
+  if (!selectedText.value) return
+  emit('adopt-text', selectedText.value)
+  ElMessage.success('已采纳选中内容')
+}
+
+// 复制整个版本内容
+function copyVersionContent() {
+  if (!previewContent.value) return
+  navigator.clipboard.writeText(previewContent.value)
+  ElMessage.success('已复制版本内容')
 }
 
 // 恢复版本
@@ -246,13 +337,33 @@ function formatTime(dateStr: string): string {
   color: #BDBDBD;
 }
 
-.version-list {
+.version-container {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.version-list-section {
+  flex-shrink: 0;
+  max-height: 200px;
+  border-bottom: 1px solid #E0DFDC;
+}
+
+.section-title {
+  font-size: 12px;
+  color: #9E9E9E;
+  padding: 8px 16px;
+  background: #FAFAF8;
+}
+
+.version-list {
   overflow-y: auto;
+  max-height: 160px;
 }
 
 .version-item {
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-bottom: 1px solid #f0ede6;
   cursor: pointer;
   transition: background-color 0.15s;
@@ -316,31 +427,31 @@ function formatTime(dateStr: string): string {
   display: inline-block;
 }
 
-/* 预览面板 */
-.preview-panel {
+/* 对比面板 */
+.compare-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 300px;
-  background: #F7F6F3;
-  border-top: 1px solid #E0DFDC;
+  overflow: hidden;
 }
 
-.preview-header {
+.compare-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #5C5C5C;
-  background: white;
+  padding: 8px 16px;
+  background: #FAFAF8;
   border-bottom: 1px solid #E0DFDC;
 }
 
-.preview-content {
+.compare-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.compare-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 12px;
 }
 
@@ -352,20 +463,105 @@ function formatTime(dateStr: string): string {
   color: #9E9E9E;
 }
 
+.preview-mode {
+  height: 100%;
+  overflow-y: auto;
+}
+
 .preview-text {
   font-size: 13px;
   line-height: 1.8;
   color: #2C2C2C;
   white-space: pre-wrap;
   word-break: break-all;
+  cursor: text;
+  user-select: text;
 }
 
-.preview-actions {
-  padding: 12px;
+/* 对比模式 */
+.compare-mode {
+  display: flex;
+  height: 100%;
+  gap: 0;
+}
+
+.compare-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #5C5C5C;
+  background: #F7F6F3;
+  border-radius: 4px 4px 0 0;
+}
+
+.word-info {
+  color: #9E9E9E;
+  font-weight: normal;
+}
+
+.column-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #2C2C2C;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: white;
+  border: 1px solid #E0DFDC;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  cursor: text;
+  user-select: text;
+}
+
+.column-content.current {
+  background: #fafafa;
+}
+
+.column-content.historical {
+  background: #f0f7ff;
+}
+
+.compare-divider {
+  width: 12px;
+  flex-shrink: 0;
+}
+
+/* 选中文本面板 */
+.selection-panel {
+  padding: 8px 16px;
+  background: #e8f4fd;
+  border-top: 1px solid #b3d8ff;
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #409eff;
+}
+
+/* 操作按钮 */
+.compare-footer {
+  padding: 12px 16px;
   background: white;
   border-top: 1px solid #E0DFDC;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .rotating {
