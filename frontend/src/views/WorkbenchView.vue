@@ -150,6 +150,7 @@ import ChapterVersionDrawer from '@/components/ChapterVersionDrawer.vue'
 import MiaojiPanel from '@/components/MiaojiPanel.vue'
 import DraggableDivider from '@/components/DraggableDivider.vue'
 import ContextPanel from '@/components/ContextPanel.vue'
+import { useGlobalShortcuts } from '@/composables/useGlobalShortcuts'
 
 const route = useRoute()
 const router = useRouter()
@@ -182,6 +183,35 @@ const wordProgress = computed(() => {
 function triggerCreateChapter() {
   chapterStore.createNewChapter(projectId.value, { title: '第一章' })
 }
+
+// 章节导航函数
+function navigatePrevChapter() {
+  const currentIndex = chapterStore.chapters.findIndex(c => c.id === chapterStore.currentChapter?.id)
+  if (currentIndex > 0) {
+    chapterStore.setCurrentChapter(chapterStore.chapters[currentIndex - 1])
+  }
+}
+
+function navigateNextChapter() {
+  const currentIndex = chapterStore.chapters.findIndex(c => c.id === chapterStore.currentChapter?.id)
+  if (currentIndex < chapterStore.chapters.length - 1) {
+    chapterStore.setCurrentChapter(chapterStore.chapters[currentIndex + 1])
+  }
+}
+
+// 全局快捷键
+useGlobalShortcuts([
+  // 章节导航
+  { key: 'ArrowUp', ctrl: true, handler: navigatePrevChapter, description: '上一章' },
+  { key: 'ArrowDown', ctrl: true, handler: navigateNextChapter, description: '下一章' },
+  // 面板切换
+  { key: '1', ctrl: true, handler: () => { activeTab.value = 'editor' }, description: '写作' },
+  { key: '2', ctrl: true, handler: () => { activeTab.value = 'characters' }, description: '角色' },
+  { key: '3', ctrl: true, handler: () => { activeTab.value = 'worldbuilding' }, description: '设定' },
+  { key: '4', ctrl: true, handler: () => { activeTab.value = 'outline' }, description: '大纲' },
+  // AI 助手
+  { key: ' ', ctrl: true, handler: () => { rightPanelWidth.value = Math.max(rightPanelWidth.value, 300) }, description: '展开 AI 面板' },
+])
 
 function goBack() {
   router.push('/projects')
