@@ -5,7 +5,7 @@
 import { getAccessToken } from './request'
 
 export interface AIGenerateRequest {
-  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character'
+  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character' | 'plot_enhance'
   content: string
   provider?: string
   title?: string

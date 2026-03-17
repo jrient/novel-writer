@@ -16,6 +16,7 @@ from app.models.project import Project
 from app.models.chapter import Chapter
 from app.models.character import Character
 from app.models.worldbuilding import WorldbuildingEntry
+from app.models.outline import OutlineNode
 from app.models.reference import ReferenceNovel
 from app.models.user import User
 from app.routers.auth import get_current_user
@@ -79,6 +80,48 @@ async def ai_generate(
         if chapter:
             content = chapter.content or ""
 
+    # 剧情完善：获取前几章内容和大纲作为额外上下文
+    outline_context = ""
+    previous_chapters = ""
+    if payload.action == "plot_enhance":
+        # 获取大纲节点
+        outline_result = await db.execute(
+            select(OutlineNode).where(
+                OutlineNode.project_id == project_id
+            ).order_by(OutlineNode.level, OutlineNode.sort_order).limit(30)
+        )
+        outline_nodes = outline_result.scalars().all()
+        if outline_nodes:
+            outline_lines = []
+            for node in outline_nodes:
+                prefix = "  " * node.level
+                outline_lines.append(f"{prefix}- [{node.node_type}] {node.title}: {node.content or ''}")
+            outline_context = "故事大纲：\n" + "\n".join(outline_lines)
+
+        # 获取当前章节之前的章节内容（最多取前5章的摘要）
+        chapters_query = select(Chapter).where(
+            Chapter.project_id == project_id
+        ).order_by(Chapter.sort_order)
+        if payload.chapter_id:
+            # 获取当前章节的 sort_order
+            cur_ch_result = await db.execute(
+                select(Chapter).where(Chapter.id == payload.chapter_id)
+            )
+            cur_chapter = cur_ch_result.scalar_one_or_none()
+            if cur_chapter:
+                chapters_query = chapters_query.where(
+                    Chapter.sort_order < cur_chapter.sort_order
+                )
+        chapters_query = chapters_query.limit(5)
+        prev_result = await db.execute(chapters_query)
+        prev_chapters = prev_result.scalars().all()
+        if prev_chapters:
+            ch_parts = []
+            for ch in prev_chapters:
+                ch_content = (ch.content or "")[:800]
+                ch_parts.append(f"【{ch.title}】\n{ch_content}")
+            previous_chapters = "前文内容摘要：\n\n" + "\n\n---\n\n".join(ch_parts)
+
     # 确定实际使用的 provider 和 model（用于 token 记录）
     actual_provider = AIService._get_available_provider(payload.provider)
     provider_model_map = {
@@ -108,6 +151,8 @@ async def ai_generate(
             question=payload.question or "",
             characters=characters,
             worldbuilding=worldbuilding,
+            outline_context=outline_context,
+            previous_chapters=previous_chapters,
         )
 
         heartbeat_count = 0

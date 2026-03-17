@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field
 
 VALID_ACTIONS = Literal[
     "continue", "rewrite", "expand", "outline",
-    "character_analysis", "analyze_expand", "free_chat", "revise", "polish_character"
+    "character_analysis", "analyze_expand", "free_chat", "revise", "polish_character",
+    "plot_enhance"
 ]
 
 
@@ -15,7 +16,7 @@ class AIGenerateRequest(BaseModel):
     """AI 生成请求"""
     action: VALID_ACTIONS = Field(
         ...,
-        description="操作类型: continue(续写), rewrite(改写), expand(扩写), outline(大纲), character_analysis(角色分析), analyze_expand(开篇分析), free_chat(自由对话), revise(意见修改)"
+        description="操作类型: continue(续写), rewrite(改写), expand(扩写), outline(大纲), character_analysis(角色分析), analyze_expand(开篇分析), free_chat(自由对话), revise(意见修改), plot_enhance(剧情完善)"
     )
     content: str = Field(default="", max_length=50000, description="当前内容文本")
     provider: Optional[str] = Field(default=None, description="AI 提供商: openai/anthropic/ollama")

@@ -96,6 +96,17 @@
         </el-button>
       </el-tooltip>
 
+      <el-tooltip content="输入剧情描述，AI 结合前文、人物、大纲进行剧情完善" placement="left">
+        <el-button
+          class="ai-btn plot-enhance-btn"
+          :disabled="generating"
+          @click="showPlotEnhanceDialog = true"
+        >
+          <el-icon><Connection /></el-icon>
+          剧情完善
+        </el-button>
+      </el-tooltip>
+
       <el-tooltip content="AI 参考小说风格和知识库，批量生成前 X 章" placement="left">
         <el-button
           class="ai-btn batch-btn"
@@ -192,6 +203,37 @@
           :disabled="!reviseOpinion.trim()"
         >
           开始修改
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 剧情完善对话框 -->
+    <el-dialog
+      v-model="showPlotEnhanceDialog"
+      title="剧情完善"
+      width="550px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-position="top">
+        <el-form-item label="剧情描述">
+          <el-input
+            v-model="plotDescription"
+            type="textarea"
+            :rows="6"
+            placeholder="请输入您的剧情构想，AI 将结合前文内容、人物设定和大纲进行完善。例如：&#10;&#10;主角在森林中遇到了一位神秘老人，老人交给他一把钥匙，暗示这把钥匙能打开通往另一个世界的大门。主角犹豫是否要接受..."
+          />
+        </el-form-item>
+        <p class="dialog-hint">AI 将自动参考前几章内容、角色设定和故事大纲，对您的剧情描述进行补充和完善。</p>
+      </el-form>
+      <template #footer>
+        <el-button @click="showPlotEnhanceDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          @click="handlePlotEnhance"
+          :loading="generating"
+          :disabled="!plotDescription.trim()"
+        >
+          开始完善
         </el-button>
       </template>
     </el-dialog>
@@ -298,7 +340,7 @@ import { ref, watch, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import {
   MagicStick, Promotion, Edit, Plus, Document, User, Reading,
-  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen, FullScreen,
+  Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen, FullScreen, Connection,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
@@ -343,6 +385,10 @@ const batchForm = ref({
 const showReviseDialog = ref(false)
 const showFullscreen = ref(false)
 const reviseOpinion = ref('')
+
+// 剧情完善相关
+const showPlotEnhanceDialog = ref(false)
+const plotDescription = ref('')
 
 let abortController: AbortController | null = null
 
@@ -425,6 +471,22 @@ function handleRevise() {
     chapter_id: props.chapterId,
   })
   reviseOpinion.value = ''
+}
+
+// 剧情完善：根据用户的剧情描述，结合前文、人物、大纲进行完善
+function handlePlotEnhance() {
+  if (!props.projectId || !plotDescription.value.trim()) return
+
+  showPlotEnhanceDialog.value = false
+  lastAction.value = 'plot_enhance'
+
+  startGeneration({
+    action: 'plot_enhance',
+    content: props.currentContent || '',
+    question: plotDescription.value.trim(),
+    chapter_id: props.chapterId,
+  })
+  plotDescription.value = ''
 }
 
 function startGeneration(data: AIGenerateRequest) {
@@ -697,6 +759,25 @@ function clearOutput() {
 .revise-btn:hover:not(:disabled) {
   background-color: rgba(230, 162, 60, 0.15) !important;
   color: #cf9236 !important;
+}
+
+.plot-enhance-btn {
+  border-color: #409eff !important;
+  background-color: rgba(64, 158, 255, 0.08) !important;
+  color: #3a8ee6 !important;
+  font-weight: 500;
+}
+
+.plot-enhance-btn:hover:not(:disabled) {
+  background-color: rgba(64, 158, 255, 0.15) !important;
+  color: #409eff !important;
+}
+
+.dialog-hint {
+  font-size: 12px;
+  color: #9E9E9E;
+  margin-top: 4px;
+  line-height: 1.5;
 }
 
 .form-hint {
