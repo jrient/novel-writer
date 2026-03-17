@@ -1,20 +1,16 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 // Element Plus 按需加载，通过 unplugin-vue-components 自动导入
-// 只需手动导入图标和样式
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+// 图标已在各组件中按需导入，无需全局注册
 import 'element-plus/dist/index.css'
-import './styles/main.css'
+import './styles/main.scss'
 
 import App from './App.vue'
 import router from './router'
 
 const app = createApp(App)
 
-// 注册所有 Element Plus 图标
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
-}
+// 图标已按需导入，移除全局注册以减小包体积
 
 app.use(createPinia())
 app.use(router)

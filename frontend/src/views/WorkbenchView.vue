@@ -20,6 +20,7 @@
         </el-radio-group>
       </div>
       <div class="header-right">
+        <ThemeToggle />
         <el-button text size="small" class="miaoji-btn" @click="showMiaoji = true">
           <el-icon><EditPen /></el-icon>
           妙记
@@ -146,6 +147,7 @@ import WorldbuildingPanel from '@/components/WorldbuildingPanel.vue'
 import OutlinePanel from '@/components/OutlinePanel.vue'
 import KnowledgePanel from '@/components/KnowledgePanel.vue'
 import EventPanel from '@/components/EventPanel.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import ChapterVersionDrawer from '@/components/ChapterVersionDrawer.vue'
 import MiaojiPanel from '@/components/MiaojiPanel.vue'
 import DraggableDivider from '@/components/DraggableDivider.vue'

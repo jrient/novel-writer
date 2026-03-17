@@ -1,0 +1,131 @@
+// 常用 SCSS 混入
+
+// ========== 布局 ==========
+// Flex 居中
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Flex 两端对齐
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Flex 列布局
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// ========== 文本 ==========
+// 单行省略
+@mixin text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 多行省略
+@mixin text-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ========== 尺寸 ==========
+// 固定尺寸
+@mixin size($width, $height: $width) {
+  width: $width;
+  height: $height;
+}
+
+// 正方形
+@mixin square($size) {
+  width: $size;
+  height: $size;
+}
+
+// 圆形
+@mixin circle($size) {
+  @include square($size);
+  border-radius: 50%;
+}
+
+// ========== 定位 ==========
+// 绝对定位填满
+@mixin absolute-fill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+// 固定定位填满
+@mixin fixed-fill {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+// ========== 交互 ==========
+// 点击态
+@mixin clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color $transition-fast;
+}
+
+// 禁用态
+@mixin disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+// ========== 卡片 ==========
+@mixin card {
+  background: var(--writer-bg-card);
+  border: 1px solid var(--writer-border);
+  border-radius: var(--radius-md);
+}
+
+@mixin card-shadow {
+  @include card;
+  box-shadow: $shadow-sm;
+}
+
+// ========== 滚动条 ==========
+@mixin custom-scrollbar($width: 6px, $thumb-color: rgba(44, 44, 44, 0.08)) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: darken($thumb-color, 5%);
+  }
+}
+
+// ========== 深色模式 ==========
+@mixin dark-mode {
+  html.dark & {
+    @content;
+  }
+}

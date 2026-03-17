@@ -1,0 +1,103 @@
+// 设计系统变量 (Design Tokens)
+// 小说创作平台 - 统一视觉语言
+
+// ========== 主色调 ==========
+$writer-primary: #6B7B8D !default;
+$writer-primary-light: #7E8E9E !default;
+$writer-primary-dark: #4E5E6D !default;
+
+// ========== 背景色 ==========
+$writer-bg-main: #F7F6F3 !default;
+$writer-bg-card: #FFFFFF !default;
+$writer-bg-hover: rgba(107, 123, 141, 0.04) !default;
+$writer-bg-active: rgba(107, 123, 141, 0.08) !default;
+
+// ========== 文字色 ==========
+$writer-text-main: #2C2C2C !default;
+$writer-text-secondary: #5C5C5C !default;
+$writer-text-muted: #9E9E9E !default;
+$writer-text-light: #BFBFBF !default;
+
+// ========== 边框色 ==========
+$writer-border: #E0DFDC !default;
+$writer-border-light: #F0EFEC !default;
+
+// ========== 状态色 ==========
+$writer-success: #7ABF7A !default;
+$writer-warning: #E6A23C !default;
+$writer-danger: #F56C6C !default;
+$writer-info: #909399 !default;
+
+// ========== 间距系统 ==========
+$spacing-xs: 4px !default;
+$spacing-sm: 8px !default;
+$spacing-md: 16px !default;
+$spacing-lg: 24px !default;
+$spacing-xl: 32px !default;
+
+// ========== 字体 ==========
+$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !default;
+$font-family-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace !default;
+
+// ========== 字号 ==========
+$font-size-xs: 11px !default;
+$font-size-sm: 12px !default;
+$font-size-base: 14px !default;
+$font-size-lg: 16px !default;
+$font-size-xl: 18px !default;
+
+// ========== 圆角 ==========
+$radius-sm: 3px !default;
+$radius-md: 6px !default;
+$radius-lg: 10px !default;
+
+// ========== 阴影 ==========
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04) !default;
+$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08) !default;
+$shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12) !default;
+
+// ========== 过渡 ==========
+$transition-fast: 0.15s ease !default;
+$transition-normal: 0.25s ease !default;
+
+// ========== CSS 变量输出 ==========
+:root {
+  // 主色
+  --writer-primary: #{$writer-primary};
+  --writer-primary-light: #{$writer-primary-light};
+  --writer-primary-dark: #{$writer-primary-dark};
+
+  // 背景
+  --writer-bg-main: #{$writer-bg-main};
+  --writer-bg-card: #{$writer-bg-card};
+  --writer-bg-hover: #{$writer-bg-hover};
+  --writer-bg-active: #{$writer-bg-active};
+
+  // 文字
+  --writer-text-main: #{$writer-text-main};
+  --writer-text-secondary: #{$writer-text-secondary};
+  --writer-text-muted: #{$writer-text-muted};
+  --writer-text-light: #{$writer-text-light};
+
+  // 边框
+  --writer-border: #{$writer-border};
+  --writer-border-light: #{$writer-border-light};
+
+  // 状态色
+  --writer-success: #{$writer-success};
+  --writer-warning: #{$writer-warning};
+  --writer-danger: #{$writer-danger};
+  --writer-info: #{$writer-info};
+
+  // 间距
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-md: #{$spacing-md};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+
+  // 圆角
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+}

@@ -1,0 +1,153 @@
+// 深色模式样式
+// 通过 html.dark 类触发
+
+html.dark {
+  // 背景色
+  --writer-bg-main: #1A1A1A;
+  --writer-bg-card: #242424;
+  --writer-bg-hover: rgba(255, 255, 255, 0.04);
+  --writer-bg-active: rgba(255, 255, 255, 0.08);
+
+  // 文字色
+  --writer-text-main: #E5E5E5;
+  --writer-text-secondary: #B0B0B0;
+  --writer-text-muted: #808080;
+  --writer-text-light: #606060;
+
+  // 边框色
+  --writer-border: #333333;
+  --writer-border-light: #2A2A2A;
+
+  // Element Plus 覆盖
+  --el-bg-color: #242424;
+  --el-bg-color-page: #1A1A1A;
+  --el-bg-color-overlay: #2A2A2A;
+  --el-text-color-primary: #E5E5E5;
+  --el-text-color-regular: #B0B0B0;
+  --el-text-color-secondary: #808080;
+  --el-text-color-placeholder: #606060;
+  --el-border-color: #333333;
+  --el-border-color-light: #2A2A2A;
+  --el-border-color-lighter: #222222;
+  --el-fill-color: #2A2A2A;
+  --el-fill-color-light: #242424;
+  --el-fill-color-lighter: #1E1E1E;
+
+  // body 背景
+  body {
+    background-color: var(--writer-bg-main);
+    color: var(--writer-text-main);
+  }
+
+  // 卡片
+  .el-card {
+    --el-card-bg-color: var(--writer-bg-card);
+    --el-card-border-color: var(--writer-border);
+  }
+
+  // 输入框
+  .el-input__wrapper {
+    background-color: var(--writer-bg-card);
+    box-shadow: 0 0 0 1px var(--writer-border) inset;
+  }
+
+  .el-input__wrapper:hover {
+    box-shadow: 0 0 0 1px var(--writer-border) inset;
+  }
+
+  .el-input__inner {
+    color: var(--writer-text-main);
+  }
+
+  .el-input__inner::placeholder {
+    color: var(--writer-text-muted);
+  }
+
+  // 选择器
+  .el-select-dropdown {
+    background-color: var(--writer-bg-card);
+    border-color: var(--writer-border);
+  }
+
+  .el-select-dropdown__item {
+    color: var(--writer-text-main);
+  }
+
+  .el-select-dropdown__item:hover {
+    background-color: var(--writer-bg-hover);
+  }
+
+  // 对话框
+  .el-dialog {
+    --el-dialog-bg-color: var(--writer-bg-card);
+    --el-dialog-title-font-size: 16px;
+  }
+
+  // 抽屉
+  .el-drawer {
+    background-color: var(--writer-bg-card);
+  }
+
+  // 表格
+  .el-table {
+    --el-table-bg-color: var(--writer-bg-card);
+    --el-table-tr-bg-color: var(--writer-bg-card);
+    --el-table-header-bg-color: var(--writer-bg-active);
+    --el-table-row-hover-bg-color: var(--writer-bg-hover);
+    --el-table-border-color: var(--writer-border);
+    --el-table-text-color: var(--writer-text-main);
+    --el-table-header-text-color: var(--writer-text-secondary);
+  }
+
+  // 消息
+  .el-message {
+    --el-message-bg-color: var(--writer-bg-card);
+    --el-message-border-color: var(--writer-border);
+  }
+
+  // 菜单
+  .el-menu {
+    --el-menu-bg-color: var(--writer-bg-card);
+    --el-menu-text-color: var(--writer-text-main);
+    --el-menu-hover-bg-color: var(--writer-bg-hover);
+    --el-menu-border-color: var(--writer-border);
+  }
+
+  // 分割线
+  .el-divider {
+    --el-border-color: var(--writer-border);
+  }
+
+  // 标签页
+  .el-tabs__item {
+    color: var(--writer-text-secondary);
+  }
+
+  .el-tabs__item.is-active {
+    color: var(--writer-primary);
+  }
+
+  // 按钮
+  .el-button--default {
+    --el-button-bg-color: var(--writer-bg-card);
+    --el-button-border-color: var(--writer-border);
+    --el-button-text-color: var(--writer-text-main);
+    --el-button-hover-bg-color: var(--writer-bg-hover);
+    --el-button-hover-border-color: var(--writer-border);
+  }
+
+  // 滚动条
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  // 选中文字
+  ::selection {
+    background-color: rgba(107, 123, 141, 0.3);
+    color: var(--writer-text-main);
+  }
+}

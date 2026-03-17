@@ -62,6 +62,7 @@ declare module 'vue' {
     StepSixConfirm: typeof import('./src/components/wizard/StepSixConfirm.vue')['default']
     StepThreeParts: typeof import('./src/components/wizard/StepThreeParts.vue')['default']
     StepTwoMaps: typeof import('./src/components/wizard/StepTwoMaps.vue')['default']
+    ThemeToggle: typeof import('./src/components/ThemeToggle.vue')['default']
     TiptapEditor: typeof import('./src/components/TiptapEditor.vue')['default']
     WorldbuildingPanel: typeof import('./src/components/WorldbuildingPanel.vue')['default']
   }

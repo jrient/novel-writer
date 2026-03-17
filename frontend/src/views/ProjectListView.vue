@@ -8,6 +8,7 @@
           <h1 class="logo">AI小说创作平台</h1>
         </div>
         <div class="header-actions">
+          <ThemeToggle />
           <el-button
             v-if="userStore.is_superuser"
             @click="$router.push('/admin')"
@@ -205,6 +206,7 @@ import { Plus, Edit, Delete, Collection, MoreFilled, Download, Document, Clock }
 import { useProjectStore } from '@/stores/project'
 import { useUserStore } from '@/stores/user'
 import type { Project } from '@/api/project'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const projectStore = useProjectStore()
