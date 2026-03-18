@@ -18,6 +18,31 @@
       </el-radio-group>
     </div>
 
+    <!-- AI 角色分析 -->
+    <div class="ai-analysis-bar">
+      <el-button
+        size="small"
+        type="warning"
+        plain
+        :icon="MagicStick"
+        :loading="analyzing"
+        :disabled="!currentCharacter"
+        @click="analyzeCharacter"
+      >
+        AI 角色分析
+      </el-button>
+      <span v-if="!currentCharacter" class="analysis-hint">请先选择角色</span>
+    </div>
+
+    <!-- 角色分析结果 -->
+    <div v-if="analysisResult" class="analysis-result">
+      <div class="analysis-header">
+        <span class="analysis-title">角色分析结果</span>
+        <el-button size="small" text @click="analysisResult = ''">关闭</el-button>
+      </div>
+      <div class="analysis-content" v-html="renderMarkdown(analysisResult)"></div>
+    </div>
+
     <!-- 角色列表 -->
     <div class="character-list">
       <div v-if="characterStore.loading" class="loading-state">
@@ -162,6 +187,60 @@ const props = defineProps<{
 }>()
 
 const characterStore = useCharacterStore()
+
+// AI 角色分析
+const analyzing = ref(false)
+const analysisResult = ref('')
+
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/### (.+)/g, '<h4>$1</h4>')
+    .replace(/## (.+)/g, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n- /g, '\n<br>• ')
+    .replace(/\n(\d+)\. /g, '\n<br>$1. ')
+    .replace(/\n/g, '<br>')
+}
+
+async function analyzeCharacter() {
+  const char = currentCharacter.value
+  if (!char) return
+
+  analyzing.value = true
+  analysisResult.value = ''
+
+  const content = [
+    `姓名：${char.name}`,
+    `类型：${roleLabel(char.role_type)}`,
+    char.age ? `年龄：${char.age}` : '',
+    char.gender ? `性别：${char.gender}` : '',
+    char.occupation ? `身份：${char.occupation}` : '',
+    char.appearance ? `外貌：${char.appearance}` : '',
+    char.personality_traits ? `性格：${char.personality_traits}` : '',
+    char.background ? `背景：${char.background}` : '',
+    char.growth_arc ? `成长弧线：${char.growth_arc}` : '',
+    char.notes ? `备注：${char.notes}` : '',
+  ].filter(Boolean).join('\n')
+
+  streamGenerate(
+    props.projectId,
+    {
+      action: 'character_analysis',
+      content,
+    },
+    (text) => {
+      analysisResult.value += text
+    },
+    () => {
+      analyzing.value = false
+      ElMessage.success('角色分析完成')
+    },
+    (error) => {
+      analyzing.value = false
+      ElMessage.error(`分析失败: ${error}`)
+    }
+  )
+}
 
 const filterRoleType = ref('')
 const currentCharacter = computed(() => characterStore.currentCharacter)
@@ -403,6 +482,59 @@ onMounted(() => {
   background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
   border-color: transparent;
   color: white;
+}
+
+.ai-analysis-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: white;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.analysis-hint {
+  font-size: 12px;
+  color: #9E9E9E;
+}
+
+.analysis-result {
+  background: #fefcf7;
+  border-bottom: 1px solid #f0ede6;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 32px 0;
+}
+
+.analysis-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5C5C5C;
+}
+
+.analysis-content {
+  padding: 8px 32px 16px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #2C2C2C;
+}
+
+.analysis-content :deep(h3) {
+  font-size: 14px;
+  margin: 12px 0 4px;
+  color: #2C2C2C;
+}
+
+.analysis-content :deep(h4) {
+  font-size: 13px;
+  margin: 8px 0 4px;
+  color: #5C5C5C;
 }
 
 .character-list {

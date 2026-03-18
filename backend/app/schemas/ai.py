@@ -8,8 +8,27 @@ from pydantic import BaseModel, Field
 VALID_ACTIONS = Literal[
     "continue", "rewrite", "expand", "outline",
     "character_analysis", "analyze_expand", "free_chat", "revise", "polish_character",
-    "plot_enhance"
+    "plot_enhance", "generate_title"
 ]
+
+
+class PinnedContext(BaseModel):
+    """用户固定的上下文实体"""
+    characters: List[int] = Field(default_factory=list, description="固定的角色 ID 列表")
+    worldbuilding: List[int] = Field(default_factory=list, description="固定的世界观 ID 列表")
+    events: List[int] = Field(default_factory=list, description="固定的事件 ID 列表")
+    notes: List[int] = Field(default_factory=list, description="固定的笔记 ID 列表")
+
+
+class ContextEntity(BaseModel):
+    """上下文实体（带匹配信息）"""
+    id: int
+    type: str = Field(description="实体类型: character/worldbuilding/event/note/outline")
+    name: str = Field(description="实体名称/标题")
+    summary: str = Field(default="", description="简要描述")
+    relevance: float = Field(default=0, description="相关性分数 0-1")
+    match_reason: str = Field(default="", description="匹配理由")
+    is_pinned: bool = Field(default=False, description="是否为用户固定")
 
 
 class AIGenerateRequest(BaseModel):
@@ -25,6 +44,13 @@ class AIGenerateRequest(BaseModel):
     description: Optional[str] = Field(default="", max_length=2000, description="项目简介（大纲生成用）")
     question: Optional[str] = Field(default="", max_length=2000, description="用户问题（自由对话用）")
     chapter_id: Optional[int] = Field(default=None, description="当前章节 ID")
+    pinned_context: Optional[PinnedContext] = Field(default=None, description="用户固定的上下文实体")
+
+
+class ContextPreviewResponse(BaseModel):
+    """上下文预览响应"""
+    entities: List[ContextEntity] = Field(default_factory=list, description="匹配到的实体列表")
+    suggestions: str = Field(default="", description="AI 建议")
 
 
 class BatchGenerateRequest(BaseModel):

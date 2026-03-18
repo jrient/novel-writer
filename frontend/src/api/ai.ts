@@ -4,8 +4,25 @@
  */
 import { getAccessToken } from './request'
 
+export interface PinnedContext {
+  characters: number[]
+  worldbuilding: number[]
+  events: number[]
+  notes: number[]
+}
+
+export interface ContextEntity {
+  id: number
+  type: 'character' | 'worldbuilding' | 'event' | 'note' | 'outline'
+  name: string
+  summary: string
+  relevance: number
+  match_reason: string
+  is_pinned: boolean
+}
+
 export interface AIGenerateRequest {
-  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character' | 'plot_enhance'
+  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character' | 'plot_enhance' | 'generate_title'
   content: string
   provider?: string
   title?: string
@@ -13,6 +30,7 @@ export interface AIGenerateRequest {
   description?: string
   question?: string
   chapter_id?: number
+  pinned_context?: PinnedContext
 }
 
 export interface BatchGenerateRequest {
@@ -55,6 +73,7 @@ export async function getAIConfig(): Promise<AIConfig> {
  * @param onChunk 每次收到文本块时的回调
  * @param onDone 完成回调
  * @param onError 错误回调
+ * @param onContextUsed 可选，收到上下文实体时的回调
  * @returns AbortController 用于取消请求
  */
 export function streamGenerate(
@@ -63,6 +82,7 @@ export function streamGenerate(
   onChunk: (text: string) => void,
   onDone: () => void,
   onError: (error: string) => void,
+  onContextUsed?: (entities: ContextEntity[]) => void,
 ): AbortController {
   const controller = new AbortController()
 
@@ -106,6 +126,10 @@ export function streamGenerate(
           if (line.startsWith('data: ')) {
             try {
               const payload = JSON.parse(line.slice(6))
+              // 处理上下文实体事件
+              if (payload.type === 'context_used' && payload.entities && onContextUsed) {
+                onContextUsed(payload.entities)
+              }
               if (payload.text) {
                 onChunk(payload.text)
               }
@@ -132,6 +156,34 @@ export function streamGenerate(
     })
 
   return controller
+}
+
+/**
+ * 预览 AI 上下文
+ * 返回匹配到的实体列表，不实际调用 AI
+ */
+export async function contextPreview(
+  projectId: number,
+  data: AIGenerateRequest,
+): Promise<{ entities: ContextEntity[]; suggestions: string }> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const resp = await fetch(`/api/v1/projects/${projectId}/ai/context-preview`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ detail: '请求失败' }))
+    throw new Error(err.detail || '请求失败')
+  }
+
+  return resp.json()
 }
 
 /**

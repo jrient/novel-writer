@@ -104,6 +104,18 @@
               {{ chapter.word_count > 0 ? '已写' : '空' }}
             </span>
             <span class="word-count">{{ chapter.word_count.toLocaleString() }} 字</span>
+            <!-- AI生成标题按钮，悬停显示 -->
+            <el-tooltip content="AI 生成标题" placement="top" v-if="!batchMode">
+              <el-button
+                class="ai-title-btn"
+                size="small"
+                text
+                type="warning"
+                :icon="MagicStick"
+                :loading="generatingTitleId === chapter.id"
+                @click.stop="handleGenerateTitle(chapter)"
+              />
+            </el-tooltip>
             <!-- 删除按钮，悬停显示（非批量模式） -->
             <el-button
               v-if="!batchMode"
@@ -149,11 +161,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed, nextTick, watch } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { Plus, Delete, MagicStick } from '@element-plus/icons-vue'
 import { useVirtualList } from '@vueuse/core'
 import { useChapterStore } from '@/stores/chapter'
 import { reorderChapters } from '@/api/chapter'
 import type { Chapter } from '@/api/chapter'
+import { streamGenerate } from '@/api/ai'
 
 // 接收项目 ID
 const props = defineProps<{
@@ -253,6 +266,45 @@ async function handleDelete(chapter: Chapter) {
     cancelButtonText: '取消',
   })
   await chapterStore.removeChapter(props.projectId, chapter.id)
+}
+
+// ========== AI 生成章节标题 ==========
+const generatingTitleId = ref<number | null>(null)
+
+async function handleGenerateTitle(chapter: Chapter) {
+  if (!chapter.content || chapter.word_count === 0) {
+    ElMessage.warning('章节内容为空，无法生成标题')
+    return
+  }
+
+  generatingTitleId.value = chapter.id
+  let result = ''
+
+  streamGenerate(
+    props.projectId,
+    {
+      action: 'generate_title',
+      content: chapter.content,
+      chapter_id: chapter.id,
+    },
+    (text) => {
+      result += text
+    },
+    async () => {
+      generatingTitleId.value = null
+      const newTitle = result.trim().replace(/^["'《「]+|["'》」]+$/g, '')
+      if (newTitle) {
+        await chapterStore.updateCurrentChapter(props.projectId, chapter.id, {
+          title: newTitle,
+        })
+        ElMessage.success(`标题已更新为「${newTitle}」`)
+      }
+    },
+    (error) => {
+      generatingTitleId.value = null
+      ElMessage.error(`生成标题失败: ${error}`)
+    }
+  )
 }
 
 // ========== 批量操作 ==========
@@ -468,6 +520,17 @@ async function handleDrop(_e: DragEvent, dropIndex: number) {
 .word-count {
   font-size: 11px;
   color: #9E9E9E;
+}
+
+/* AI生成标题按钮：默认隐藏，悬停显示 */
+.ai-title-btn {
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding: 2px;
+}
+
+.chapter-item:hover .ai-title-btn {
+  opacity: 1;
 }
 
 /* 删除按钮：默认隐藏，悬停显示 */

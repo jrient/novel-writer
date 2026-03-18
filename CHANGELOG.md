@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-03-18
+
+### Added
+- AI 自动生成章节标题 - 根据章节内容智能生成标题（章节列表悬停显示魔法棒按钮）
+- 角色分析功能移至角色管理面板 - 选中角色后可直接进行 AI 分析，结果内联展示
+- 大纲生成功能移至大纲面板 - 在大纲页面头部直接生成，支持追加到已有内容
+
+### Changed
+- AI 助手面板精简 - 移除角色分析和生成大纲按钮，使其更聚焦于写作辅助
+
 ## [1.2.0] - 2026-03-13
 
 ### Added

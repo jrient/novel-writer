@@ -155,27 +155,6 @@
         </el-button>
       </el-tooltip>
 
-      <el-tooltip content="AI 将为故事生成章节大纲" placement="left">
-        <el-button
-          class="ai-btn"
-          :disabled="generating"
-          @click="handleAction('outline')"
-        >
-          <el-icon><Document /></el-icon>
-          生成大纲
-        </el-button>
-      </el-tooltip>
-
-      <el-tooltip content="AI 将分析角色性格与发展" placement="left">
-        <el-button
-          class="ai-btn"
-          :disabled="generating"
-          @click="handleAction('character_analysis')"
-        >
-          <el-icon><User /></el-icon>
-          角色分析
-        </el-button>
-      </el-tooltip>
 
       <el-tooltip content="输入剧情描述，AI 结合前文、人物、大纲进行剧情完善" placement="left">
         <el-button
@@ -383,6 +362,51 @@
           停止
         </el-button>
       </div>
+      <!-- 上下文反馈面板 -->
+      <div v-if="contextEntities.length > 0" class="context-feedback">
+        <div class="context-header" @click="showContextPanel = !showContextPanel">
+          <span class="context-title">
+            <el-icon><Connection /></el-icon>
+            AI 参考了 {{ contextEntities.length }} 个设定
+          </span>
+          <el-icon :class="{ 'is-expanded': showContextPanel }"><Bottom /></el-icon>
+        </div>
+        <div v-show="showContextPanel" class="context-list">
+          <div
+            v-for="entity in contextEntities"
+            :key="`${entity.type}-${entity.id}`"
+            class="context-item"
+            :class="{ 'is-pinned': entity.is_pinned }"
+          >
+            <div class="entity-icon">
+              <el-icon>
+                <component :is="getEntityTypeIcon(entity.type)" />
+              </el-icon>
+            </div>
+            <div class="entity-info">
+              <div class="entity-name">
+                {{ entity.name }}
+                <el-tag size="small" type="info">{{ getEntityTypeLabel(entity.type) }}</el-tag>
+                <el-tag v-if="entity.is_pinned" size="small" type="warning">已固定</el-tag>
+              </div>
+              <div class="entity-summary" v-if="entity.summary">{{ entity.summary }}</div>
+              <div class="entity-reason" v-if="entity.match_reason">
+                <el-icon><Connection /></el-icon>
+                {{ entity.match_reason }}
+              </div>
+            </div>
+            <el-tooltip :content="entity.is_pinned ? '取消固定' : '固定此设定，下次必参考'">
+              <el-button
+                size="small"
+                :type="entity.is_pinned ? 'warning' : 'default'"
+                :icon="Collection"
+                @click="togglePin(entity)"
+                circle
+              />
+            </el-tooltip>
+          </div>
+        </div>
+      </div>
       <div class="output-content" ref="outputRef">
         <p v-if="errorText" class="error-text">{{ errorText }}</p>
         <pre v-else class="generated-text">{{ outputText }}<span v-if="generating" class="cursor-blink">|</span></pre>
@@ -458,13 +482,13 @@
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { nextTick } from 'vue'
 import {
-  MagicStick, Promotion, Edit, Plus, Document, User, Reading,
+  MagicStick, Promotion, Edit, Plus, Reading,
   Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen, FullScreen, Connection,
   Clock, Collection,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamGenerate, getAIConfig, streamBatchGenerate } from '@/api/ai'
-import type { AIGenerateRequest, BatchGenerateEvent } from '@/api/ai'
+import type { AIGenerateRequest, BatchGenerateEvent, ContextEntity, PinnedContext } from '@/api/ai'
 import { getReferences } from '@/api/reference'
 import type { ReferenceNovel } from '@/api/reference'
 import { useAIHistory, getActionLabel, type AIHistoryItem } from '@/composables/useAIHistory'
@@ -511,6 +535,16 @@ const reviseOpinion = ref('')
 // 剧情完善相关
 const showPlotEnhanceDialog = ref(false)
 const plotDescription = ref('')
+
+// 上下文反馈相关
+const contextEntities = ref<ContextEntity[]>([])
+const pinnedContext = ref<PinnedContext>({
+  characters: [],
+  worldbuilding: [],
+  events: [],
+  notes: [],
+})
+const showContextPanel = ref(false)
 
 // 历史记录和模板
 const { history, addHistory, clearHistory } = useAIHistory()
@@ -657,14 +691,21 @@ function startGeneration(data: AIGenerateRequest) {
   generating.value = true
   outputText.value = ''
   errorText.value = ''
+  contextEntities.value = [] // 清空上次上下文
 
   // 保存当前请求信息用于历史记录
   const currentAction = data.action
   const currentQuestion = data.question
 
+  // 构建请求，包含固定的上下文
+  const requestData: AIGenerateRequest = {
+    ...data,
+    pinned_context: pinnedContext.value,
+  }
+
   abortController = streamGenerate(
     props.projectId!,
-    data,
+    requestData,
     (text) => {
       outputText.value += text
       // 自动滚动到底部
@@ -712,6 +753,13 @@ function startGeneration(data: AIGenerateRequest) {
     (error) => {
       generating.value = false
       errorText.value = error
+    },
+    (entities) => {
+      // 收到上下文实体
+      contextEntities.value = entities
+      if (entities.length > 0) {
+        showContextPanel.value = true
+      }
     },
   )
 }
@@ -771,6 +819,49 @@ function startBatchGenerate() {
 function stopGeneration() {
   abortController?.abort()
   generating.value = false
+}
+
+// 切换实体固定状态
+function togglePin(entity: ContextEntity) {
+  const typeKey = entity.type === 'worldbuilding' ? 'worldbuilding' : entity.type + 's' as keyof PinnedContext
+  const idList = pinnedContext.value[typeKey] as number[]
+  const index = idList.indexOf(entity.id)
+
+  if (index > -1) {
+    idList.splice(index, 1)
+  } else {
+    idList.push(entity.id)
+  }
+
+  // 更新实体的 is_pinned 状态
+  const entityInList = contextEntities.value.find(e => e.id === entity.id && e.type === entity.type)
+  if (entityInList) {
+    entityInList.is_pinned = index === -1
+  }
+}
+
+// 获取实体类型图标
+function getEntityTypeIcon(type: string): string {
+  const icons: Record<string, string> = {
+    character: 'User',
+    worldbuilding: 'Collection',
+    event: 'Clock',
+    note: 'Document',
+    outline: 'Files',
+  }
+  return icons[type] || 'Document'
+}
+
+// 获取实体类型标签
+function getEntityTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    character: '角色',
+    worldbuilding: '世界观',
+    event: '事件',
+    note: '笔记',
+    outline: '大纲',
+  }
+  return labels[type] || type
 }
 
 function copyOutput() {
@@ -1152,6 +1243,131 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
 
 .stop-btn {
   color: #f56c6c !important;
+}
+
+/* 上下文反馈面板 */
+.context-feedback {
+  border-bottom: 1px solid #f0ede6;
+  background: #fafafa;
+}
+
+.context-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+}
+
+.context-header:hover {
+  background: #f5f5f5;
+}
+
+.context-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.context-title .el-icon {
+  color: #409eff;
+}
+
+.context-header .el-icon {
+  transition: transform 0.3s;
+}
+
+.context-header .el-icon.is-expanded {
+  transform: rotate(180deg);
+}
+
+.context-list {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.context-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #eee;
+  transition: all 0.2s;
+}
+
+.context-item:hover {
+  border-color: #dcdfe6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.context-item.is-pinned {
+  border-color: #e6a23c;
+  background: #fdf6ec;
+}
+
+.entity-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f2f5;
+  border-radius: 6px;
+  color: #409eff;
+  flex-shrink: 0;
+}
+
+.context-item.is-pinned .entity-icon {
+  background: #e6a23c;
+  color: #fff;
+}
+
+.entity-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.entity-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.entity-summary {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.entity-reason {
+  font-size: 11px;
+  color: #909399;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.entity-reason .el-icon {
+  font-size: 12px;
 }
 
 .output-content {
