@@ -15,8 +15,11 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - public_network
 
   backend:
+    container_name: novel-writer-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -31,8 +34,8 @@ services:
       - .env
     environment:
       - TZ=Asia/Shanghai
-      - HTTP_PROXY=http://172.23.0.1:7890
-      - HTTPS_PROXY=http://172.23.0.1:7890
+      - HTTP_PROXY=http://172.18.0.1:7890
+      - HTTPS_PROXY=http://172.18.0.1:7890
     depends_on:
       db:
         condition: service_healthy
@@ -43,6 +46,10 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    networks:
+      public_network:
+        aliases:
+          - novel-writer-api
 
   frontend:
     build:
@@ -55,6 +62,13 @@ services:
     environment:
       - TZ=Asia/Shanghai
     restart: unless-stopped
+    networks:
+      - public_network
 
 volumes:
   postgres_data:
+
+networks:
+  public_network:
+    external: true
+    name: public_server_network
