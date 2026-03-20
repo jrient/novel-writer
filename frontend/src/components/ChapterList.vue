@@ -25,6 +25,43 @@
       </div>
     </div>
 
+    <!-- 章节操作工具栏 -->
+    <div v-if="!batchMode && currentChapter" class="chapter-toolbar">
+      <el-button
+        size="small"
+        text
+        :icon="Top"
+        :disabled="currentChapterIndex <= 0"
+        title="上移"
+        @click="handleMoveUp(currentChapterIndex)"
+      />
+      <el-button
+        size="small"
+        text
+        :icon="Bottom"
+        :disabled="currentChapterIndex >= chapters.length - 1"
+        title="下移"
+        @click="handleMoveDown(currentChapterIndex)"
+      />
+      <el-button
+        size="small"
+        text
+        type="warning"
+        :icon="MagicStick"
+        :loading="generatingTitleId === currentChapter.id"
+        title="AI 生成标题"
+        @click="handleGenerateTitle(currentChapter)"
+      />
+      <el-button
+        size="small"
+        text
+        type="danger"
+        :icon="Delete"
+        title="删除"
+        @click="handleDelete(currentChapter)"
+      />
+    </div>
+
     <!-- 批量操作栏 -->
     <div v-if="batchMode" class="batch-bar">
       <el-checkbox
@@ -52,7 +89,7 @@
 
       <div v-else v-bind="wrapperProps">
         <div
-          v-for="{ data: chapter, index } in virtualList"
+          v-for="{ data: chapter } in virtualList"
           :key="chapter.id"
           :data-id="chapter.id"
           class="chapter-item"
@@ -87,56 +124,18 @@
 
         <!-- 正常显示 -->
         <template v-else>
-          <div class="chapter-info">
-            <span class="chapter-order">第 {{ chapter.sort_order }} 章</span>
-            <span class="chapter-title">{{ chapter.title }}</span>
-          </div>
-          <div class="chapter-meta">
-            <span class="chapter-status" :class="chapter.word_count > 0 ? 'has-content' : ''">
-              {{ chapter.word_count > 0 ? '已写' : '空' }}
-            </span>
-            <span class="word-count">{{ chapter.word_count.toLocaleString() }} 字</span>
-            <!-- 上移/下移按钮，悬停显示 -->
-            <div v-if="!batchMode" class="move-btns">
-              <el-button
-                class="move-btn"
-                size="small"
-                text
-                :icon="Top"
-                :disabled="index === 0"
-                @click.stop="handleMoveUp(index)"
-              />
-              <el-button
-                class="move-btn"
-                size="small"
-                text
-                :icon="Bottom"
-                :disabled="index === chapters.length - 1"
-                @click.stop="handleMoveDown(index)"
-              />
+          <div class="chapter-content">
+            <div class="chapter-main-row">
+              <span class="chapter-title">{{ chapter.title }}</span>
             </div>
-            <!-- AI生成标题按钮，悬停显示 -->
-            <el-tooltip content="AI 生成标题" placement="top" v-if="!batchMode">
-              <el-button
-                class="ai-title-btn"
-                size="small"
-                text
-                type="warning"
-                :icon="MagicStick"
-                :loading="generatingTitleId === chapter.id"
-                @click.stop="handleGenerateTitle(chapter)"
-              />
-            </el-tooltip>
-            <!-- 删除按钮，悬停显示（非批量模式） -->
-            <el-button
-              v-if="!batchMode"
-              class="delete-btn"
-              size="small"
-              text
-              type="danger"
-              :icon="Delete"
-              @click.stop="handleDelete(chapter)"
-            />
+            <div class="chapter-sub-row">
+              <span class="chapter-order">第 {{ chapter.sort_order }} 章</span>
+              <span class="chapter-dot">·</span>
+              <span class="word-count">{{ chapter.word_count.toLocaleString() }} 字</span>
+              <span class="chapter-status" :class="chapter.word_count > 0 ? 'has-content' : ''">
+                {{ chapter.word_count > 0 ? '已写' : '空' }}
+              </span>
+            </div>
           </div>
         </template>
         </div>
@@ -189,6 +188,10 @@ const chapterStore = useChapterStore()
 // 从 store 获取响应式数据
 const chapters = computed(() => chapterStore.chapters)
 const currentChapter = computed(() => chapterStore.currentChapter)
+const currentChapterIndex = computed(() => {
+  if (!currentChapter.value) return -1
+  return chapters.value.findIndex(c => c.id === currentChapter.value!.id)
+})
 
 // 虚拟滚动配置
 const { list: virtualList, containerProps, wrapperProps, scrollTo } = useVirtualList(chapters, {
@@ -435,12 +438,12 @@ async function swapChapters(fromIndex: number, toIndex: number) {
 /* 章节条目 */
 .chapter-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 8px 16px;
   cursor: pointer;
   transition: background-color 0.15s;
   border-left: 3px solid transparent;
+  position: relative;
 }
 
 .chapter-item:hover {
@@ -452,26 +455,23 @@ async function swapChapters(fromIndex: number, toIndex: number) {
   border-left-color: #6B7B8D;
 }
 
-.chapter-info {
+.chapter-content {
   flex: 1;
   min-width: 0;
-  margin-right: 8px;
 }
 
-.chapter-order {
-  display: block;
-  font-size: 11px;
-  color: #9E9E9E;
-  margin-bottom: 2px;
+.chapter-main-row {
+  display: flex;
+  align-items: center;
 }
 
 .chapter-title {
-  display: block;
   font-size: 13px;
   color: #2C2C2C;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .chapter-item.active .chapter-title {
@@ -479,24 +479,21 @@ async function swapChapters(fromIndex: number, toIndex: number) {
   font-weight: 500;
 }
 
-.chapter-meta {
+.chapter-sub-row {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.chapter-status {
-  font-size: 10px;
+.chapter-order {
+  font-size: 11px;
   color: #9E9E9E;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: #F0EFEC;
 }
 
-.chapter-status.has-content {
-  color: #7abf7a;
-  background: rgba(122, 191, 122, 0.1);
+.chapter-dot {
+  font-size: 11px;
+  color: #D0D0D0;
 }
 
 .word-count {
@@ -504,26 +501,29 @@ async function swapChapters(fromIndex: number, toIndex: number) {
   color: #9E9E9E;
 }
 
-/* AI生成标题按钮：默认隐藏，悬停显示 */
-.ai-title-btn {
-  opacity: 0;
-  transition: opacity 0.15s;
-  padding: 2px;
+.chapter-status {
+  font-size: 10px;
+  color: #9E9E9E;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: #F0EFEC;
+  line-height: 1.6;
 }
 
-.chapter-item:hover .ai-title-btn {
-  opacity: 1;
+.chapter-status.has-content {
+  color: #7abf7a;
+  background: rgba(122, 191, 122, 0.1);
 }
 
-/* 删除按钮：默认隐藏，悬停显示 */
-.delete-btn {
-  opacity: 0;
-  transition: opacity 0.15s;
-  padding: 2px;
-}
-
-.chapter-item:hover .delete-btn {
-  opacity: 1;
+/* 章节操作工具栏 */
+.chapter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 16px;
+  border-bottom: 1px solid #f0ede6;
+  background: #fafaf8;
 }
 
 /* 头部操作按钮组 */
@@ -570,21 +570,4 @@ async function swapChapters(fromIndex: number, toIndex: number) {
   width: 100%;
 }
 
-/* 上下移动按钮 */
-.move-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.chapter-item:hover .move-btns {
-  opacity: 1;
-}
-
-.move-btn {
-  padding: 0 2px;
-  height: 16px;
-}
 </style>

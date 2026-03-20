@@ -99,84 +99,29 @@
     <!-- AI 功能按钮组 -->
     <div class="ai-actions">
       <p class="section-title">创作辅助</p>
-
-      <el-tooltip content="根据当前内容续写，完成后自动追加到章节末尾" placement="left">
-        <el-button
-          class="ai-btn"
-          :disabled="generating"
-          @click="handleAction('continue')"
-        >
-          <el-icon><Promotion /></el-icon>
-          续写故事
+      <div class="ai-btn-grid">
+        <el-button class="ai-btn" :disabled="generating" @click="handleAction('continue')">
+          <el-icon><Promotion /></el-icon>续写故事
         </el-button>
-      </el-tooltip>
-
-      <el-tooltip content="改写润色当前内容，完成后可选择替换原文" placement="left">
-        <el-button
-          class="ai-btn"
-          :disabled="generating"
-          @click="handleAction('rewrite')"
-        >
-          <el-icon><Edit /></el-icon>
-          改写润色
+        <el-button class="ai-btn" :disabled="generating" @click="handleAction('rewrite')">
+          <el-icon><Edit /></el-icon>改写润色
         </el-button>
-      </el-tooltip>
-
-      <el-tooltip content="根据您的意见修改内容，完成后自动覆盖原文" placement="left">
-        <el-button
-          class="ai-btn revise-btn"
-          :disabled="generating || !currentContent"
-          @click="showReviseDialog = true"
-        >
-          <el-icon><EditPen /></el-icon>
-          意见修改
+        <el-button class="ai-btn" :disabled="generating" @click="handleAction('expand')">
+          <el-icon><Plus /></el-icon>扩写内容
         </el-button>
-      </el-tooltip>
-
-      <el-tooltip content="扩写丰富当前内容，完成后可选择替换原文" placement="left">
-        <el-button
-          class="ai-btn"
-          :disabled="generating"
-          @click="handleAction('expand')"
-        >
-          <el-icon><Plus /></el-icon>
-          扩写内容
+        <el-button class="ai-btn" :disabled="generating || !currentContent" @click="showReviseDialog = true">
+          <el-icon><EditPen /></el-icon>意见修改
         </el-button>
-      </el-tooltip>
-
-      <el-tooltip content="AI 将分析开头风格并扩写续写" placement="left">
-        <el-button
-          class="ai-btn"
-          :disabled="generating"
-          @click="handleAction('analyze_expand')"
-        >
-          <el-icon><Reading /></el-icon>
-          开篇分析
+        <el-button class="ai-btn" :disabled="generating" @click="handleAction('analyze_expand')">
+          <el-icon><Reading /></el-icon>开篇分析
         </el-button>
-      </el-tooltip>
-
-
-      <el-tooltip content="输入剧情描述，AI 结合前文、人物、大纲进行剧情完善" placement="left">
-        <el-button
-          class="ai-btn plot-enhance-btn"
-          :disabled="generating"
-          @click="showPlotEnhanceDialog = true"
-        >
-          <el-icon><Connection /></el-icon>
-          剧情完善
+        <el-button class="ai-btn" :disabled="generating" @click="showPlotEnhanceDialog = true">
+          <el-icon><Connection /></el-icon>剧情完善
         </el-button>
-      </el-tooltip>
-
-      <el-tooltip content="AI 参考小说风格和知识库，批量生成前 X 章" placement="left">
-        <el-button
-          class="ai-btn batch-btn"
-          :disabled="generating"
-          @click="showBatchDialog = true"
-        >
-          <el-icon><Files /></el-icon>
-          批量写作
+        <el-button class="ai-btn batch-btn" :disabled="generating" @click="showBatchDialog = true">
+          <el-icon><Files /></el-icon>批量写作
         </el-button>
-      </el-tooltip>
+      </div>
     </div>
 
     <!-- 批量生成对话框 -->
@@ -227,6 +172,10 @@
         </el-form-item>
         <el-form-item label="使用知识库">
           <el-switch v-model="batchForm.use_knowledge" />
+        </el-form-item>
+        <el-form-item label="AI除痕优化">
+          <el-switch v-model="batchForm.remove_ai_traces" />
+          <span style="margin-left: 8px; font-size: 12px; color: var(--el-text-color-secondary)">生成后自动优化文风</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -525,6 +474,7 @@ const batchForm = ref({
   words_per_chapter: 1500,
   reference_ids: [] as number[],
   use_knowledge: true,
+  remove_ai_traces: true,
 })
 
 // 意见修改相关
@@ -793,8 +743,14 @@ function startBatchGenerate() {
         case 'chapter_done':
           outputText.value += `\n\n✅ 第${event.chapter_index}章「${event.title}」完成（${event.word_count}字）\n`
           break
+        case 'refine_done':
+          outputText.value += `\n✨ 第${event.chapter_index}章除痕完成（字数变化: ${event.word_diff! > 0 ? '+' : ''}${event.word_diff}，最终: ${event.final_words}字）\n`
+          break
+        case 'warning':
+          outputText.value += `\n⚠️ ${event.message}\n`
+          break
         case 'done':
-          outputText.value += `\n🎉 全部完成！共生成 ${event.total_chapters} 章\n`
+          outputText.value += `\n🎉 全部完成！共生成 ${event.total_chapters} 章，共 ${event.total_words} 字\n`
           generating.value = false
           batchGenerating.value = false
           emit('chapters-updated')
@@ -823,7 +779,17 @@ function stopGeneration() {
 
 // 切换实体固定状态
 function togglePin(entity: ContextEntity) {
-  const typeKey = entity.type === 'worldbuilding' ? 'worldbuilding' : entity.type + 's' as keyof PinnedContext
+  // outline 类型不支持固定
+  const typeMap: Record<string, keyof PinnedContext | null> = {
+    character: 'characters',
+    worldbuilding: 'worldbuilding',
+    event: 'events',
+    note: 'notes',
+    outline: null,
+  }
+  const typeKey = typeMap[entity.type]
+  if (!typeKey) return
+
   const idList = pinnedContext.value[typeKey] as number[]
   const index = idList.indexOf(entity.id)
 
@@ -1041,7 +1007,7 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 12px;
   background-color: white;
   overflow-y: auto;
 }
@@ -1050,9 +1016,9 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #f0ede6;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .ai-icon {
@@ -1076,14 +1042,14 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
   background: rgba(107, 123, 141, 0.05);
   border: 1px solid rgba(107, 123, 141, 0.12);
   border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
 }
 
 .info-label {
   font-size: 11px;
   color: #9E9E9E;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .chapter-name {
@@ -1093,27 +1059,35 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
 }
 
 .ai-actions {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .section-title {
   font-size: 12px;
   color: #9E9E9E;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.ai-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
 .ai-btn {
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   background-color: #F7F6F3;
   border-color: #E0DFDC;
   color: #5C5C5C;
   justify-content: flex-start;
-  gap: 8px;
-  height: 40px;
+  gap: 4px;
+  height: 34px;
+  font-size: 12px;
   transition: all 0.2s;
+  padding: 0 8px;
 }
 
 .ai-btn:hover:not(:disabled) {
@@ -1211,6 +1185,7 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
   border-top: 1px solid #f0ede6;
   padding-top: 12px;
   min-height: 150px;
+  overflow: hidden;
 }
 
 .output-header {
@@ -1249,6 +1224,9 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
 .context-feedback {
   border-bottom: 1px solid #f0ede6;
   background: #fafafa;
+  flex-shrink: 0;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .context-header {
@@ -1397,7 +1375,7 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
   color: #2C2C2C;
   white-space: pre-wrap;
   word-break: break-word;
-  font-family: 'Noto Serif SC', 'PingFang SC', sans-serif;
+  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
   margin: 0;
 }
 
