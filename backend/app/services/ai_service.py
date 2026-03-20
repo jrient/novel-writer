@@ -498,6 +498,28 @@ PROMPTS = {
 4. 调整后的内容要更加符合用户期望
 """,
 
+    "extract_characters": """你是一位经验丰富的文学评论家和角色分析专家。请从以下小说章节内容中提取所有出场的角色，并为每个角色建立详细的角色档案。
+
+已有角色（请跳过这些角色，不要重复提取）：
+{existing_characters}
+
+请从以下章节内容中提取新角色：
+
+{content}
+
+请严格按以下 JSON 格式输出（不要输出其他任何内容）：
+[
+  {{"name": "角色名", "role_type": "protagonist/antagonist/supporting/minor", "gender": "性别", "age": "年龄（如不确定可留空）", "occupation": "职业/身份", "personality_traits": "根据文中表现推断的性格特征", "appearance": "文中提到的外貌描写（如无则留空）", "background": "根据文中信息推断的背景（如无则留空）"}}
+]
+
+要求：
+1. 只提取在章节中明确出现或被提及的角色
+2. 根据角色在故事中的重要程度判断 role_type
+3. 性格特征应基于角色在文中的言行举止来推断
+4. 如果某个字段在文中没有相关信息，留空字符串即可
+5. 不要编造文中没有的信息
+6. 跳过已有角色列表中的角色""",
+
     "remove_ai_traces": """你是一位专业的文学编辑，擅长修改润色小说文本，消除 AI 生成的痕迹，使其更加自然、人性化。
 
 请对以下章节内容进行润色修改：
@@ -716,6 +738,13 @@ DEMO_RESPONSES = {
 　　陆远的心猛地一跳。父亲正是那支科考队的首席导航员。
 
 　　一切的谜团，似乎都指向同一个方向——那片被刻意遗忘的星域深处，隐藏着足以改变整个星际格局的秘密。而他，必须在联邦的监控网络发现异常之前，找到通往那里的航路。""",
+    ],
+
+    "extract_characters": [
+        """[
+  {"name": "陆远", "role_type": "protagonist", "gender": "男", "age": "16岁", "occupation": "渔村少年", "personality_traits": "勇敢、倔强、充满好奇心，对星辰大海有着执着的向往", "appearance": "小麦色皮肤，略长的黑发，深邃的眼眸", "background": "海滨渔村长大，父亲在星际远航中失踪"},
+  {"name": "赵铭", "role_type": "supporting", "gender": "男", "age": "60岁", "occupation": "退役星际导航员", "personality_traits": "沉稳、经验丰富、有些神秘", "appearance": "", "background": "退役的星际导航员，认识陆远的父亲"}
+]""",
     ],
 
     "free_chat": [

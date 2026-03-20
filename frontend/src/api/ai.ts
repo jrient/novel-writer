@@ -22,7 +22,7 @@ export interface ContextEntity {
 }
 
 export interface AIGenerateRequest {
-  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character' | 'plot_enhance' | 'generate_title'
+  action: 'continue' | 'rewrite' | 'expand' | 'outline' | 'character_analysis' | 'free_chat' | 'analyze_expand' | 'revise' | 'polish_character' | 'plot_enhance' | 'generate_title' | 'extract_characters'
   content: string
   provider?: string
   title?: string
@@ -30,6 +30,7 @@ export interface AIGenerateRequest {
   description?: string
   question?: string
   chapter_id?: number
+  chapter_ids?: number[]
   pinned_context?: PinnedContext
 }
 
@@ -38,10 +39,11 @@ export interface BatchGenerateRequest {
   words_per_chapter: number
   reference_ids: number[]
   use_knowledge: boolean
+  remove_ai_traces: boolean
 }
 
 export interface BatchGenerateEvent {
-  type: 'progress' | 'outline' | 'chapter_stream' | 'chapter_done' | 'done' | 'error'
+  type: 'progress' | 'outline' | 'chapter_stream' | 'chapter_done' | 'refine_done' | 'warning' | 'done' | 'error'
   message?: string
   text?: string
   chapter_index?: number
@@ -49,6 +51,9 @@ export interface BatchGenerateEvent {
   chapter_id?: number
   word_count?: number
   total_chapters?: number
+  total_words?: number
+  word_diff?: number
+  final_words?: number
 }
 
 export interface AIConfig {
@@ -61,7 +66,13 @@ export interface AIConfig {
  * 获取 AI 配置
  */
 export async function getAIConfig(): Promise<AIConfig> {
-  const resp = await fetch('/api/v1/ai/config')
+  const headers: Record<string, string> = {}
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const resp = await fetch('/api/v1/ai/config', { headers })
   if (!resp.ok) throw new Error('获取 AI 配置失败')
   return resp.json()
 }

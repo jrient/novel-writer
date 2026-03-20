@@ -1,14 +1,14 @@
 """
 AI 相关请求/响应 Schema
 """
-from typing import Optional, List, Dict, Literal
+from typing import Optional, List, Dict, Literal, Set
 from pydantic import BaseModel, Field
 
 
 VALID_ACTIONS = Literal[
     "continue", "rewrite", "expand", "outline",
     "character_analysis", "analyze_expand", "free_chat", "revise", "polish_character",
-    "plot_enhance", "generate_title"
+    "plot_enhance", "generate_title", "extract_characters"
 ]
 
 
@@ -44,6 +44,7 @@ class AIGenerateRequest(BaseModel):
     description: Optional[str] = Field(default="", max_length=2000, description="项目简介（大纲生成用）")
     question: Optional[str] = Field(default="", max_length=2000, description="用户问题（自由对话用）")
     chapter_id: Optional[int] = Field(default=None, description="当前章节 ID")
+    chapter_ids: Optional[List[int]] = Field(default=None, description="多个章节 ID（用于 extract_characters）")
     pinned_context: Optional[PinnedContext] = Field(default=None, description="用户固定的上下文实体")
 
 

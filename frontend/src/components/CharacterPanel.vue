@@ -3,9 +3,21 @@
     <!-- 面板头部 -->
     <div class="panel-header">
       <span class="panel-title">角色管理</span>
-      <el-button size="small" type="primary" :icon="Plus" @click="showCreateDialog = true">
-        新建角色
-      </el-button>
+      <div class="header-buttons">
+        <el-button
+          size="small"
+          type="success"
+          plain
+          :icon="Reading"
+          :loading="extracting"
+          @click="extractCharacters"
+        >
+          从章节提取
+        </el-button>
+        <el-button size="small" type="primary" :icon="Plus" @click="showCreateDialog = true">
+          新建角色
+        </el-button>
+      </div>
     </div>
 
     <!-- 角色类型筛选 -->
@@ -85,6 +97,54 @@
         </div>
       </div>
     </div>
+
+    <!-- 章节选择对话框 -->
+    <el-dialog
+      v-model="showChapterSelectDialog"
+      title="选择要分析的章节"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <div class="chapter-select-hint">
+        请勾选需要提取角色的章节（最多选择 10 章）
+      </div>
+      <div class="chapter-select-list">
+        <el-checkbox-group v-model="selectedChapterIds">
+          <div
+            v-for="ch in chaptersForSelect"
+            :key="ch.id"
+            class="chapter-select-item"
+          >
+            <el-checkbox
+              :value="ch.id"
+              :disabled="!selectedChapterIds.includes(ch.id) && selectedChapterIds.length >= 10"
+            >
+              <span class="chapter-select-title">{{ ch.title }}</span>
+              <span class="chapter-select-words">{{ ch.word_count }} 字</span>
+            </el-checkbox>
+          </div>
+        </el-checkbox-group>
+        <div v-if="chaptersForSelect.length === 0" class="chapter-select-empty">
+          暂无章节内容
+        </div>
+      </div>
+      <template #footer>
+        <div class="chapter-select-footer">
+          <span class="chapter-select-count">已选 {{ selectedChapterIds.length }} / 10 章</span>
+          <div>
+            <el-button @click="showChapterSelectDialog = false">取消</el-button>
+            <el-button
+              type="primary"
+              :loading="extracting"
+              :disabled="selectedChapterIds.length === 0"
+              @click="doExtractCharacters"
+            >
+              开始提取
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
 
     <!-- 角色详情/编辑对话框 -->
     <el-dialog
@@ -177,9 +237,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { Plus, Edit, Delete, MagicStick } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, MagicStick, Reading } from '@element-plus/icons-vue'
 import { useCharacterStore } from '@/stores/character'
+import { useChapterStore } from '@/stores/chapter'
 import type { Character, CreateCharacterData, UpdateCharacterData } from '@/api/character'
+import { createCharacter } from '@/api/character'
 import { streamGenerate } from '@/api/ai'
 
 const props = defineProps<{
@@ -187,6 +249,111 @@ const props = defineProps<{
 }>()
 
 const characterStore = useCharacterStore()
+const chapterStore = useChapterStore()
+
+// 从章节提取角色
+const extracting = ref(false)
+const showChapterSelectDialog = ref(false)
+const selectedChapterIds = ref<number[]>([])
+
+// 章节列表（按 sort_order 倒序，只保留有内容的）
+const chaptersForSelect = computed(() => {
+  return [...chapterStore.chapters]
+    .sort((a, b) => b.sort_order - a.sort_order)
+    .filter(ch => ch.content && ch.word_count > 0)
+})
+
+async function extractCharacters() {
+  // 确保已加载章节列表
+  if (chapterStore.chapters.length === 0) {
+    await chapterStore.fetchChapters(props.projectId)
+  }
+  if (chaptersForSelect.value.length === 0) {
+    ElMessage.warning('项目中没有章节内容，无法提取角色')
+    return
+  }
+  selectedChapterIds.value = []
+  showChapterSelectDialog.value = true
+}
+
+function doExtractCharacters() {
+  extracting.value = true
+  let result = ''
+
+  streamGenerate(
+    props.projectId,
+    {
+      action: 'extract_characters',
+      content: '',
+      chapter_ids: selectedChapterIds.value,
+    },
+    (text) => {
+      result += text
+    },
+    () => {
+      showChapterSelectDialog.value = false
+      processExtractedCharacters(result)
+    },
+    (error) => {
+      extracting.value = false
+      ElMessage.error(`提取失败: ${error}`)
+    }
+  )
+}
+
+async function processExtractedCharacters(result: string) {
+  try {
+    // 尝试从返回文本中提取 JSON 数组
+    let jsonStr = result.trim()
+    const match = jsonStr.match(/\[[\s\S]*\]/)
+    if (match) {
+      jsonStr = match[0]
+    }
+    const characters = JSON.parse(jsonStr) as Array<{
+      name: string
+      role_type?: string
+      gender?: string
+      age?: string
+      occupation?: string
+      personality_traits?: string
+      appearance?: string
+      background?: string
+    }>
+
+    if (!Array.isArray(characters) || characters.length === 0) {
+      ElMessage.info('未从章节中提取到新角色')
+      return
+    }
+
+    let created = 0
+    for (const char of characters) {
+      if (!char.name) continue
+      try {
+        await createCharacter(props.projectId, {
+          name: char.name,
+          role_type: char.role_type || 'supporting',
+          gender: char.gender || '',
+          age: char.age || '',
+          occupation: char.occupation || '',
+          personality_traits: char.personality_traits || '',
+          appearance: char.appearance || '',
+          background: char.background || '',
+        })
+        created++
+      } catch {
+        // 单个角色创建失败不影响整体
+      }
+    }
+
+    // 刷新角色列表
+    await characterStore.fetchCharacters(props.projectId)
+    ElMessage.success(`成功提取并创建 ${created} 个新角色`)
+  } catch {
+    ElMessage.error('解析 AI 返回的角色数据失败，请重试')
+  } finally {
+    extracting.value = false
+  }
+}
 
 // AI 角色分析
 const analyzing = ref(false)
@@ -464,6 +631,11 @@ onMounted(() => {
   color: #2C2C2C;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
 .filter-bar {
   padding: 16px 32px;
   background: white;
@@ -626,5 +798,54 @@ onMounted(() => {
 .footer-right {
   display: flex;
   gap: 8px;
+}
+
+.chapter-select-hint {
+  font-size: 13px;
+  color: #9E9E9E;
+  margin-bottom: 12px;
+}
+
+.chapter-select-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.chapter-select-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.chapter-select-item:last-child {
+  border-bottom: none;
+}
+
+.chapter-select-title {
+  font-size: 14px;
+  color: #2C2C2C;
+}
+
+.chapter-select-words {
+  font-size: 12px;
+  color: #9E9E9E;
+  margin-left: 8px;
+}
+
+.chapter-select-empty {
+  text-align: center;
+  padding: 24px;
+  color: #9E9E9E;
+  font-size: 13px;
+}
+
+.chapter-select-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chapter-select-count {
+  font-size: 13px;
+  color: #5C5C5C;
 }
 </style>
