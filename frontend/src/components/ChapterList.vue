@@ -59,17 +59,9 @@
           :class="{
             active: !batchMode && currentChapter?.id === chapter.id,
             selected: batchMode && selectedIds.has(chapter.id),
-            dragging: draggedId === chapter.id,
-            'drag-over': dragOverIndex === index && draggedId !== chapter.id
           }"
-          :draggable="!batchMode"
           @click="batchMode ? toggleSelect(chapter.id) : selectChapter(chapter)"
           @dblclick="batchMode ? undefined : startRename(chapter)"
-          @dragstart="handleDragStart($event, chapter, index)"
-          @dragend="handleDragEnd"
-          @dragover.prevent="handleDragOver($event, index)"
-          @dragleave="handleDragLeave"
-          @drop="handleDrop($event, index)"
         >
         <!-- 批量模式：复选框 -->
         <el-checkbox
@@ -104,6 +96,25 @@
               {{ chapter.word_count > 0 ? '已写' : '空' }}
             </span>
             <span class="word-count">{{ chapter.word_count.toLocaleString() }} 字</span>
+            <!-- 上移/下移按钮，悬停显示 -->
+            <div v-if="!batchMode" class="move-btns">
+              <el-button
+                class="move-btn"
+                size="small"
+                text
+                :icon="Top"
+                :disabled="index === 0"
+                @click.stop="handleMoveUp(index)"
+              />
+              <el-button
+                class="move-btn"
+                size="small"
+                text
+                :icon="Bottom"
+                :disabled="index === chapters.length - 1"
+                @click.stop="handleMoveDown(index)"
+              />
+            </div>
             <!-- AI生成标题按钮，悬停显示 -->
             <el-tooltip content="AI 生成标题" placement="top" v-if="!batchMode">
               <el-button
@@ -161,7 +172,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, nextTick, watch } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { Plus, Delete, MagicStick } from '@element-plus/icons-vue'
+import { Plus, Delete, MagicStick, Top, Bottom } from '@element-plus/icons-vue'
 import { useVirtualList } from '@vueuse/core'
 import { useChapterStore } from '@/stores/chapter'
 import { reorderChapters } from '@/api/chapter'
@@ -352,60 +363,31 @@ async function handleBatchDelete() {
   exitBatchMode()
 }
 
-// ========== 拖拽排序 ==========
-const draggedId = ref<number | null>(null)
-const draggedIndex = ref<number | null>(null)
-const dragOverIndex = ref<number | null>(null)
-
-function handleDragStart(e: DragEvent, chapter: Chapter, index: number) {
-  if (batchMode.value) return
-  draggedId.value = chapter.id
-  draggedIndex.value = index
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', String(chapter.id))
-  }
+// ========== 上下移动排序 ==========
+async function handleMoveUp(index: number) {
+  if (index <= 0) return
+  await swapChapters(index, index - 1)
 }
 
-function handleDragEnd() {
-  draggedId.value = null
-  draggedIndex.value = null
-  dragOverIndex.value = null
+async function handleMoveDown(index: number) {
+  if (index >= chapters.value.length - 1) return
+  await swapChapters(index, index + 1)
 }
 
-function handleDragOver(_e: DragEvent, index: number) {
-  if (batchMode.value) return
-  dragOverIndex.value = index
-}
+async function swapChapters(fromIndex: number, toIndex: number) {
+  const chA = chapters.value[fromIndex]
+  const chB = chapters.value[toIndex]
+  if (!chA || !chB) return
 
-function handleDragLeave() {
-  dragOverIndex.value = null
-}
-
-async function handleDrop(_e: DragEvent, dropIndex: number) {
-  if (batchMode.value) return
-  dragOverIndex.value = null
-
-  if (draggedIndex.value === null || draggedIndex.value === dropIndex) {
-    return
-  }
-
-  // 计算新的排序
-  const newChapters = [...chapters.value]
-  const [draggedChapter] = newChapters.splice(draggedIndex.value, 1)
-  newChapters.splice(dropIndex, 0, draggedChapter)
-
-  // 构建 reorder 请求
-  const orders = newChapters.map((ch, idx) => ({
-    id: ch.id,
-    sort_order: idx
-  }))
+  // 交换 sort_order
+  const orders = [
+    { id: chA.id, sort_order: chB.sort_order },
+    { id: chB.id, sort_order: chA.sort_order },
+  ]
 
   try {
     await reorderChapters(props.projectId, orders)
-    // 刷新章节列表
     await chapterStore.fetchChapters(props.projectId)
-    ElMessage.success('章节顺序已更新')
   } catch {
     ElMessage.error('排序失败，请重试')
   }
@@ -588,21 +570,21 @@ async function handleDrop(_e: DragEvent, dropIndex: number) {
   width: 100%;
 }
 
-/* 拖拽样式 */
-.chapter-item[draggable="true"] {
-  cursor: grab;
+/* 上下移动按钮 */
+.move-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
 }
 
-.chapter-item[draggable="true"]:active {
-  cursor: grabbing;
+.chapter-item:hover .move-btns {
+  opacity: 1;
 }
 
-.chapter-item.dragging {
-  opacity: 0.5;
-  background: #e8f4fd;
-}
-
-.chapter-item.drag-over {
-  border-top: 2px solid #6B7B8D;
+.move-btn {
+  padding: 0 2px;
+  height: 16px;
 }
 </style>
