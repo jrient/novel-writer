@@ -15,8 +15,45 @@
 
 ### API Key 免密认证
 - 每个用户一个固定的 API Key
-- 支持两种认证方式：Header 和 URL 参数
-- 可生成、重新生成、删除
+- **仅支持 Header 方式认证**（避免 URL 参数泄露风险）
+- 可生成、重新生成
+
+## Schema 定义
+
+### AdminUserCreate
+
+```python
+# backend/app/schemas/admin.py
+class AdminUserCreate(BaseModel):
+    """管理员创建用户模型"""
+    username: str = Field(..., min_length=3, max_length=50, description="用户名")
+    email: str = Field(..., description="邮箱")
+    password: str = Field(..., min_length=6, max_length=100, description="密码")
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', v):
+            raise ValueError('无效的邮箱格式')
+        return v
+```
+
+### AdminUserResponse 新增字段
+
+```python
+# backend/app/schemas/admin.py
+# 在现有 AdminUserResponse 类中新增
+has_api_key: bool = False  # 是否已生成 API Key
+```
+
+### ApiKeyResponse
+
+```python
+# backend/app/schemas/admin.py
+class ApiKeyResponse(BaseModel):
+    """API Key 响应模型"""
+    api_key: str
+```
 
 ## 数据模型
 
@@ -27,13 +64,17 @@
 api_key: Mapped[Optional[str]] = mapped_column(
     String(64), nullable=True, unique=True, index=True, comment="API Key"
 )
+api_key_created_at: Mapped[Optional[datetime]] = mapped_column(
+    DateTime, nullable=True, comment="API Key 创建时间"
+)
+api_key_last_used_at: Mapped[Optional[datetime]] = mapped_column(
+    DateTime, nullable=True, comment="API Key 最后使用时间"
+)
 ```
 
-- 类型：64字符随机字符串
-- 生成方式：`secrets.token_urlsafe(48)`
-- 唯一约束：确保不同用户的 Key 不重复
-- 可为空：用户可以没有 API Key
-- 索引：加速认证查询
+- `api_key`：64字符随机字符串，生成方式 `secrets.token_urlsafe(48)`
+- `api_key_created_at`：记录 Key 创建时间，便于审计
+- `api_key_last_used_at`：记录最后使用时间，便于监控异常使用
 
 ## 后端 API
 
@@ -56,6 +97,12 @@ POST /api/v1/admin/users
 
 响应：`AdminUserResponse`
 
+错误响应：
+```json
+{"detail": "用户名已被使用"}
+{"detail": "邮箱已被使用"}
+```
+
 ### 2. 生成/重新生成 API Key
 
 ```
@@ -74,34 +121,63 @@ POST /api/v1/admin/users/{user_id}/api-key
 行为：
 - 每次调用会覆盖旧的 Key
 - 返回明文 Key（只显示一次，后续无法查看）
+- 同时更新 `api_key_created_at` 字段
 
-### 3. 删除 API Key
-
-```
-DELETE /api/v1/admin/users/{user_id}/api-key
-```
-
-权限：仅管理员
-
-响应：
-```json
-{
-  "detail": "API Key 已删除"
-}
-```
-
-### 4. 免密认证中间件
+### 3. 免密认证中间件
 
 修改 `get_current_user` 函数，支持两种认证方式：
 
-1. **Header 方式**（现有）：`Authorization: Bearer <jwt_token>`
-2. **URL 参数方式**（新增）：`?api_key=<api_key>`
+1. **JWT Token**（优先）：`Authorization: Bearer <jwt_token>`
+2. **API Key**（备选）：`X-API-Key: <api_key>` Header
+
+> **安全说明**：仅支持 Header 方式传递 API Key，避免 URL 参数泄露到日志/浏览器历史中。
 
 认证流程：
-1. 优先检查 Header 中的 JWT Token
-2. 若无 Header Token，检查 URL 参数 `api_key`
+1. 优先检查 `Authorization` Header 中的 JWT Token
+2. 若无 JWT Token，检查 `X-API-Key` Header
 3. 若提供 `api_key`，查询 User 表匹配 `api_key` 字段
-4. 匹配成功返回对应用户，失败返回 401
+4. 匹配成功更新 `api_key_last_used_at` 并返回用户，失败返回 401
+
+**实现代码**：
+
+```python
+# backend/app/routers/auth.py
+from fastapi import Header
+
+async def get_current_user(
+    token: Optional[str] = Depends(oauth2_scheme),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """获取当前登录用户（支持 JWT Token 或 API Key）"""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="无效的认证凭据",
+    )
+
+    # 优先 JWT Token
+    if token:
+        user_id = verify_token(token)
+        if user_id:
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user and user.is_active:
+                return user
+
+    # 其次 API Key
+    if x_api_key:
+        result = await db.execute(
+            select(User).where(User.api_key == x_api_key)
+        )
+        user = result.scalar_one_or_none()
+        if user and user.is_active:
+            # 更新最后使用时间
+            user.api_key_last_used_at = datetime.utcnow()
+            await db.commit()
+            return user
+
+    raise credentials_exception
+```
 
 ## 前端界面
 
@@ -139,27 +215,34 @@ DELETE /api/v1/admin/users/{user_id}/api-key
 4. 成功后弹出结果对话框：
    - 显示 API Key（明文）
    - 「复制 Key」按钮
-   - 「复制完整 URL」按钮（格式：`{base_url}/api/v1/...?api_key={key}`）
+   - 「复制使用示例」按钮（显示 curl 命令示例）
 5. 关闭对话框后刷新列表
 
-**删除**：
-- 不提供删除按钮（API Key 为空即为「无 Key」状态）
-- 如需删除，可通过「重新生成」后不使用，或后续增加删除功能
+**使用示例对话框内容**：
+```
+API Key: sk_xxxxxxxxxxxx
+
+使用方式（HTTP Header）：
+X-API-Key: sk_xxxxxxxxxxxx
+
+curl 示例：
+curl -H "X-API-Key: sk_xxxxxxxxxxxx" https://your-host/api/v1/projects
+```
 
 ## 实现清单
 
 ### 后端
-- [ ] User 模型新增 `api_key` 字段
-- [ ] 数据库迁移脚本
-- [ ] Schema 新增 `AdminUserCreate`
+- [ ] User 模型新增 `api_key`, `api_key_created_at`, `api_key_last_used_at` 字段
+- [ ] 数据库迁移：`alembic revision --autogenerate -m "add_api_key_to_user"`
+- [ ] Schema 新增 `AdminUserCreate`, `ApiKeyResponse`
+- [ ] `AdminUserResponse` 新增 `has_api_key` 字段
 - [ ] `POST /api/v1/admin/users` 端点
 - [ ] `POST /api/v1/admin/users/{id}/api-key` 端点
-- [ ] `DELETE /api/v1/admin/users/{id}/api-key` 端点
-- [ ] 修改 `get_current_user` 支持 `api_key` 参数认证
-- [ ] AdminUserResponse 新增 `has_api_key` 字段
+- [ ] 修改 `get_current_user` 支持 `X-API-Key` Header 认证
 
 ### 前端
 - [ ] `frontend/src/api/admin.ts` 新增 API 函数
+- [ ] `AdminUser` 接口新增 `has_api_key: boolean` 字段
 - [ ] 用户管理表格新增「API Key」列
 - [ ] 添加用户对话框组件
 - [ ] API Key 生成/复制对话框
