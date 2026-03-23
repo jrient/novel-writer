@@ -171,9 +171,11 @@ async def get_current_user(
         )
         user = result.scalar_one_or_none()
         if user and user.is_active:
-            # 更新最后使用时间
-            user.api_key_last_used_at = datetime.utcnow()
-            await db.commit()
+            # 节流更新最后使用时间（避免高并发下的频繁写库）
+            if not user.api_key_last_used_at or \
+               (datetime.utcnow() - user.api_key_last_used_at).total_seconds() > 300:
+                user.api_key_last_used_at = datetime.utcnow()
+                await db.commit()
             return user
 
     raise credentials_exception
