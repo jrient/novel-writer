@@ -45,7 +45,7 @@
       <el-tab-pane label="用户管理" name="users">
         <el-card class="filter-card">
           <el-row :gutter="16" align="middle">
-            <el-col :span="8">
+            <el-col :span="6">
               <el-input
                 v-model="filters.search"
                 placeholder="搜索用户名/邮箱/昵称"
@@ -70,8 +70,9 @@
                 <el-option label="普通用户" :value="false" />
               </el-select>
             </el-col>
-            <el-col :span="2">
+            <el-col :span="6">
               <el-button type="primary" @click="loadUsers">搜索</el-button>
+              <el-button type="success" @click="openAddUserDialog">添加用户</el-button>
             </el-col>
           </el-row>
         </el-card>
@@ -102,13 +103,19 @@
             <el-table-column label="Token 用量" width="110" align="center">
               <template #default="{ row }">{{ formatTokenCount(row.total_tokens) }}</template>
             </el-table-column>
+            <el-table-column label="API Key" width="90" align="center">
+              <template #default="{ row }">
+                <el-tag v-if="row.has_api_key" type="success" size="small">已生成</el-tag>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
             <el-table-column label="注册时间" width="170">
               <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
             </el-table-column>
             <el-table-column label="最后登录" width="170">
               <template #default="{ row }">{{ row.last_login_at ? formatTime(row.last_login_at) : '-' }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="220" fixed="right">
+            <el-table-column label="操作" width="300" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
                 <el-button
@@ -120,6 +127,9 @@
                 </el-button>
                 <el-button size="small" type="warning" @click="openResetPasswordDialog(row)">
                   重置密码
+                </el-button>
+                <el-button size="small" type="info" @click="handleGenerateApiKey(row)">
+                  生成Key
                 </el-button>
               </template>
             </el-table-column>
@@ -364,6 +374,51 @@
         <el-button type="primary" :loading="resetPasswordLoading" @click="handleResetPassword">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 添加用户对话框 -->
+    <el-dialog v-model="addUserDialogVisible" title="添加用户" width="420px">
+      <el-form :model="addUserForm" label-width="80px">
+        <el-form-item label="用户名" required>
+          <el-input v-model="addUserForm.username" placeholder="3-50字符" />
+        </el-form-item>
+        <el-form-item label="邮箱" required>
+          <el-input v-model="addUserForm.email" placeholder="有效邮箱地址" />
+        </el-form-item>
+        <el-form-item label="密码" required>
+          <el-input
+            v-model="addUserForm.password"
+            type="password"
+            show-password
+            placeholder="至少6位"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addUserDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="addUserLoading" @click="handleAddUser">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- API Key 结果对话框 -->
+    <el-dialog v-model="apiKeyDialogVisible" title="API Key 已生成" width="500px">
+      <el-alert
+        type="warning"
+        title="请立即复制保存，此 Key 只会显示一次"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 16px;"
+      />
+      <div style="background: #f5f7fa; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+        <code style="word-break: break-all;">{{ apiKeyResult }}</code>
+      </div>
+      <div style="color: #909399; font-size: 13px; margin-bottom: 12px;">
+        <strong>使用方式：</strong>在请求头添加 <code>X-API-Key: {{ apiKeyResult }}</code>
+      </div>
+      <template #footer>
+        <el-button @click="copyApiKey">复制 Key</el-button>
+        <el-button type="primary" @click="copyApiKeyExample">复制使用示例</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -377,6 +432,8 @@ import {
   updateUser,
   toggleUserActive,
   resetUserPassword,
+  createUser,
+  generateApiKey,
   getTokenUsageStats,
   getTokenUsageRecords,
   getDailyTokenUsage,
@@ -385,6 +442,7 @@ import {
   type TokenUsageStats,
   type TokenUsageRecord,
   type DailyTokenUsage,
+  type AdminUserCreate,
 } from '@/api/admin'
 
 const activeTab = ref('users')
@@ -426,6 +484,20 @@ const resetPasswordDialogVisible = ref(false)
 const resetPasswordLoading = ref(false)
 const resetPasswordUser = ref<AdminUser | null>(null)
 const resetPasswordForm = reactive({ newPassword: '' })
+
+// 添加用户
+const addUserDialogVisible = ref(false)
+const addUserLoading = ref(false)
+const addUserForm = reactive({
+  username: '',
+  email: '',
+  password: '',
+})
+
+// API Key
+const apiKeyDialogVisible = ref(false)
+const apiKeyResult = ref('')
+const apiKeyForUser = ref<AdminUser | null>(null)
 
 // Token 统计
 const tokenDays = ref(30)
@@ -549,6 +621,64 @@ async function handleResetPassword() {
   } finally {
     resetPasswordLoading.value = false
   }
+}
+
+function openAddUserDialog() {
+  addUserForm.username = ''
+  addUserForm.email = ''
+  addUserForm.password = ''
+  addUserDialogVisible.value = true
+}
+
+async function handleAddUser() {
+  if (addUserForm.username.length < 3) {
+    ElMessage.warning('用户名至少需要3个字符')
+    return
+  }
+  if (addUserForm.password.length < 6) {
+    ElMessage.warning('密码至少需要6位')
+    return
+  }
+  addUserLoading.value = true
+  try {
+    await createUser(addUserForm as AdminUserCreate)
+    ElMessage.success('用户创建成功')
+    addUserDialogVisible.value = false
+    loadUsers()
+    loadStats()
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.detail || '创建失败')
+  } finally {
+    addUserLoading.value = false
+  }
+}
+
+async function handleGenerateApiKey(user: AdminUser) {
+  try {
+    await ElMessageBox.confirm(
+      user.has_api_key
+        ? `确定要为用户 "${user.username}" 重新生成 API Key 吗？旧 Key 将立即失效。`
+        : `确定要为用户 "${user.username}" 生成 API Key 吗？`,
+      '确认操作',
+      { type: 'warning' }
+    )
+    const result = await generateApiKey(user.id)
+    apiKeyResult.value = result.api_key
+    apiKeyForUser.value = user
+    apiKeyDialogVisible.value = true
+    loadUsers()
+  } catch { /* cancelled */ }
+}
+
+function copyApiKey() {
+  navigator.clipboard.writeText(apiKeyResult.value)
+  ElMessage.success('已复制 API Key')
+}
+
+function copyApiKeyExample() {
+  const example = `curl -H "X-API-Key: ${apiKeyResult.value}" ${window.location.origin}/api/v1/projects`
+  navigator.clipboard.writeText(example)
+  ElMessage.success('已复制使用示例')
 }
 
 // Token 相关
