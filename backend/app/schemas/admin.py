@@ -8,6 +8,20 @@ from pydantic import BaseModel, Field, field_validator
 import re
 
 
+class AdminUserCreate(BaseModel):
+    """管理员创建用户模型"""
+    username: str = Field(..., min_length=3, max_length=50, description="用户名")
+    email: str = Field(..., description="邮箱")
+    password: str = Field(..., min_length=6, max_length=100, description="密码")
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', v):
+            raise ValueError('无效的邮箱格式')
+        return v
+
+
 class AdminUserResponse(BaseModel):
     """管理员视角的用户信息"""
     id: int
@@ -24,6 +38,7 @@ class AdminUserResponse(BaseModel):
     last_login_at: Optional[datetime] = None
     project_count: int = 0
     total_tokens: int = 0
+    has_api_key: bool = False  # 是否已生成 API Key
 
     class Config:
         from_attributes = True
@@ -119,3 +134,8 @@ class DailyTokenUsage(BaseModel):
     input_tokens: int
     output_tokens: int
     call_count: int
+
+
+class ApiKeyResponse(BaseModel):
+    """API Key 响应模型"""
+    api_key: str
