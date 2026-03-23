@@ -2,6 +2,8 @@
 管理后台路由 - 用户管理、系统统计
 """
 from typing import Optional
+import secrets
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, or_
@@ -17,6 +19,7 @@ from app.schemas.admin import (
     AdminUserResponse,
     AdminUserUpdate,
     AdminUserListResponse,
+    AdminUserCreate,
     AdminResetPassword,
     AdminStatsResponse,
     TokenUsageStatsResponse,
@@ -24,6 +27,7 @@ from app.schemas.admin import (
     TokenUsageRecord,
     UserTokenSummary,
     DailyTokenUsage,
+    ApiKeyResponse,
 )
 
 router = APIRouter(
@@ -31,6 +35,45 @@ router = APIRouter(
     tags=["管理后台"],
     dependencies=[Depends(get_current_superuser)],
 )
+
+
+@router.post("/users", response_model=AdminUserResponse, summary="创建用户")
+async def create_user(
+    user_data: AdminUserCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """创建新用户（仅管理员）"""
+    # 检查用户名是否已存在
+    result = await db.execute(
+        select(User).where(User.username == user_data.username)
+    )
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="用户名已被使用")
+
+    # 检查邮箱是否已存在
+    result = await db.execute(
+        select(User).where(User.email == user_data.email)
+    )
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="邮箱已被使用")
+
+    # 创建用户
+    user = User(
+        username=user_data.username,
+        email=user_data.email,
+        hashed_password=get_password_hash(user_data.password),
+        nickname=user_data.username,
+        is_active=True,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    # 构建响应
+    response = AdminUserResponse.model_validate(user)
+    response.project_count = 0
+    response.has_api_key = False
+    return response
 
 
 @router.get("/users", response_model=AdminUserListResponse, summary="用户列表")
@@ -102,6 +145,7 @@ async def list_users(
         user_data = AdminUserResponse.model_validate(user)
         user_data.project_count = project_counts.get(user.id, 0)
         user_data.total_tokens = token_counts.get(user.id, 0)
+        user_data.has_api_key = bool(user.api_key)
         items.append(user_data)
 
     return AdminUserListResponse(
@@ -131,6 +175,7 @@ async def get_user(
 
     user_data = AdminUserResponse.model_validate(user)
     user_data.project_count = project_count
+    user_data.has_api_key = bool(user.api_key)
     return user_data
 
 
@@ -176,6 +221,7 @@ async def update_user(
 
     response = AdminUserResponse.model_validate(user)
     response.project_count = project_count
+    response.has_api_key = bool(user.api_key)
     return response
 
 
@@ -205,6 +251,7 @@ async def toggle_user_active(
 
     response = AdminUserResponse.model_validate(user)
     response.project_count = project_count
+    response.has_api_key = bool(user.api_key)
     return response
 
 
@@ -225,6 +272,26 @@ async def reset_user_password(
     await db.commit()
 
     return {"detail": "密码重置成功"}
+
+
+@router.post("/users/{user_id}/api-key", response_model=ApiKeyResponse, summary="生成/重新生成 API Key")
+async def generate_api_key(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """生成或重新生成用户的 API Key（仅管理员）"""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    # 生成 64 字符的 API Key
+    api_key = secrets.token_urlsafe(48)
+    user.api_key = api_key
+    user.api_key_created_at = datetime.utcnow()
+    await db.commit()
+
+    return ApiKeyResponse(api_key=api_key)
 
 
 @router.get("/stats", response_model=AdminStatsResponse, summary="系统统计")
