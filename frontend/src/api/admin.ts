@@ -15,6 +15,7 @@ export interface AdminUser {
   last_login_at: string | null
   project_count: number
   total_tokens: number
+  has_api_key: boolean
 }
 
 export interface AdminUserListResponse {
@@ -28,6 +29,16 @@ export interface AdminUserUpdate {
   nickname?: string
   email?: string
   is_superuser?: boolean
+}
+
+export interface AdminUserCreate {
+  username: string
+  email: string
+  password: string
+}
+
+export interface ApiKeyResponse {
+  api_key: string
 }
 
 export interface AdminStats {
@@ -69,6 +80,16 @@ export function toggleUserActive(id: number): Promise<AdminUser> {
 // 重置用户密码
 export function resetUserPassword(id: number, newPassword: string): Promise<void> {
   return request.post(`/admin/users/${id}/reset-password`, { new_password: newPassword })
+}
+
+// 创建用户
+export function createUser(data: AdminUserCreate): Promise<AdminUser> {
+  return request.post<AdminUser>('/admin/users', data)
+}
+
+// 生成/重新生成 API Key
+export function generateApiKey(userId: number): Promise<ApiKeyResponse> {
+  return request.post<ApiKeyResponse>(`/admin/users/${userId}/api-key`)
 }
 
 // 获取系统统计
