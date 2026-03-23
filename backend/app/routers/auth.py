@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,32 +40,40 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 
 async def get_current_user(
     token: Optional[str] = Depends(oauth2_scheme),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """获取当前登录用户"""
+    """获取当前登录用户（支持 JWT Token 或 API Key）"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="无效的认证凭据",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if token is None:
-        raise credentials_exception
+    # 优先 JWT Token
+    if token:
+        user_id = verify_token(token)
+        if user_id:
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user and user.is_active:
+                return user
 
-    user_id = verify_token(token)
-    if user_id is None:
-        raise credentials_exception
+    # 其次 API Key
+    if x_api_key:
+        result = await db.execute(
+            select(User).where(User.api_key == x_api_key)
+        )
+        user = result.scalar_one_or_none()
+        if user and user.is_active:
+            # 节流更新最后使用时间（避免高并发下的频繁写库）
+            if not user.api_key_last_used_at or \
+               (datetime.utcnow() - user.api_key_last_used_at).total_seconds() > 300:
+                user.api_key_last_used_at = datetime.utcnow()
+                await db.commit()
+            return user
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-
-    if user is None:
-        raise credentials_exception
-
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail="用户已被禁用")
-
-    return user
+    raise credentials_exception
 
 
 async def get_current_active_user(
