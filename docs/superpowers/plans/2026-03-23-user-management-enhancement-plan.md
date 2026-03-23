@@ -30,7 +30,7 @@
 
 - [ ] **Step 1: 在 User 模型中添加三个新字段**
 
-在 `backend/app/models/user.py` 的 User 类中，在 `wechat_unionid` 字段后添加：
+在 `backend/app/models/user.py` 的 User 类中，在 `wechat_unionid` 字段后添加（文件已导入 `datetime`，无需额外导入）：
 
 ```python
     # API Key 认证
@@ -53,13 +53,13 @@ from datetime import datetime
 - [ ] **Step 2: 创建数据库迁移**
 
 ```bash
-cd /data/project/novel-writer/backend && alembic revision --autogenerate -m "add_api_key_to_user"
+cd /data/project/novel-writer && docker compose exec backend alembic revision --autogenerate -m "add_api_key_to_user"
 ```
 
 - [ ] **Step 3: 执行迁移**
 
 ```bash
-cd /data/project/novel-writer/backend && alembic upgrade head
+cd /data/project/novel-writer && docker compose exec backend alembic upgrade head
 ```
 
 - [ ] **Step 4: 提交**
@@ -86,7 +86,7 @@ Scope-risk: narrow"
 
 - [ ] **Step 1: 新增 AdminUserCreate Schema**
 
-在 `backend/app/schemas/admin.py` 文件中，在 `AdminUserResponse` 类之前添加：
+在 `backend/app/schemas/admin.py` 文件中，在 `AdminUserResponse` 类之前添加（文件已导入 `re` 模块，无需额外导入）：
 
 ```python
 class AdminUserCreate(BaseModel):
@@ -700,7 +700,7 @@ Scope-risk: narrow"
 - [ ] **Step 1: 启动后端服务**
 
 ```bash
-cd /data/project/novel-writer/backend && docker compose up -d backend
+cd /data/project/novel-writer && docker compose up -d backend
 ```
 
 - [ ] **Step 2: 启动前端服务**
