@@ -92,6 +92,11 @@ export function generateApiKey(userId: number): Promise<ApiKeyResponse> {
   return request.post<ApiKeyResponse>(`/admin/users/${userId}/api-key`)
 }
 
+// 获取现有 API Key
+export function getApiKey(userId: number): Promise<ApiKeyResponse> {
+  return request.get<ApiKeyResponse>(`/admin/users/${userId}/api-key`)
+}
+
 // 获取系统统计
 export function getStats(): Promise<AdminStats> {
   return request.get<AdminStats>('/admin/stats')

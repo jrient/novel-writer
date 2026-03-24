@@ -294,6 +294,23 @@ async def generate_api_key(
     return ApiKeyResponse(api_key=api_key)
 
 
+@router.get("/users/{user_id}/api-key", response_model=ApiKeyResponse, summary="获取 API Key")
+async def get_api_key(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """获取用户的 API Key（仅管理员）"""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    if not user.api_key:
+        raise HTTPException(status_code=404, detail="该用户尚未生成 API Key")
+
+    return ApiKeyResponse(api_key=user.api_key)
+
+
 @router.get("/stats", response_model=AdminStatsResponse, summary="系统统计")
 async def get_stats(
     db: AsyncSession = Depends(get_db),

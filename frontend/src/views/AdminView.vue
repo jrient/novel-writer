@@ -128,8 +128,8 @@
                 <el-button size="small" type="warning" @click="openResetPasswordDialog(row)">
                   重置密码
                 </el-button>
-                <el-button size="small" type="info" @click="handleGenerateApiKey(row)">
-                  生成Key
+                <el-button size="small" :type="row.has_api_key ? 'primary' : 'info'" @click="handleApiKey(row)">
+                  {{ row.has_api_key ? '查看Key' : '生成Key' }}
                 </el-button>
               </template>
             </el-table-column>
@@ -400,23 +400,31 @@
     </el-dialog>
 
     <!-- API Key 结果对话框 -->
-    <el-dialog v-model="apiKeyDialogVisible" title="API Key 已生成" width="500px">
-      <el-alert
-        type="warning"
-        title="请立即复制保存，此 Key 只会显示一次"
-        :closable="false"
-        show-icon
-        style="margin-bottom: 16px;"
-      />
+    <el-dialog v-model="apiKeyDialogVisible" title="API Key" width="550px">
       <div style="background: #f5f7fa; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
-        <code style="word-break: break-all;">{{ apiKeyResult }}</code>
+        <code style="word-break: break-all; font-size: 14px;">{{ apiKeyResult }}</code>
       </div>
-      <div style="color: #909399; font-size: 13px; margin-bottom: 12px;">
-        <strong>使用方式：</strong>在请求头添加 <code>X-API-Key: {{ apiKeyResult }}</code>
+
+      <el-divider content-position="left">使用方法</el-divider>
+
+      <div style="margin-bottom: 16px;">
+        <div style="font-weight: 500; margin-bottom: 8px;">方式一：HTTP Header（推荐）</div>
+        <div style="background: #fafafa; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+          X-API-Key: {{ apiKeyResult }}
+        </div>
       </div>
+
+      <div style="margin-bottom: 16px;">
+        <div style="font-weight: 500; margin-bottom: 8px;">方式二：curl 示例</div>
+        <div style="background: #fafafa; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">
+          curl -H "X-API-Key: {{ apiKeyResult }}" {{ apiUrl }}/projects
+        </div>
+      </div>
+
       <template #footer>
         <el-button @click="copyApiKey">复制 Key</el-button>
-        <el-button type="primary" @click="copyApiKeyExample">复制使用示例</el-button>
+        <el-button type="primary" @click="copyApiKeyExample">复制 curl 示例</el-button>
+        <el-button type="warning" @click="handleRegenerateApiKey">重新生成</el-button>
       </template>
     </el-dialog>
   </div>
@@ -434,6 +442,7 @@ import {
   resetUserPassword,
   createUser,
   generateApiKey,
+  getApiKey,
   getTokenUsageStats,
   getTokenUsageRecords,
   getDailyTokenUsage,
@@ -498,6 +507,7 @@ const addUserForm = reactive({
 const apiKeyDialogVisible = ref(false)
 const apiKeyResult = ref('')
 const apiKeyForUser = ref<AdminUser | null>(null)
+const apiUrl = window.location.origin + '/api/v1'
 
 // Token 统计
 const tokenDays = ref(30)
@@ -653,20 +663,46 @@ async function handleAddUser() {
   }
 }
 
-async function handleGenerateApiKey(user: AdminUser) {
+async function handleApiKey(user: AdminUser) {
+  if (user.has_api_key) {
+    // 查看现有 Key
+    try {
+      const result = await getApiKey(user.id)
+      apiKeyResult.value = result.api_key
+      apiKeyForUser.value = user
+      apiKeyDialogVisible.value = true
+    } catch {
+      ElMessage.error('获取 API Key 失败')
+    }
+  } else {
+    // 生成新 Key
+    try {
+      await ElMessageBox.confirm(
+        `确定要为用户 "${user.username}" 生成 API Key 吗？`,
+        '确认操作',
+        { type: 'warning' }
+      )
+      const result = await generateApiKey(user.id)
+      apiKeyResult.value = result.api_key
+      apiKeyForUser.value = user
+      apiKeyDialogVisible.value = true
+      loadUsers()
+    } catch { /* cancelled */ }
+  }
+}
+
+async function handleRegenerateApiKey() {
+  if (!apiKeyForUser.value) return
   try {
     await ElMessageBox.confirm(
-      user.has_api_key
-        ? `确定要为用户 "${user.username}" 重新生成 API Key 吗？旧 Key 将立即失效。`
-        : `确定要为用户 "${user.username}" 生成 API Key 吗？`,
+      `确定要为用户 "${apiKeyForUser.value.username}" 重新生成 API Key 吗？旧 Key 将立即失效。`,
       '确认操作',
       { type: 'warning' }
     )
-    const result = await generateApiKey(user.id)
+    const result = await generateApiKey(apiKeyForUser.value.id)
     apiKeyResult.value = result.api_key
-    apiKeyForUser.value = user
-    apiKeyDialogVisible.value = true
     loadUsers()
+    ElMessage.success('API Key 已重新生成')
   } catch { /* cancelled */ }
 }
 
