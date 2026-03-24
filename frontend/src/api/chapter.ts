@@ -6,8 +6,11 @@ export interface Chapter {
   project_id: number
   title: string
   content: string
+  summary: string | null
   word_count: number
   sort_order: number
+  status: string
+  pov_character: string | null
   created_at: string
   updated_at: string
 }
@@ -16,12 +19,18 @@ export interface CreateChapterData {
   title: string
   content?: string
   sort_order?: number
+  summary?: string
+  status?: string
+  pov_character?: string
 }
 
 export interface UpdateChapterData {
   title?: string
   content?: string
   sort_order?: number
+  summary?: string
+  status?: string
+  pov_character?: string
 }
 
 export interface ChapterOrder {
@@ -87,6 +96,16 @@ export interface ChapterVersionDetail extends ChapterVersion {
 export interface RestoreResult {
   message: string
   chapter: Chapter
+}
+
+// 手动保存章节版本
+export async function saveChapterVersion(
+  projectId: number,
+  chapterId: number
+): Promise<ChapterVersion> {
+  return request.post<ChapterVersion>(
+    `/projects/${projectId}/chapters/${chapterId}/versions/save`
+  )
 }
 
 // 获取章节版本列表

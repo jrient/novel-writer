@@ -18,14 +18,22 @@
       <div v-else-if="versions.length === 0" class="empty-state">
         <el-icon><Document /></el-icon>
         <p>暂无历史版本</p>
-        <span>编辑章节内容后会自动保存版本</span>
+        <span>点击下方按钮手动保存，或编辑内容后自动保存</span>
+        <el-button size="small" type="primary" :loading="saving" @click="handleSaveVersion" style="margin-top: 12px">
+          保存当前版本
+        </el-button>
       </div>
 
       <!-- 版本列表和对比 -->
       <div v-else class="version-container">
         <!-- 版本列表 -->
         <div class="version-list-section">
-          <div class="section-title">选择版本</div>
+          <div class="section-title">
+            <span>选择版本</span>
+            <el-button size="small" type="primary" text :loading="saving" @click="handleSaveVersion">
+              保存当前版本
+            </el-button>
+          </div>
           <div class="version-list">
             <div
               v-for="version in versions"
@@ -34,13 +42,10 @@
               :class="{ active: selectedVersion?.id === version.id }"
               @click="selectVersion(version)"
             >
-              <div class="version-header">
-                <span class="version-number">版本 #{{ version.version_number }}</span>
-                <span class="version-time">{{ formatTime(version.created_at) }}</span>
-              </div>
-              <div class="version-info">
-                <span class="version-title">{{ version.title }}</span>
+              <div class="version-row">
+                <span class="version-number">#{{ version.version_number }}</span>
                 <span class="version-words">{{ version.word_count.toLocaleString() }} 字</span>
+                <span class="version-time">{{ formatTime(version.created_at) }}</span>
               </div>
               <div v-if="version.change_summary" class="version-summary">
                 {{ version.change_summary }}
@@ -134,6 +139,7 @@ import {
   getChapterVersions,
   getChapterVersion,
   restoreChapterVersion,
+  saveChapterVersion,
   type ChapterVersion,
   type ChapterVersionDetail,
 } from '@/api/chapter'
@@ -162,6 +168,7 @@ const selectedVersion = ref<ChapterVersion | null>(null)
 const previewContent = ref<string>('')
 const previewLoading = ref(false)
 const restoring = ref(false)
+const saving = ref(false)
 const compareMode = ref<'preview' | 'compare'>('preview')
 const selectedText = ref<string>('')
 const selectionSource = ref<'current' | 'historical'>('historical')
@@ -178,6 +185,21 @@ watch(visible, async (val) => {
     selectedText.value = ''
   }
 })
+
+// 手动保存当前版本
+async function handleSaveVersion() {
+  if (!props.chapterId) return
+  saving.value = true
+  try {
+    await saveChapterVersion(props.projectId, props.chapterId)
+    ElMessage.success('版本已保存')
+    await loadVersions()
+  } catch (error: any) {
+    ElMessage.error(error?.message || '保存版本失败')
+  } finally {
+    saving.value = false
+  }
+}
 
 // 加载版本列表
 async function loadVersions() {
@@ -355,6 +377,9 @@ function formatTime(dateStr: string): string {
   color: #9E9E9E;
   padding: 8px 16px;
   background: #FAFAF8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .version-list {
@@ -379,42 +404,28 @@ function formatTime(dateStr: string): string {
   padding-left: 13px;
 }
 
-.version-header {
+.version-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  gap: 10px;
 }
 
 .version-number {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: #2C2C2C;
+  min-width: 28px;
+}
+
+.version-words {
+  font-size: 12px;
+  color: #5C5C5C;
 }
 
 .version-time {
   font-size: 11px;
   color: #9E9E9E;
-}
-
-.version-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.version-title {
-  font-size: 12px;
-  color: #5C5C5C;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 200px;
-}
-
-.version-words {
-  font-size: 11px;
-  color: #9E9E9E;
+  margin-left: auto;
 }
 
 .version-summary {

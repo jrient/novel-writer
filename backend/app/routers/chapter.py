@@ -188,8 +188,8 @@ async def update_chapter(
             old_content = chapter.content or ""
             new_content = update_data["content"] or ""
 
-            # 内容变化超过 100 字符时保存版本快照
-            if abs(len(new_content) - len(old_content)) > 100:
+            # 内容变化超过 30 字符时保存版本快照
+            if abs(len(new_content) - len(old_content)) > 30:
                 await _save_chapter_version(chapter, db, change_summary="内容编辑")
 
             old_word_count = chapter.word_count
@@ -301,6 +301,10 @@ async def _save_chapter_version(
     保存章节版本快照
     在更新章节内容前调用
     """
+    # 不保存字数为0的内容
+    if not chapter.content or chapter.word_count == 0:
+        return
+
     # 获取当前最大版本号
     result = await db.execute(
         select(func.max(ChapterVersion.version_number)).where(
@@ -395,6 +399,41 @@ async def get_chapter_version(
     if not version:
         raise HTTPException(status_code=404, detail="版本不存在")
 
+    return version
+
+
+@router.post("/{chapter_id}/versions/save", response_model=ChapterVersionResponse)
+async def save_chapter_version(
+    project_id: int,
+    chapter_id: int,
+    project: Project = Depends(get_project_with_auth),
+    db: AsyncSession = Depends(get_db),
+):
+    """手动保存章节版本快照"""
+    result = await db.execute(
+        select(Chapter).where(
+            Chapter.id == chapter_id,
+            Chapter.project_id == project_id,
+        )
+    )
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(status_code=404, detail="章节不存在")
+
+    if not chapter.content:
+        raise HTTPException(status_code=400, detail="章节内容为空，无法保存版本")
+
+    await _save_chapter_version(chapter, db, change_summary="手动保存")
+    await db.commit()
+
+    # 返回刚保存的版本
+    result = await db.execute(
+        select(ChapterVersion)
+        .where(ChapterVersion.chapter_id == chapter_id)
+        .order_by(desc(ChapterVersion.version_number))
+        .limit(1)
+    )
+    version = result.scalar_one()
     return version
 
 
