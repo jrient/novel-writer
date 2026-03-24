@@ -5,7 +5,7 @@
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -132,7 +132,7 @@ async def delete_note(
 @router.post("/miaoji/quick", response_model=NoteResponse)
 async def quick_miaoji(
     project_id: int,
-    content: str,
+    content: str = Body(..., embed=True),
     project: Project = Depends(get_project_with_auth),
     db: AsyncSession = Depends(get_db),
 ):

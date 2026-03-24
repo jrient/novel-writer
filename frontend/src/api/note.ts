@@ -88,7 +88,7 @@ export async function deleteNote(projectId: number, noteId: number): Promise<voi
 
 // 快速创建妙记
 export async function quickMiaoji(projectId: number, content: string): Promise<Note> {
-  return request.post<Note>(`/projects/${projectId}/notes/miaoji/quick?content=${encodeURIComponent(content)}`)
+  return request.post<Note>(`/projects/${projectId}/notes/miaoji/quick`, { content })
 }
 
 // 解析妙记
