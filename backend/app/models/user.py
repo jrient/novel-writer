@@ -39,6 +39,17 @@ class User(Base):
     wechat_openid: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, unique=True, index=True, comment="微信OpenID")
     wechat_unionid: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, unique=True, index=True, comment="微信UnionID")
 
+    # API Key 认证
+    api_key: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True, unique=True, index=True, comment="API Key"
+    )
+    api_key_created_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, nullable=True, comment="API Key 创建时间"
+    )
+    api_key_last_used_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, nullable=True, comment="API Key 最后使用时间"
+    )
+
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), comment="创建时间"
