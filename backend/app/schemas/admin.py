@@ -139,3 +139,31 @@ class DailyTokenUsage(BaseModel):
 class ApiKeyResponse(BaseModel):
     """API Key 响应模型"""
     api_key: str
+
+
+class AdminProjectResponse(BaseModel):
+    """管理员视角的项目信息"""
+    id: int
+    title: str
+    description: Optional[str] = None
+    genre: Optional[str] = None
+    status: str
+    current_word_count: int
+    target_word_count: int
+    owner_id: int
+    owner_username: str
+    owner_nickname: Optional[str] = None
+    owner_email: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AdminProjectListResponse(BaseModel):
+    """管理员项目列表响应"""
+    items: List[AdminProjectResponse]
+    total: int
+    page: int
+    page_size: int

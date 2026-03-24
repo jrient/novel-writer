@@ -179,3 +179,39 @@ export function getTokenUsageRecords(params: {
 } = {}): Promise<TokenUsageListResponse> {
   return request.get<TokenUsageListResponse>('/admin/token-usage/records', { params })
 }
+
+// ========== 项目管理 ==========
+
+export interface AdminProject {
+  id: number
+  title: string
+  description: string | null
+  genre: string | null
+  status: string
+  current_word_count: number
+  target_word_count: number
+  owner_id: number
+  owner_username: string
+  owner_nickname: string | null
+  owner_email: string
+  created_at: string
+  updated_at: string | null
+}
+
+export interface AdminProjectListResponse {
+  items: AdminProject[]
+  total: number
+  page: number
+  page_size: number
+}
+
+// 获取所有用户的项目列表
+export function getAllProjects(params: {
+  page?: number
+  page_size?: number
+  search?: string
+  status?: string
+  user_id?: number
+} = {}): Promise<AdminProjectListResponse> {
+  return request.get<AdminProjectListResponse>('/admin/projects', { params })
+}

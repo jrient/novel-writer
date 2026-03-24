@@ -28,6 +28,8 @@ from app.schemas.admin import (
     UserTokenSummary,
     DailyTokenUsage,
     ApiKeyResponse,
+    AdminProjectResponse,
+    AdminProjectListResponse,
 )
 
 router = APIRouter(
@@ -492,3 +494,64 @@ async def get_daily_token_usage(
         )
         for row in result.all()
     ]
+
+
+@router.get("/projects", response_model=AdminProjectListResponse, summary="所有用户项目列表")
+async def list_all_projects(
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    search: Optional[str] = Query(None, description="搜索项目标题"),
+    status: Optional[str] = Query(None, description="按状态筛选"),
+    user_id: Optional[int] = Query(None, description="按用户筛选"),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取所有用户的项目列表（仅管理员）"""
+    query = select(Project, User.username, User.nickname, User.email).join(
+        User, Project.owner_id == User.id
+    )
+    count_query = select(func.count(Project.id))
+
+    if search:
+        query = query.where(Project.title.ilike(f"%{search}%"))
+        count_query = count_query.where(Project.title.ilike(f"%{search}%"))
+
+    if status:
+        query = query.where(Project.status == status)
+        count_query = count_query.where(Project.status == status)
+
+    if user_id is not None:
+        query = query.where(Project.owner_id == user_id)
+        count_query = count_query.where(Project.owner_id == user_id)
+
+    total = (await db.execute(count_query)).scalar()
+
+    offset = (page - 1) * page_size
+    query = query.order_by(Project.updated_at.desc()).offset(offset).limit(page_size)
+    result = await db.execute(query)
+    rows = result.all()
+
+    items = []
+    for project, username, nickname, email in rows:
+        item = AdminProjectResponse(
+            id=project.id,
+            title=project.title,
+            description=project.description,
+            genre=project.genre,
+            status=project.status,
+            current_word_count=project.current_word_count,
+            target_word_count=project.target_word_count,
+            owner_id=project.owner_id,
+            owner_username=username,
+            owner_nickname=nickname,
+            owner_email=email,
+            created_at=project.created_at,
+            updated_at=project.updated_at,
+        )
+        items.append(item)
+
+    return AdminProjectListResponse(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )

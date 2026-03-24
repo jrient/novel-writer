@@ -149,6 +149,82 @@
         </el-card>
       </el-tab-pane>
 
+      <!-- 项目管理 -->
+      <el-tab-pane label="项目管理" name="projects">
+        <el-card class="filter-card">
+          <el-row :gutter="16" align="middle">
+            <el-col :span="6">
+              <el-input
+                v-model="projectFilters.search"
+                placeholder="搜索项目标题"
+                clearable
+                @clear="loadProjects"
+                @keyup.enter="loadProjects"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+            </el-col>
+            <el-col :span="4">
+              <el-select v-model="projectFilters.status" placeholder="项目状态" clearable @change="loadProjects">
+                <el-option label="草稿" value="draft" />
+                <el-option label="写作中" value="in_progress" />
+                <el-option label="已完成" value="completed" />
+              </el-select>
+            </el-col>
+            <el-col :span="4">
+              <el-button type="primary" @click="loadProjects">搜索</el-button>
+            </el-col>
+          </el-row>
+        </el-card>
+
+        <el-card class="table-card">
+          <el-table :data="projects" v-loading="projectsLoading" stripe>
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="title" label="项目标题" min-width="200" />
+            <el-table-column label="状态" width="100" align="center">
+              <template #default="{ row }">
+                <el-tag
+                  :type="row.status === 'completed' ? 'success' : row.status === 'in_progress' ? 'primary' : 'info'"
+                  size="small"
+                >
+                  {{ row.status === 'draft' ? '草稿' : row.status === 'in_progress' ? '写作中' : '已完成' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="genre" label="类型" width="100">
+              <template #default="{ row }">{{ row.genre || '-' }}</template>
+            </el-table-column>
+            <el-table-column label="字数" width="120" align="right">
+              <template #default="{ row }">{{ row.current_word_count.toLocaleString() }}</template>
+            </el-table-column>
+            <el-table-column prop="owner_username" label="所属用户" width="140" />
+            <el-table-column prop="owner_nickname" label="用户昵称" width="120">
+              <template #default="{ row }">{{ row.owner_nickname || '-' }}</template>
+            </el-table-column>
+            <el-table-column label="创建时间" width="170">
+              <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
+            </el-table-column>
+            <el-table-column label="更新时间" width="170">
+              <template #default="{ row }">{{ row.updated_at ? formatTime(row.updated_at) : '-' }}</template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pagination-wrapper">
+            <el-pagination
+              v-model:current-page="projectPagination.page"
+              v-model:page-size="projectPagination.pageSize"
+              :total="projectPagination.total"
+              :page-sizes="[10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="loadProjects"
+              @current-change="loadProjects"
+            />
+          </div>
+        </el-card>
+      </el-tab-pane>
+
       <!-- Token 使用统计 -->
       <el-tab-pane label="Token 用量" name="tokens">
         <!-- 时间范围选择 -->
@@ -446,12 +522,14 @@ import {
   getTokenUsageStats,
   getTokenUsageRecords,
   getDailyTokenUsage,
+  getAllProjects,
   type AdminUser,
   type AdminStats,
   type TokenUsageStats,
   type TokenUsageRecord,
   type DailyTokenUsage,
   type AdminUserCreate,
+  type AdminProject,
 } from '@/api/admin'
 
 const activeTab = ref('users')
@@ -527,6 +605,19 @@ const tokenRecordFilters = reactive({
 })
 const dailyUsage = ref<DailyTokenUsage[]>([])
 const tokenRecordPagination = reactive({
+  page: 1,
+  pageSize: 20,
+  total: 0,
+})
+
+// 项目管理
+const projects = ref<AdminProject[]>([])
+const projectsLoading = ref(false)
+const projectFilters = reactive({
+  search: '',
+  status: undefined as string | undefined,
+})
+const projectPagination = reactive({
   page: 1,
   pageSize: 20,
   total: 0,
@@ -758,10 +849,30 @@ function viewUserRecords(userId: number) {
   loadTokenRecords()
 }
 
+async function loadProjects() {
+  projectsLoading.value = true
+  try {
+    const params: Record<string, any> = {
+      page: projectPagination.page,
+      page_size: projectPagination.pageSize,
+    }
+    if (projectFilters.search) params.search = projectFilters.search
+    if (projectFilters.status) params.status = projectFilters.status
+
+    const res = await getAllProjects(params)
+    projects.value = res.items
+    projectPagination.total = res.total
+  } finally {
+    projectsLoading.value = false
+  }
+}
+
 function handleTabChange(tab: string) {
   if (tab === 'tokens') {
     loadTokenStats()
     loadTokenRecords()
+  } else if (tab === 'projects') {
+    loadProjects()
   }
 }
 
