@@ -1,4 +1,4 @@
-import request from './request'
+import request, { getAccessToken } from './request'
 
 export interface ReferenceNovel {
   id: number
@@ -19,6 +19,13 @@ export interface ReferenceNovel {
   notes: string | null
   created_at: string
   updated_at: string | null
+}
+
+// 参考小说详情（包含分析和内容）
+export interface ReferenceNovelDetail extends ReferenceNovel {
+  analysis: string | null
+  content: string | null
+  chapters_data: Record<string, unknown> | null
 }
 
 export interface ReferenceStats {
@@ -42,8 +49,8 @@ export async function getReferences(params?: {
   return request.get<ReferenceNovel[]>(`/references/${qs ? '?' + qs : ''}`)
 }
 
-export async function getReference(id: number): Promise<ReferenceNovel> {
-  return request.get<ReferenceNovel>(`/references/${id}`)
+export async function getReference(id: number): Promise<ReferenceNovelDetail> {
+  return request.get<ReferenceNovelDetail>(`/references/${id}`)
 }
 
 export async function getReferenceStats(): Promise<ReferenceStats> {
@@ -77,8 +84,15 @@ export async function uploadReference(file: File, metadata?: {
   if (metadata?.notes) formData.append('notes', metadata.notes)
   if (metadata?.rating) formData.append('rating', String(metadata.rating))
 
+  const headers: Record<string, string> = {}
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const resp = await fetch('/api/v1/references/upload', {
     method: 'POST',
+    headers,
     body: formData,
   })
   if (!resp.ok) {

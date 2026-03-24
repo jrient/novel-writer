@@ -6,9 +6,13 @@ export interface KnowledgeEntry {
   title: string
   content: string
   source_url?: string
+  source_type?: string
   category?: string
+  tags?: string
+  char_count: number
   usage_count: number
   created_at: string
+  updated_at?: string
 }
 
 export const knowledgeApi = {

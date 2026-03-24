@@ -1,5 +1,17 @@
 import request from './request'
 
+// 章节摘要（项目列表中嵌套）
+export interface ChapterSummary {
+  id: number
+  title: string
+  sort_order: number
+  word_count: number
+  status: string
+  pov_character: string | null
+  created_at: string
+  updated_at: string | null
+}
+
 // 项目数据类型
 export interface Project {
   id: number
@@ -8,10 +20,11 @@ export interface Project {
   genre: string
   target_word_count: number
   current_word_count: number
-  status: 'draft' | 'planning' | 'writing' | 'completed' | 'archived'
+  status: string
   outline: string
   created_at: string
   updated_at: string
+  chapters: ChapterSummary[]
 }
 
 export interface CreateProjectData {

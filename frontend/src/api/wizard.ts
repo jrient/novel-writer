@@ -3,6 +3,7 @@
  * 支持创作向导的 SSE 流式调用
  * 支持新的地图-部分-章节层级结构
  */
+import { getAccessToken } from './request'
 
 // ============ UUID 生成工具 ============
 
@@ -173,9 +174,15 @@ function createSSEStream(
 ): AbortController {
   const controller = new AbortController()
 
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(data),
     signal: controller.signal,
   })
@@ -267,9 +274,15 @@ export function streamWizardCharactersForPart(
  * 创建向导项目（新版本）
  */
 export async function createWizardProjectV2(data: WizardCreateV2Request): Promise<WizardCreateResponse> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const resp = await fetch('/api/v1/wizard/create-v2', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(data),
   })
   if (!resp.ok) {
@@ -306,9 +319,15 @@ export function streamWizardCharacters(
 }
 
 export async function createWizardProject(data: WizardCreateRequest): Promise<WizardCreateResponse> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const resp = await fetch('/api/v1/wizard/create', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(data),
   })
   if (!resp.ok) {
