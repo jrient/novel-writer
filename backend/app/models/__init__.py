@@ -18,9 +18,14 @@ from app.models.note import Note
 from app.models.event import StoryEvent, Plotline
 from app.models.token_usage import TokenUsage
 
+from app.models.script_project import ScriptProject
+from app.models.script_node import ScriptNode
+from app.models.script_session import ScriptSession
+
 __all__ = [
     "User", "Invitation",
     "Project", "Chapter", "ChapterVersion", "Character", "WorldbuildingEntry",
     "OutlineNode", "ReferenceNovel", "NovelChunk", "KnowledgeEntry",
-    "Note", "StoryEvent", "Plotline", "TokenUsage"
+    "Note", "StoryEvent", "Plotline", "TokenUsage",
+    "ScriptProject", "ScriptNode", "ScriptSession",
 ]

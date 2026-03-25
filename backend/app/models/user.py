@@ -12,6 +12,7 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.project import Project
     from app.models.invitation import Invitation
+    from app.models.script_project import ScriptProject
 
 
 class User(Base):
@@ -60,12 +61,15 @@ class User(Base):
     last_login_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime, nullable=True, comment="最后登录时间"
     )
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, nullable=True, comment="软删除时间"
+    )
 
     # 关联项目
     projects: Mapped[List["Project"]] = relationship(
         "Project",
         back_populates="owner",
-        cascade="all, delete-orphan",
+        cascade="save-update, merge",
         order_by="Project.id.desc()",
     )
 
@@ -83,4 +87,12 @@ class User(Base):
         foreign_keys="Invitation.used_by",
         back_populates="used_by_user",
         uselist=False,
+    )
+
+    # 剧本项目
+    script_projects: Mapped[List["ScriptProject"]] = relationship(
+        "ScriptProject",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        order_by="ScriptProject.id.desc()",
     )
