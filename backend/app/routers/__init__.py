@@ -13,6 +13,7 @@ from app.routers.wizard import router as wizard_router
 from app.routers.event import router as event_router
 from app.routers.note import router as note_router
 from app.routers.admin import router as admin_router
+from app.routers.drama import router as drama_router
 
 __all__ = [
     "auth_router",
@@ -31,4 +32,5 @@ __all__ = [
     "event_router",
     "note_router",
     "admin_router",
+    "drama_router",
 ]

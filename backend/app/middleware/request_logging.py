@@ -17,7 +17,7 @@ SKIP_BODY_PATHS = [
 ]
 
 # SSE 流式接口路径关键词，直接透传不做处理
-SSE_PATH_KEYWORDS = ["/ai/generate", "/ai/batch-generate"]
+SSE_PATH_KEYWORDS = ["/ai/generate", "/ai/batch-generate", "/session/answer", "/session/generate-outline", "/expand", "/ai/rewrite", "/ai/global-directive"]
 
 # 跳过日志的路径
 SKIP_PATHS = ["/", "/favicon.ico"]
