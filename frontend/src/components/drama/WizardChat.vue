@@ -181,7 +181,7 @@ async function sendMessage() {
       scrollToBottom()
     },
     async (fullResponse) => {
-      const finalText = fullResponse || streamingText.value
+      const finalText = (fullResponse as string) || streamingText.value
       streamingText.value = ''
       isStreaming.value = false
 

@@ -192,7 +192,7 @@ export function streamSessionAnswer(
   projectId: number,
   content: string,
   onChunk: (text: string) => void,
-  onDone: (fullResponse?: string) => void,
+  onDone: (fullResponse?: unknown) => void,
   onError: (error: string) => void,
 ): AbortController {
   return _streamRequest(
@@ -207,7 +207,7 @@ export function streamSessionAnswer(
 export function streamGenerateOutline(
   projectId: number,
   onChunk: (text: string) => void,
-  onDone: (outline?: Record<string, unknown>) => void,
+  onDone: (outline?: unknown) => void,
   onError: (error: string) => void,
 ): AbortController {
   return _streamRequest(
