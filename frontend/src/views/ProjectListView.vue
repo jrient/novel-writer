@@ -16,6 +16,9 @@
           >
             管理后台
           </el-button>
+          <el-button @click="$router.push('/drama')" round>
+            剧本创作
+          </el-button>
           <el-button type="primary" :icon="Plus" @click="goToWizard" round>
             新建项目
           </el-button>
