@@ -1,0 +1,351 @@
+/**
+ * 剧本模块 API
+ * 支持 REST CRUD 和 SSE 流式调用
+ */
+import request from './request'
+import { getAccessToken } from './request'
+
+// ── Types ──
+
+export interface AIPromptConfig {
+  questioning?: string
+  outlining?: string
+  expanding?: string
+  rewriting?: string
+}
+
+export interface AIConfig {
+  provider?: string
+  model?: string
+  temperature?: number
+  max_tokens?: number
+  prompts?: AIPromptConfig
+}
+
+export interface ScriptProject {
+  id: number
+  user_id: number
+  title: string
+  script_type: 'explanatory' | 'dynamic'
+  concept: string
+  status: 'drafting' | 'outlined' | 'writing' | 'completed'
+  ai_config: AIConfig | null
+  metadata_: Record<string, unknown> | null
+  created_at: string
+  updated_at: string | null
+}
+
+export interface ScriptProjectListItem {
+  id: number
+  title: string
+  script_type: 'explanatory' | 'dynamic'
+  concept: string
+  status: string
+  created_at: string
+  updated_at: string | null
+}
+
+export interface CreateScriptProjectData {
+  title: string
+  script_type: 'explanatory' | 'dynamic'
+  concept: string
+  ai_config?: AIConfig
+  metadata?: Record<string, unknown>
+}
+
+export interface UpdateScriptProjectData {
+  title?: string
+  concept?: string
+  status?: string
+  metadata?: Record<string, unknown>
+}
+
+export interface ScriptNode {
+  id: number
+  project_id: number
+  parent_id: number | null
+  node_type: string
+  title: string | null
+  content: string | null
+  speaker: string | null
+  visual_desc: string | null
+  sort_order: number
+  is_completed: boolean
+  metadata_: Record<string, unknown> | null
+  created_at: string
+  updated_at: string | null
+  children?: ScriptNode[]
+}
+
+export interface CreateNodeData {
+  parent_id?: number | null
+  node_type: string
+  title?: string
+  content?: string
+  speaker?: string
+  visual_desc?: string
+  sort_order?: number
+  metadata?: Record<string, unknown>
+}
+
+export interface UpdateNodeData {
+  title?: string
+  content?: string
+  speaker?: string
+  visual_desc?: string
+  sort_order?: number
+  is_completed?: boolean
+  metadata?: Record<string, unknown>
+}
+
+export interface ReorderItem {
+  id: number
+  sort_order: number
+  parent_id?: number | null
+}
+
+export interface ScriptSession {
+  id: number
+  project_id: number
+  state: 'init' | 'questioning' | 'outlining' | 'expanding' | 'completed'
+  history: Array<{ role: string; content: string }> | null
+  outline_draft: Record<string, unknown> | null
+  current_node_id: number | null
+  created_at: string
+  updated_at: string | null
+}
+
+// ── Project API ──
+
+export async function getDramaProjects(params?: {
+  script_type?: string
+  status?: string
+  page?: number
+  page_size?: number
+}): Promise<ScriptProjectListItem[]> {
+  return request.get<ScriptProjectListItem[]>('/drama/', { params })
+}
+
+export async function createDramaProject(data: CreateScriptProjectData): Promise<ScriptProject> {
+  return request.post<ScriptProject>('/drama/', data)
+}
+
+export async function getDramaProject(id: number): Promise<ScriptProject> {
+  return request.get<ScriptProject>(`/drama/${id}`)
+}
+
+export async function updateDramaProject(id: number, data: UpdateScriptProjectData): Promise<ScriptProject> {
+  return request.put<ScriptProject>(`/drama/${id}`, data)
+}
+
+export async function deleteDramaProject(id: number): Promise<void> {
+  return request.delete(`/drama/${id}`)
+}
+
+export async function updateAIConfig(id: number, data: AIConfig): Promise<ScriptProject> {
+  return request.put<ScriptProject>(`/drama/${id}/ai-config`, data)
+}
+
+// ── Node API ──
+
+export async function getNodes(projectId: number): Promise<ScriptNode[]> {
+  return request.get<ScriptNode[]>(`/drama/${projectId}/nodes`)
+}
+
+export async function createNode(projectId: number, data: CreateNodeData): Promise<ScriptNode> {
+  return request.post<ScriptNode>(`/drama/${projectId}/nodes`, data)
+}
+
+export async function updateNode(projectId: number, nodeId: number, data: UpdateNodeData): Promise<ScriptNode> {
+  return request.put<ScriptNode>(`/drama/${projectId}/nodes/${nodeId}`, data)
+}
+
+export async function deleteNode(projectId: number, nodeId: number): Promise<void> {
+  return request.delete(`/drama/${projectId}/nodes/${nodeId}`)
+}
+
+export async function reorderNodes(projectId: number, orders: ReorderItem[]): Promise<void> {
+  return request.put(`/drama/${projectId}/nodes/reorder`, { orders })
+}
+
+// ── Session API ──
+
+export async function getOrCreateSession(projectId: number): Promise<ScriptSession> {
+  return request.post<ScriptSession>(`/drama/${projectId}/session`)
+}
+
+export async function deleteSession(projectId: number): Promise<void> {
+  return request.delete(`/drama/${projectId}/session`)
+}
+
+export async function skipToOutline(projectId: number): Promise<{ ok: boolean }> {
+  return request.post(`/drama/${projectId}/session/skip`)
+}
+
+export async function confirmOutline(projectId: number): Promise<{ ok: boolean }> {
+  return request.post(`/drama/${projectId}/session/confirm-outline`)
+}
+
+// ── SSE Streaming ──
+
+export function streamSessionAnswer(
+  projectId: number,
+  content: string,
+  onChunk: (text: string) => void,
+  onDone: (fullResponse?: string) => void,
+  onError: (error: string) => void,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/session/answer`,
+    { content },
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
+export function streamGenerateOutline(
+  projectId: number,
+  onChunk: (text: string) => void,
+  onDone: (outline?: Record<string, unknown>) => void,
+  onError: (error: string) => void,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/session/generate-outline`,
+    {},
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
+export function streamExpandNode(
+  projectId: number,
+  nodeId: number,
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (error: string) => void,
+  instruction?: string,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/nodes/${nodeId}/expand`,
+    instruction ? { instruction } : {},
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
+export function streamRewrite(
+  projectId: number,
+  data: { content: string; instruction: string; node_id?: number },
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (error: string) => void,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/ai/rewrite`,
+    data,
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
+export function streamGlobalDirective(
+  projectId: number,
+  data: { instruction: string; scope: string; node_ids?: number[] },
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (error: string) => void,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/ai/global-directive`,
+    data,
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
+// ── Export ──
+
+export function getExportUrl(projectId: number, format: 'txt' | 'markdown'): string {
+  return `/api/v1/drama/${projectId}/export?format=${format}`
+}
+
+// ── Internal SSE helper ──
+
+function _streamRequest(
+  url: string,
+  body: Record<string, unknown>,
+  onChunk: (text: string) => void,
+  onDone: (data?: unknown) => void,
+  onError: (error: string) => void,
+): AbortController {
+  const controller = new AbortController()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    signal: controller.signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: '请求失败' }))
+        onError(err.detail || '请求失败')
+        return
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        onError('无法读取响应流')
+        return
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const payload = JSON.parse(line.slice(6))
+              if (payload.text) onChunk(payload.text)
+              if (payload.done) {
+                onDone(payload.outline || payload.full_response)
+                return
+              }
+              if (payload.error) {
+                onError(payload.error)
+                return
+              }
+            } catch {
+              // ignore parse errors
+            }
+          }
+        }
+      }
+      onDone()
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') {
+        onError(err.message || '网络请求失败')
+      }
+    })
+
+  return controller
+}

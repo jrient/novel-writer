@@ -45,6 +45,30 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '管理后台', requiresAuth: true, requiresAdmin: true },
   },
   {
+    path: '/drama',
+    name: 'DramaList',
+    component: () => import('@/views/DramaListView.vue'),
+    meta: { title: '我的剧本', requiresAuth: true },
+  },
+  {
+    path: '/drama/create',
+    name: 'DramaCreate',
+    component: () => import('@/views/DramaCreateView.vue'),
+    meta: { title: '创建剧本', requiresAuth: true },
+  },
+  {
+    path: '/drama/wizard/:id',
+    name: 'DramaWizard',
+    component: () => import('@/views/DramaWizardView.vue'),
+    meta: { title: 'AI剧本引导', requiresAuth: true },
+  },
+  {
+    path: '/drama/workbench/:id',
+    name: 'DramaWorkbench',
+    component: () => import('@/views/DramaWorkbenchView.vue'),
+    meta: { title: '剧本工作台', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },
