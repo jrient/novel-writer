@@ -107,7 +107,7 @@ export interface ReorderItem {
 export interface ScriptSession {
   id: number
   project_id: number
-  state: 'init' | 'questioning' | 'outlining' | 'expanding' | 'completed'
+  state: 'init' | 'collecting' | 'generating' | 'done'
   history: Array<{ role: string; content: string }> | null
   outline_draft: Record<string, unknown> | null
   current_node_id: number | null
@@ -123,7 +123,8 @@ export async function getDramaProjects(params?: {
   page?: number
   page_size?: number
 }): Promise<ScriptProjectListItem[]> {
-  return request.get<ScriptProjectListItem[]>('/drama/', { params })
+  const res = await request.get<{ items: ScriptProjectListItem[] }>('/drama/', { params })
+  return res.items
 }
 
 export async function createDramaProject(data: CreateScriptProjectData): Promise<ScriptProject> {
@@ -143,7 +144,7 @@ export async function deleteDramaProject(id: number): Promise<void> {
 }
 
 export async function updateAIConfig(id: number, data: AIConfig): Promise<ScriptProject> {
-  return request.put<ScriptProject>(`/drama/${id}/ai-config`, data)
+  return request.put<ScriptProject>(`/drama/${id}/ai-config`, { ai_config: data })
 }
 
 // ── Node API ──
@@ -165,7 +166,7 @@ export async function deleteNode(projectId: number, nodeId: number): Promise<voi
 }
 
 export async function reorderNodes(projectId: number, orders: ReorderItem[]): Promise<void> {
-  return request.put(`/drama/${projectId}/nodes/reorder`, { orders })
+  return request.put(`/drama/${projectId}/nodes/reorder`, { node_ids: orders.map((o: ReorderItem) => o.id) })
 }
 
 // ── Session API ──
@@ -197,7 +198,7 @@ export function streamSessionAnswer(
 ): AbortController {
   return _streamRequest(
     `/api/v1/drama/${projectId}/session/answer`,
-    { content },
+    { answer: content },
     onChunk,
     onDone,
     onError,
@@ -229,7 +230,7 @@ export function streamExpandNode(
 ): AbortController {
   return _streamRequest(
     `/api/v1/drama/${projectId}/nodes/${nodeId}/expand`,
-    instruction ? { instruction } : {},
+    instruction ? { instructions: instruction } : {},
     onChunk,
     onDone,
     onError,
@@ -238,7 +239,7 @@ export function streamExpandNode(
 
 export function streamRewrite(
   projectId: number,
-  data: { content: string; instruction: string; node_id?: number },
+  data: { node_id: number; instructions: string },
   onChunk: (text: string) => void,
   onDone: () => void,
   onError: (error: string) => void,
@@ -254,7 +255,7 @@ export function streamRewrite(
 
 export function streamGlobalDirective(
   projectId: number,
-  data: { instruction: string; scope: string; node_ids?: number[] },
+  data: { directive: string; scope?: string; node_ids?: number[] },
   onChunk: (text: string) => void,
   onDone: () => void,
   onError: (error: string) => void,
@@ -325,12 +326,12 @@ function _streamRequest(
             try {
               const payload = JSON.parse(line.slice(6))
               if (payload.text) onChunk(payload.text)
-              if (payload.done) {
+              if (payload.type === 'done') {
                 onDone(payload.outline || payload.full_response)
                 return
               }
-              if (payload.error) {
-                onError(payload.error)
+              if (payload.type === 'error') {
+                onError(payload.message)
                 return
               }
             } catch {

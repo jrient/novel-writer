@@ -180,9 +180,8 @@ function handleRewrite() {
   abortController = streamRewrite(
     props.projectId,
     {
-      content: props.node.content || '',
-      instruction: rewriteInstruction.value,
       node_id: props.node.id,
+      instructions: rewriteInstruction.value,
     },
     (chunk) => {
       outputText.value += chunk

@@ -187,7 +187,10 @@ function handleCommand(command: string, project: ScriptProjectListItem) {
 async function downloadExport(id: number, format: 'txt' | 'markdown', title: string) {
   try {
     const url = getExportUrl(id, format)
-    const resp = await fetch(url)
+    const token = localStorage.getItem('access_token')
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    const resp = await fetch(url, { headers })
     if (!resp.ok) throw new Error('导出失败')
     const blob = await resp.blob()
     const a = document.createElement('a')

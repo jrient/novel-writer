@@ -133,8 +133,8 @@ async function handleSubmit() {
   outputText.value = ''
   isStreaming.value = true
 
-  const data: { instruction: string; scope: string; node_ids?: number[] } = {
-    instruction: instruction.value,
+  const data: { directive: string; scope?: string; node_ids?: number[] } = {
+    directive: instruction.value,
     scope: scope.value,
   }
   if (scope.value === 'selected_nodes') {

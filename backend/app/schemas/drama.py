@@ -89,7 +89,6 @@ class ScriptProjectListResponse(BaseModel):
 
 class ScriptNodeCreate(BaseModel):
     """创建剧本节点请求"""
-    project_id: int = Field(..., description="所属项目ID")
     parent_id: Optional[int] = Field(None, description="父节点ID")
     node_type: VALID_NODE_TYPES = Field(..., description="节点类型")
     title: Optional[str] = Field(None, max_length=200, description="标题")
@@ -172,7 +171,7 @@ class ScriptSessionResponse(BaseModel):
 
 class ExpandNodeRequest(BaseModel):
     """展开节点请求"""
-    node_id: int = Field(..., description="要展开的节点ID")
+    node_id: Optional[int] = Field(None, description="要展开的节点ID")
     instructions: Optional[str] = Field(None, description="额外指令")
 
 
