@@ -42,26 +42,27 @@ class ExpansionProject(Base):
     id: Mapped[int]                    # PK
     user_id: Mapped[int]               # FK → users
     title: Mapped[str]                 # 项目名称
-    source_type: Mapped[str]           # "upload" | "novel" | "drama" | "manual"
-    source_ref: Mapped[dict | None]    # {"project_id": 123, "chapter_ids": [1,2]} 或 null
-    original_text: Mapped[str]         # 原始全文（纯文本，解析后存储）
-    word_count: Mapped[int]            # 原文字数
+    source_type: Mapped[str]                 # "upload" | "novel" | "drama" | "manual"
+    source_ref: Mapped[Optional[dict]]       # {"project_id": 123, "chapter_ids": [1,2]} 或 null（弱引用，不做外键约束）
+    original_text: Mapped[str]               # 原始全文（deferred 加载，列表查询不返回）
+    word_count: Mapped[int]                  # 原文字数
 
     # AI 分析结果
-    summary: Mapped[str | None]        # 全文摘要（人物、设定、情节线）
-    style_profile: Mapped[dict | None] # 文风画像 JSON
+    summary: Mapped[Optional[str]]           # 全文摘要（人物、设定、情节线）
+    style_profile: Mapped[Optional[dict]]    # 文风画像 JSON（StyleProfile schema 校验）
 
     # 扩写配置
-    expansion_level: Mapped[str]       # "light" | "medium" | "deep"
-    target_word_count: Mapped[int | None]  # 用户设定的目标字数
-    style_instructions: Mapped[str | None] # 用户自定义文风调整指令
-    ai_config: Mapped[dict | None]     # {"provider", "model", "temperature", ...}
+    expansion_level: Mapped[str]             # Literal["light", "medium", "deep"]（schema 层用 Enum 校验）
+    target_word_count: Mapped[Optional[int]] # 用户设定的目标字数
+    style_instructions: Mapped[Optional[str]] # 用户自定义文风调整指令
+    ai_config: Mapped[Optional[dict]]        # {"provider", "model", "temperature", ...}
 
     # 状态管理
-    status: Mapped[str]                # "created" → "analyzed" → "segmented" → "expanding" → "paused" → "completed"
+    status: Mapped[str]                # "created" → "analyzed" → "segmented" → "expanding" → "paused" → "error" → "completed"
     execution_mode: Mapped[str]        # "auto" | "step_by_step"
+    version: Mapped[int]              # 乐观锁版本号，防止并发扩写冲突
 
-    metadata: Mapped[dict | None]
+    metadata_: Mapped[Optional[dict]] = mapped_column("metadata", JSON)  # 与现有模型命名一致
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]
 ```
@@ -82,14 +83,15 @@ class ExpansionSegment(Base):
     expanded_content: Mapped[str | None]  # 扩写后内容
 
     # 段落级配置（可覆盖项目级）
-    expansion_level: Mapped[str | None]    # 覆盖项目级扩写深度
-    custom_instructions: Mapped[str | None]  # 该段特殊扩写指令
+    expansion_level: Mapped[Optional[str]]    # 覆盖项目级扩写深度
+    custom_instructions: Mapped[Optional[str]]  # 该段特殊扩写指令
 
     # 状态
-    status: Mapped[str]                # "pending" | "expanding" | "completed" | "skipped"
+    status: Mapped[str]                # "pending" | "expanding" | "completed" | "error" | "skipped"
+    error_message: Mapped[Optional[str]]  # 错误详情（status=error 时记录）
 
     original_word_count: Mapped[int]
-    expanded_word_count: Mapped[int | None]
+    expanded_word_count: Mapped[Optional[int]]
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]
 ```
@@ -99,37 +101,73 @@ class ExpansionSegment(Base):
 ```
 ExpansionProject:
   created → analyzed → segmented → expanding ⇄ paused → completed
-                                       ↑                    |
+                                       |          ↑         ↑
+                                       v          |         |
+                                     error -------+         |
+                                       |                    |
                                        +-----(重新扩写)------+
 
 ExpansionSegment:
   pending → expanding → completed
-    ↑                      |
+    ↑          |            |
+    |          v            |
+    |        error          |
+    |          |            |
+    +----------+            |
     +----(重新扩写)---------+
   pending → skipped
+
+状态说明：
+- paused: 用户主动暂停
+- error: AI 调用失败或异常导致的被动中断（前端可区分展示）
+- error → paused: 用户确认错误后可手动切换为 paused 再 resume
 ```
+
+### 2.4 并发控制
+
+使用乐观锁防止并发扩写冲突：
+
+```python
+# 启动扩写时，检查并更新版本号
+result = await db.execute(
+    update(ExpansionProject)
+    .where(
+        ExpansionProject.id == project_id,
+        ExpansionProject.version == expected_version,
+        ExpansionProject.status.in_(["segmented", "paused", "error"]),
+    )
+    .values(status="expanding", version=ExpansionProject.version + 1)
+)
+if result.rowcount == 0:
+    raise HTTPException(409, "项目正在被其他请求处理，请稍后重试")
+```
+
+同一项目同一时间只允许一个扩写任务运行。
 
 ---
 
 ## 3. API 设计
 
+所有路由使用 `/api/v1/expansion` 前缀，与现有模块（`/api/v1/drama`, `/api/v1/projects`）保持一致。
+`user_id` 外键命名与 drama 模块保持一致（小说模块使用 `owner_id`，但 drama 和 expansion 统一用 `user_id`）。
+
 ### 3.1 项目管理
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/expansion/` | 创建扩写项目（手动输入文本） |
-| `POST` | `/expansion/upload` | 上传文件创建项目（.txt/.md/.docx） |
-| `POST` | `/expansion/import` | 从平台项目导入（小说章节/剧本节点） |
-| `GET` | `/expansion/` | 获取项目列表（分页、筛选） |
-| `GET` | `/expansion/{id}` | 获取项目详情 |
-| `PUT` | `/expansion/{id}` | 更新项目配置 |
-| `DELETE` | `/expansion/{id}` | 删除项目 |
+| `POST` | `/api/v1/expansion/` | 创建扩写项目（手动输入文本） |
+| `POST` | `/api/v1/expansion/upload` | 上传文件创建项目（.txt/.md/.docx） |
+| `POST` | `/api/v1/expansion/import` | 从平台项目导入（小说章节/剧本节点） |
+| `GET` | `/api/v1/expansion/` | 获取项目列表（分页、筛选） |
+| `GET` | `/api/v1/expansion/{id}` | 获取项目详情（`original_text` 大字段 lazy 加载，列表接口不返回） |
+| `PUT` | `/api/v1/expansion/{id}` | 更新项目配置 |
+| `DELETE` | `/api/v1/expansion/{id}` | 删除项目 |
 
 ### 3.2 分析阶段（SSE 流式）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/expansion/{id}/analyze` | AI 分析全文：生成摘要 + 文风画像 + 分段建议 |
+| `POST` | `/api/v1/expansion/{id}/analyze` | AI 分析全文：生成摘要 + 文风画像 + 分段建议 |
 
 SSE 流事件序列：
 ```
@@ -146,21 +184,21 @@ SSE 流事件序列：
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `GET` | `/expansion/{id}/segments` | 获取所有分段 |
-| `PUT` | `/expansion/{id}/segments/{seg_id}` | 编辑分段 |
-| `POST` | `/expansion/{id}/segments/split` | 拆分一个分段为两个 |
-| `POST` | `/expansion/{id}/segments/merge` | 合并相邻分段 |
-| `PUT` | `/expansion/{id}/segments/reorder` | 重新排序 |
+| `GET` | `/api/v1/expansion/{id}/segments` | 获取所有分段 |
+| `PUT` | `/api/v1/expansion/{id}/segments/{seg_id}` | 编辑分段 |
+| `POST` | `/api/v1/expansion/{id}/segments/split` | 拆分分段 `{"segment_id": 1, "split_position": 1500}` 按字符位置拆分 |
+| `POST` | `/api/v1/expansion/{id}/segments/merge` | 合并相邻分段 `{"segment_ids": [2, 3]}` |
+| `PUT` | `/api/v1/expansion/{id}/segments/reorder` | 重新排序 |
 
 ### 3.4 扩写执行（SSE 流式）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/expansion/{id}/expand` | 启动批量扩写 |
-| `POST` | `/expansion/{id}/segments/{seg_id}/expand` | 扩写单个分段 |
-| `POST` | `/expansion/{id}/pause` | 暂停批量扩写 |
-| `POST` | `/expansion/{id}/resume` | 恢复批量扩写 |
-| `POST` | `/expansion/{id}/segments/{seg_id}/retry` | 重新扩写某段 |
+| `POST` | `/api/v1/expansion/{id}/expand` | 启动批量扩写 |
+| `POST` | `/api/v1/expansion/{id}/segments/{seg_id}/expand` | 扩写单个分段 |
+| `POST` | `/api/v1/expansion/{id}/pause` | 暂停批量扩写 |
+| `POST` | `/api/v1/expansion/{id}/resume` | 恢复批量扩写 |
+| `POST` | `/api/v1/expansion/{id}/segments/{seg_id}/retry` | 重新扩写某段 |
 
 批量扩写 SSE 事件序列：
 ```
@@ -181,8 +219,8 @@ SSE 流事件序列：
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `GET` | `/expansion/{id}/export?format=txt\|md\|docx&version=original\|expanded\|both` | 导出 |
-| `POST` | `/expansion/{id}/convert` | 转为小说项目或剧本项目 `{"target": "novel"\|"drama"}` |
+| `GET` | `/api/v1/expansion/{id}/export?format=txt\|md\|docx&version=original\|expanded\|both` | 导出 |
+| `POST` | `/api/v1/expansion/{id}/convert` | 转为小说项目或剧本项目 `{"target": "novel"\|"drama"}` |
 
 ### 3.6 暂停/恢复实现
 
@@ -190,6 +228,23 @@ SSE 流事件序列：
 - `POST /expand` 开始扩写，SSE 流式返回
 - 暂停：前端 abort SSE 连接 + `POST /pause` 更新项目状态
 - 恢复：`POST /resume` → 后端从第一个 pending 段继续，新的 SSE 流
+
+**连接断开时的数据保护**：后端扩写流程边流式输出边累积文本，检测到连接断开时将已累积内容保存到 `expanded_content`（即使不完整）。段落标记为 `error`（附带 `error_message: "连接中断，内容可能不完整"`），用户 resume 时可选择保留部分结果或重新扩写。
+
+### 3.7 SSE 事件处理
+
+扩写模块的 SSE 事件类型比 drama 模块更丰富（新增 `status`, `segments`, `segment_start`, `segment_done`, `await_confirm`）。前端需编写独立的 `_expansionStreamRequest` 解析器，使用通用回调机制：
+
+```typescript
+interface StreamCallbacks {
+  onText?: (text: string) => void
+  onEvent?: (type: string, data: unknown) => void  // 处理所有非 text 事件
+  onDone?: (data?: unknown) => void
+  onError?: (message: string) => void
+}
+```
+
+这样既不破坏现有 drama 模块的 `_streamRequest`，又能灵活处理扩写模块的丰富事件。
 
 ---
 
@@ -289,9 +344,12 @@ EXPANSION_LEVELS = {
 
 ### 4.5 Token 预算分析
 
-- **分析阶段**：3w 字 ≈ 15k-20k tokens 输入，摘要+分析输出 ≈ 2k-3k tokens。主流模型 128k-200k context，无压力。
-- **扩写阶段**：每段原文 2000-5000 字，deep 模式 4x 后最大约 20000 字 ≈ 10k-13k tokens 输出。GPT-4o 16k / Claude 8k-64k 输出上限内。
-- **超限处理**：如预估某段扩写结果超出模型输出上限，服务层自动将该段再拆分为子段。
+中文文本的 token 比率通常为 1.5-2 tokens/字（取决于模型 tokenizer）。
+
+- **分析阶段**：3w 字 ≈ 45k-60k tokens 输入，摘要+分析输出 ≈ 2k-3k tokens。主流模型 128k-200k context，无压力。
+- **扩写阶段**：建议每段原文控制在 **1000-2000 字**，deep 模式 4x 后单段约 4000-8000 字 ≈ 6k-16k tokens 输出，在主流模型输出限制内（GPT-4o: 16k, Claude: 8k-64k）。
+- **超限处理**：如预估某段扩写结果超出模型输出上限（根据 `原文字数 × multiplier × 2 tokens/字` 估算），服务层在扩写前自动将该段再拆分为子段。
+- **分段建议**：AI 分段时应遵循上述原文字数建议，确保绝大多数段落在单次输出能力内完成。
 
 ### 4.6 AI 输出截断续写
 
@@ -314,10 +372,16 @@ async def expand_segment_with_continuation(project, segment):
 
     # 最多续写 2 次，超过则标记警告
 
-def is_truncated(text: str) -> bool:
-    """启发式判断输出是否被截断"""
+def is_truncated(text: str, finish_reason: str | None = None) -> bool:
+    """判断输出是否被截断，优先使用 API 返回的 finish_reason"""
+    # 最可靠：检查 API 的 finish_reason
+    if finish_reason == "length":
+        return True
+    if finish_reason in ("stop", "end_turn"):
+        return False
+    # 降级：启发式判断
     text = text.strip()
-    normal_endings = ['。', '！', '？', '"', '」', '】', '……', '——']
+    normal_endings = ['。', '！', '？', '"', '"', '」', '】', '……', '）', ')']
     if any(text.endswith(e) for e in normal_endings):
         return False
     return True
@@ -368,7 +432,9 @@ async def import_from_novel(project_id, chapter_ids, db, user):
 
 # 从剧本项目导入
 async def import_from_drama(project_id, db, user):
-    """复用 drama 模块已有的 export 序列化逻辑"""
+    """直接查询 ScriptNode 表，按 sort_order 递归遍历节点树，
+    拼接每个节点的 content 字段。不复用 export 路由函数（它们是
+    路由级私有函数且输出带格式标记），而是编写独立的序列化逻辑。"""
 ```
 
 ### 5.3 导出
@@ -378,7 +444,14 @@ async def export_expansion(project, segments, format, version):
     """
     format: txt | md | docx
     version: original | expanded | both
-    both 模式：每段先显示原文（标注），再显示扩写内容
+
+    both 模式格式规范（每段）：
+      === 原文（第 N 段：标题）===
+      原文内容...
+      === 扩写（第 N 段：标题）===
+      扩写内容...
+
+    md 格式使用 > 引用块标注原文，docx 使用灰色字体标注原文。
     """
 ```
 
@@ -506,9 +579,9 @@ interface ExpansionState {
 
 | 场景 | 处理 |
 |------|------|
-| AI 调用失败 | 当前段 → pending，项目 → paused，返回 error 事件 |
+| AI 调用失败 | 当前段 → error（记录 error_message），项目 → error，返回 `{"type": "error", "segment_id": N, "message": "..."}` 事件 |
 | AI 输出截断 | 自动续写（最多 2 次），仍不完整则标记警告 |
-| 连接断开 | 停止后续段落，已完成段保留，项目 → paused |
+| 连接断开 | 已累积内容保存到 expanded_content，当前段 → error（"连接中断"），项目 → paused |
 | 重复提交扩写 | 409 Conflict（同一项目同一时间只允许一个扩写任务） |
 
 ---
