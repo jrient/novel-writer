@@ -92,7 +92,7 @@ class ExpansionProjectUpdate(BaseModel):
 
 class ExpansionProjectResponse(BaseModel):
     """扩写项目响应"""
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
     user_id: int
@@ -110,7 +110,11 @@ class ExpansionProjectResponse(BaseModel):
     status: str
     execution_mode: str
     version: int
-    metadata_: Optional[Dict[str, Any]] = Field(None, alias="metadata")
+    metadata_: Optional[Dict[str, Any]] = Field(
+        None,
+        serialization_alias="metadata",
+        description="元数据"
+    )
     created_at: datetime
     updated_at: Optional[datetime] = None
 

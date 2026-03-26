@@ -782,15 +782,27 @@ async def expand_single_segment(
                     pass
                 yield chunk
 
-            segment.expanded_content = expanded_text
-            segment.expanded_word_count = len(expanded_text)
-            segment.status = "completed"
-            segment.error_message = None
+            # 重新查询分段以确保在当前会话中
+            result = await db.execute(
+                select(ExpansionSegment).where(ExpansionSegment.id == seg_id)
+            )
+            seg = result.scalar_one_or_none()
+            if seg:
+                seg.expanded_content = expanded_text
+                seg.expanded_word_count = len(expanded_text)
+                seg.status = "completed"
+                seg.error_message = None
 
         except Exception as e:
             logger.error(f"Error expanding segment {segment.id}: {e}", exc_info=True)
-            segment.status = "error"
-            segment.error_message = str(e)
+            # 重新查询分段以确保在当前会话中
+            result = await db.execute(
+                select(ExpansionSegment).where(ExpansionSegment.id == seg_id)
+            )
+            seg = result.scalar_one_or_none()
+            if seg:
+                seg.status = "error"
+                seg.error_message = str(e)
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
         await db.commit()
