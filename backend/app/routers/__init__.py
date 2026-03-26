@@ -14,6 +14,7 @@ from app.routers.event import router as event_router
 from app.routers.note import router as note_router
 from app.routers.admin import router as admin_router
 from app.routers.drama import router as drama_router
+from app.routers.expansion import router as expansion_router
 
 __all__ = [
     "auth_router",
@@ -33,4 +34,5 @@ __all__ = [
     "note_router",
     "admin_router",
     "drama_router",
+    "expansion_router",
 ]

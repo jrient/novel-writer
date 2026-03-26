@@ -31,6 +31,7 @@ from app.routers import (
     note_router,
     admin_router,
     drama_router,
+    expansion_router,
 )
 
 
@@ -125,6 +126,7 @@ app.include_router(event_router)
 app.include_router(note_router)
 app.include_router(admin_router)
 app.include_router(drama_router)
+app.include_router(expansion_router)
 
 
 @app.get("/")
