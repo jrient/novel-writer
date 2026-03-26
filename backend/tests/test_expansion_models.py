@@ -37,6 +37,25 @@ class TestExpansionProjectModel:
         col = ExpansionProject.__table__.columns["execution_mode"]
         assert col.default.arg == "auto"
 
+    def test_expansion_level_default(self):
+        col = ExpansionProject.__table__.columns["expansion_level"]
+        assert col.default.arg == "medium"
+
+    def test_user_id_foreign_key(self):
+        col = ExpansionProject.__table__.columns["user_id"]
+        fks = [fk.target_fullname for fk in col.foreign_keys]
+        assert "users.id" in fks
+
+    def test_user_id_index(self):
+        col = ExpansionProject.__table__.columns["user_id"]
+        assert col.index is True
+
+    def test_relationships_configured(self):
+        """验证关联关系配置"""
+        rel_names = {r.key for r in ExpansionProject.__mapper__.relationships}
+        assert "segments" in rel_names
+        assert "owner" in rel_names
+
 
 class TestExpansionSegmentModel:
     """ExpansionSegment 模型字段测试"""
@@ -64,3 +83,16 @@ class TestExpansionSegmentModel:
         col = ExpansionSegment.__table__.columns["project_id"]
         fks = [fk.target_fullname for fk in col.foreign_keys]
         assert "expansion_projects.id" in fks
+
+    def test_sort_order_default(self):
+        col = ExpansionSegment.__table__.columns["sort_order"]
+        assert col.default.arg == 0
+
+    def test_project_id_index(self):
+        col = ExpansionSegment.__table__.columns["project_id"]
+        assert col.index is True
+
+    def test_relationship_configured(self):
+        """验证关联关系配置"""
+        rel_names = {r.key for r in ExpansionSegment.__mapper__.relationships}
+        assert "project" in rel_names
