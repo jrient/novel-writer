@@ -619,4 +619,4 @@ frontend/src/api/expansion.ts
 - SSE 流式架构
 - 用户认证与数据隔离
 - AI 配置系统
-- 前端 SSE 请求工具（`_streamRequest` 模式）
+- 前端 SSE 请求工具（独立 `_expansionStreamRequest`，参考 `_streamRequest` 模式）
