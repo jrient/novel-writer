@@ -22,10 +22,14 @@ from app.models.script_project import ScriptProject
 from app.models.script_node import ScriptNode
 from app.models.script_session import ScriptSession
 
+from app.models.expansion_project import ExpansionProject
+from app.models.expansion_segment import ExpansionSegment
+
 __all__ = [
     "User", "Invitation",
     "Project", "Chapter", "ChapterVersion", "Character", "WorldbuildingEntry",
     "OutlineNode", "ReferenceNovel", "NovelChunk", "KnowledgeEntry",
     "Note", "StoryEvent", "Plotline", "TokenUsage",
     "ScriptProject", "ScriptNode", "ScriptSession",
+    "ExpansionProject", "ExpansionSegment",
 ]

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from app.models.project import Project
     from app.models.invitation import Invitation
     from app.models.script_project import ScriptProject
+    from app.models.expansion_project import ExpansionProject
 
 
 class User(Base):
@@ -95,4 +96,12 @@ class User(Base):
         back_populates="owner",
         cascade="all, delete-orphan",
         order_by="ScriptProject.id.desc()",
+    )
+
+    # 扩写项目
+    expansion_projects: Mapped[List["ExpansionProject"]] = relationship(
+        "ExpansionProject",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        order_by="ExpansionProject.id.desc()",
     )
