@@ -7,6 +7,13 @@ import { getAccessToken } from './request'
 
 // ── Types ──
 
+export type ProjectStatus = 'created' | 'analyzed' | 'segmented' | 'expanding' | 'paused' | 'error' | 'completed'
+export type SegmentStatus = 'pending' | 'expanding' | 'completed' | 'error' | 'skipped'
+export type ExpansionLevel = 'light' | 'medium' | 'deep'
+export type SourceType = 'upload' | 'novel' | 'drama' | 'manual'
+export type ExecutionMode = 'auto' | 'step_by_step'
+export type ConvertTarget = 'novel' | 'drama'
+
 export interface ExpansionAIConfig {
   provider?: string
   model?: string
