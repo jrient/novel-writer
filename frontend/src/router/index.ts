@@ -69,6 +69,30 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '剧本工作台', requiresAuth: true },
   },
   {
+    path: '/expansion',
+    name: 'ExpansionList',
+    component: () => import('@/views/ExpansionListView.vue'),
+    meta: { title: '文本扩写', requiresAuth: true },
+  },
+  {
+    path: '/expansion/create',
+    name: 'ExpansionCreate',
+    component: () => import('@/views/ExpansionCreateView.vue'),
+    meta: { title: '创建扩写项目', requiresAuth: true },
+  },
+  {
+    path: '/expansion/analyze/:id',
+    name: 'ExpansionAnalyze',
+    component: () => import('@/views/ExpansionAnalyzeView.vue'),
+    meta: { title: '文本分析', requiresAuth: true },
+  },
+  {
+    path: '/expansion/workbench/:id',
+    name: 'ExpansionWorkbench',
+    component: () => import('@/views/ExpansionWorkbenchView.vue'),
+    meta: { title: '扩写工作台', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },
