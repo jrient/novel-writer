@@ -84,6 +84,7 @@ export interface UpdateExpansionProjectData {
   style_instructions?: string
   execution_mode?: 'auto' | 'step_by_step'
   ai_config?: ExpansionAIConfig
+  summary?: string
 }
 
 export interface ImportFromNovelData {

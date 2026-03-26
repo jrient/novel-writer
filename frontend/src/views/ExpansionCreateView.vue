@@ -271,8 +271,8 @@ function handleImportSelect(data: { source: 'novel' | 'drama'; projectId: number
     type: data.source,
     projectId: data.projectId,
     title: data.source === 'novel'
-      ? (novelProjects.find(p => p.id === data.projectId)?.title || '')
-      : (dramaProjects.find(p => p.id === data.projectId)?.title || ''),
+      ? (novelProjects.value.find((p: { id: number; title: string }) => p.id === data.projectId)?.title || '')
+      : (dramaProjects.value.find((p: { id: number; title: string }) => p.id === data.projectId)?.title || ''),
     chapterIds: data.chapterIds,
   }
 
