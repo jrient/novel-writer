@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import String, Text, Integer, Float, ForeignKey, func
+from sqlalchemy import String, Text, Integer, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -42,9 +42,9 @@ class ExpansionSegment(Base):
         Text, nullable=True, comment="扩写内容"
     )
 
-    # 扩写倍数（可覆盖项目设置）
-    expansion_level: Mapped[Optional[float]] = mapped_column(
-        nullable=True, comment="扩写倍数"
+    # 扩写深度覆盖（可覆盖项目设置）
+    expansion_level: Mapped[Optional[str]] = mapped_column(
+        String(20), nullable=True, comment="覆盖扩写深度: light/medium/deep"
     )
 
     # 自定义指令（片段级覆盖）
@@ -52,9 +52,9 @@ class ExpansionSegment(Base):
         Text, nullable=True, comment="自定义指令"
     )
 
-    # 状态: pending/expanding/completed/failed
+    # 状态: pending/expanding/completed/error/skipped
     status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="pending", comment="状态"
+        String(20), nullable=False, default="pending", comment="状态: pending/expanding/completed/error/skipped"
     )
 
     # 错误信息

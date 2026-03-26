@@ -32,14 +32,14 @@ class ExpansionProject(Base):
     # 基本信息
     title: Mapped[str] = mapped_column(String(200), nullable=False, comment="标题")
 
-    # 来源类型: text/file/chapter
+    # 来源类型: upload/novel/drama/manual
     source_type: Mapped[str] = mapped_column(
-        String(20), nullable=False, comment="来源类型: text/file/chapter"
+        String(20), nullable=False, comment="来源类型: upload/novel/drama/manual"
     )
 
-    # 来源引用（如果是chapter类型，存储chapter_id等）
-    source_ref: Mapped[Optional[str]] = mapped_column(
-        String(200), nullable=True, comment="来源引用"
+    # 来源引用（弱引用，存储 {"project_id": 123, "chapter_ids": [1,2]} 等结构）
+    source_ref: Mapped[Optional[dict]] = mapped_column(
+        JSON, nullable=True, comment="来源引用(弱引用)"
     )
 
     # 原始文本
@@ -56,9 +56,9 @@ class ExpansionProject(Base):
         JSON, nullable=True, comment="风格画像"
     )
 
-    # 扩写倍数 (1.5, 2.0, 2.5, 3.0 等)
-    expansion_level: Mapped[float] = mapped_column(
-        nullable=False, default=2.0, comment="扩写倍数"
+    # 扩写深度: light/medium/deep
+    expansion_level: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="medium", comment="扩写深度: light/medium/deep"
     )
 
     # 目标字数
@@ -74,9 +74,9 @@ class ExpansionProject(Base):
     # AI配置
     ai_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True, comment="AI配置")
 
-    # 状态: created/analyzing/segmenting/expanding/completed/failed
+    # 状态: created/analyzed/segmented/expanding/paused/error/completed
     status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="created", comment="状态"
+        String(20), nullable=False, default="created", comment="状态: created/analyzed/segmented/expanding/paused/error/completed"
     )
 
     # 执行模式: auto/manual
