@@ -33,6 +33,7 @@ from app.schemas.drama import (
     ScriptProjectUpdate,
     ScriptSessionResponse,
     SessionAnswerRequest,
+    SessionSummaryResponse,
 )
 from app.services.script_ai_service import ScriptAIService
 from pydantic import BaseModel
@@ -472,6 +473,35 @@ async def session_skip(
     return session
 
 
+@router.post("/{id}/session/summarize", response_model=SessionSummaryResponse)
+async def session_summarize(
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """根据问答历史生成结构化摘要"""
+    result = await db.execute(
+        select(ScriptSession).where(ScriptSession.project_id == project.id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    history = list(session.history or [])
+    ai_service = ScriptAIService(project.ai_config)
+
+    summary = await ai_service.generate_summary(
+        script_type=project.script_type,
+        title=project.title,
+        concept=project.concept,
+        history=history,
+    )
+
+    session.summary = summary
+    await db.commit()
+
+    return summary
+
+
 @router.post("/{id}/session/generate-outline")
 async def session_generate_outline(
     project: ScriptProject = Depends(get_drama_project),
@@ -493,26 +523,30 @@ async def session_generate_outline(
 
     async def stream():
         full_response = ""
-        async for chunk in _sse_stream(
-            ai_service.generate_outline(
+        try:
+            async for chunk in ai_service.generate_outline(
                 script_type=project.script_type,
                 title=project.title,
                 concept=project.concept,
                 history=history,
-            )
-        ):
-            try:
-                data = json.loads(chunk.removeprefix("data: ").strip())
-                if data.get("type") == "text":
-                    full_response += data.get("text", "")
-            except Exception:
-                pass
-            yield chunk
+            ):
+                full_response += chunk
+                yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
+        except Exception as e:
+            logger.error(f"SSE stream error: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            return
 
-        # Try to parse outline and save as draft
+        # Save outline_draft BEFORE sending done event to avoid race condition
         if full_response:
             try:
-                outline_json = json.loads(full_response)
+                json_str = full_response.strip()
+                start_idx = json_str.find('{')
+                end_idx = json_str.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    json_str = json_str[start_idx:end_idx + 1]
+
+                outline_json = json.loads(json_str)
                 update_result = await db.execute(
                     select(ScriptSession).where(ScriptSession.project_id == project.id)
                 )
@@ -521,8 +555,12 @@ async def session_generate_outline(
                     updated_session.outline_draft = outline_json
                     updated_session.state = "done"
                     await db.commit()
-            except json.JSONDecodeError:
-                logger.warning("Could not parse outline JSON from AI response")
+                    logger.info(f"Outline saved successfully for project {project.id}")
+            except json.JSONDecodeError as e:
+                logger.warning(f"Could not parse outline JSON from AI response: {e}")
+                logger.debug(f"Response was: {full_response[:500]}...")
+
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
     return _sse_response(stream())
 
