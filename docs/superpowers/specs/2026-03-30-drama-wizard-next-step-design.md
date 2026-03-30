@@ -22,6 +22,7 @@
 1. 回答 5 个问题后，底部按钮变为"下一步"
 2. 点击"下一步"，后端生成结构化摘要存入 session
 3. 用户在"信息确认"页查看摘要，确认后点击"生成大纲"
+4. **移除"跳过问答"功能**
 
 ---
 
@@ -47,12 +48,14 @@ emit('questions-complete')  // questionCount >= 5 时触发
 **扩展 Wizard 步骤：**
 ```typescript
 const wizardSteps = [
-  { title: 'AI 问答' },
-  { title: '信息确认' },  // 新增
-  { title: '大纲预览' },
-  { title: '开始创作' },
+  { title: 'AI 问答' },    // Step 0
+  { title: '信息确认' },   // Step 1（新增）
+  { title: '大纲预览' },   // Step 2（原 Step 1）
+  { title: '开始创作' },   // Step 3（原 Step 2）
 ]
 ```
+
+**注意：步骤条显示逻辑需同步调整，确保 done/active 状态正确显示。**
 
 **新增状态变量：**
 ```typescript
@@ -60,13 +63,13 @@ const questionsComplete = ref(false)  // 是否完成 5 个问题
 const sessionSummary = ref<SessionSummary | null>(null)  // 汇总信息
 ```
 
-**Footer 按钮逻辑：**
+**Footer 按钮：**
 ```vue
 <div class="wizard-footer">
-  <!-- 未完成问答时 -->
-  <el-button v-if="!questionsComplete" text disabled class="skip-btn">
-    跳过问答（需回答 5 个问题）
-  </el-button>
+  <!-- 回答少于 5 个问题时显示提示 -->
+  <span v-if="questionCount < 5" class="hint-text">
+    还需回答 {{ 5 - questionCount }} 个问题才能继续
+  </span>
 
   <!-- 完成问答后 -->
   <el-button
@@ -82,6 +85,8 @@ const sessionSummary = ref<SessionSummary | null>(null)  // 汇总信息
   </el-button>
 </div>
 ```
+
+**注意：移除原有的"跳过问答，直接生成大纲"按钮。**
 
 **新增 handleNextStep 方法：**
 ```typescript
@@ -111,34 +116,34 @@ async function handleNextStep() {
     <div class="summary-card">
       <div class="summary-section">
         <h4>故事概要</h4>
-        <p>{{ sessionSummary?.story_summary }}</p>
+        <p>{{ sessionSummary?.故事概要 }}</p>
       </div>
 
       <div class="summary-section">
         <h4>主要角色</h4>
         <ul>
-          <li v-for="c in sessionSummary?.characters" :key="c">{{ c }}</li>
+          <li v-for="c in sessionSummary?.主要角色" :key="c">{{ c }}</li>
         </ul>
       </div>
 
       <div class="summary-section">
         <h4>核心冲突</h4>
-        <p>{{ sessionSummary?.conflicts }}</p>
+        <p>{{ sessionSummary?.核心冲突 }}</p>
       </div>
 
       <div class="summary-section">
         <h4>场景设定</h4>
-        <p>{{ sessionSummary?.settings }}</p>
+        <p>{{ sessionSummary?.场景设定 }}</p>
       </div>
 
       <div class="summary-section">
         <h4>风格基调</h4>
-        <p>{{ sessionSummary?.tone }}</p>
+        <p>{{ sessionSummary?.风格基调 }}</p>
       </div>
     </div>
 
     <div class="summary-actions">
-      <el-button @click="wizardStepIndex = 0">重新问答</el-button>
+      <el-button @click="handleBackToChat">重新问答</el-button>
       <el-button
         type="primary"
         size="large"
@@ -153,6 +158,14 @@ async function handleNextStep() {
 </template>
 ```
 
+**handleBackToChat 方法（返回重新问答时清除 summary）：**
+```typescript
+function handleBackToChat() {
+  sessionSummary.value = null  // 清除摘要，下次点击"下一步"会重新生成
+  wizardStepIndex.value = 0
+}
+```
+
 ### api/drama.ts
 
 **新增 summarizeSession API：**
@@ -163,11 +176,11 @@ export async function summarizeSession(projectId: number): Promise<SessionSummar
 }
 
 export interface SessionSummary {
-  story_summary: string
-  characters: string[]
-  conflicts: string
-  settings: string
-  tone: string
+  故事概要: string
+  主要角色: string[]
+  核心冲突: string
+  场景设定: string
+  风格基调: string
 }
 ```
 
@@ -220,14 +233,14 @@ async def session_summarize(
 
 ### Drama Schema
 
-**新增 SessionSummaryResponse：**
+**新增 SessionSummaryResponse（中文键名）：**
 ```python
 class SessionSummaryResponse(BaseModel):
-    story_summary: str
-    characters: List[str]
-    conflicts: str
-    settings: str
-    tone: str
+    故事概要: str
+    主要角色: List[str]
+    核心冲突: str
+    场景设定: str
+    风格基调: str
 ```
 
 ### ScriptAIService
@@ -257,13 +270,13 @@ async def generate_summary(
 对话历史:
 {history_text}
 
-请输出以下 JSON 结构（不要输出其他内容）:
+请输出以下 JSON 结构（不要输出其他内容，键名使用中文）:
 {
-  "story_summary": "故事概要（一句话描述核心剧情）",
-  "characters": ["角色1名称及简介", "角色2名称及简介"],
-  "conflicts": "核心冲突描述",
-  "settings": "主要场景设定",
-  "tone": "风格基调（如悬疑、温情、喜剧等）"
+  "故事概要": "一句话描述核心剧情",
+  "主要角色": ["角色1名称及简介", "角色2名称及简介"],
+  "核心冲突": "核心冲突描述",
+  "场景设定": "主要场景设定",
+  "风格基调": "风格基调（如悬疑、温情、喜剧等）"
 }"""
 
     response = await self._call_ai(prompt)
@@ -277,6 +290,8 @@ async def generate_summary(
 
     return json.loads(json_str)
 ```
+
+**注意：输出 JSON 使用中文键名，前端展示时直接使用。**
 
 ---
 
@@ -305,9 +320,11 @@ ALTER TABLE script_session ADD COLUMN summary JSONB NULL;
 
 ## 测试要点
 
-1. 回答少于 5 个问题时，"下一步"按钮禁用
+1. 回答少于 5 个问题时，显示"还需回答 X 个问题"提示
 2. 回答 5 个问题后，按钮变为可点击的"下一步"
 3. 点击"下一步"后，正确跳转到信息确认页并显示摘要
-4. 信息确认页可返回重新问答
-5. 点击"生成大纲"后正确生成大纲并跳转到大纲预览
-6. AI 返回 `"done":true` 时不再自动生成大纲
+4. 信息确认页点击"重新问答"返回 Step 0，再次点击"下一步"会重新生成摘要
+5. 点击"生成大纲"后正确生成大纲并跳转到大纲预览（Step 2）
+6. AI 返回 `"done":true` 时不再自动生成大纲，改为触发 questions-complete
+7. 步骤条显示正确：当前步骤高亮，已完成步骤标记为 done
+8. 无"跳过问答"功能
