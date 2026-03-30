@@ -98,7 +98,6 @@ import { ElMessage } from 'element-plus'
 import { Promotion } from '@element-plus/icons-vue'
 import {
   streamSessionAnswer,
-  streamGenerateOutline,
   getOrCreateSession,
 } from '@/api/drama'
 import type { ScriptSession } from '@/api/drama'
@@ -116,6 +115,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'outline-ready'): void
+  (e: 'questions-complete'): void
 }>()
 
 const messages = ref<ChatMessage[]>([])
@@ -123,6 +123,8 @@ const inputText = ref('')
 const isStreaming = ref(false)
 const streamingText = ref('')
 const messagesEl = ref<HTMLElement>()
+const questionCount = ref(0)
+const MAX_QUESTIONS = 5 // 最多问5个问题
 
 let abortController: AbortController | null = null
 
@@ -168,6 +170,10 @@ async function sendMessage() {
 
   messages.value.push({ role: 'user', content: text })
   inputText.value = ''
+  questionCount.value++
+  if (questionCount.value >= MAX_QUESTIONS) {
+    emit('questions-complete')
+  }
   await scrollToBottom()
 
   isStreaming.value = true
@@ -186,8 +192,8 @@ async function sendMessage() {
       isStreaming.value = false
 
       if (finalText.includes('"done":true') || finalText === '__done__') {
-        // Questioning complete, generate outline
-        await generateOutline()
+        // AI 认为问答完成，触发 questions-complete
+        emit('questions-complete')
       } else {
         addAiMessage(finalText)
         await scrollToBottom()
@@ -201,42 +207,6 @@ async function sendMessage() {
   )
 }
 
-async function generateOutline() {
-  isStreaming.value = true
-  streamingText.value = ''
-
-  messages.value.push({
-    role: 'ai',
-    content: '好的，我将根据你的回答生成剧本大纲...',
-    parsed: undefined,
-  })
-  await scrollToBottom()
-
-  abortController = streamGenerateOutline(
-    props.projectId,
-    (chunk) => {
-      streamingText.value += chunk
-      scrollToBottom()
-    },
-    async () => {
-      streamingText.value = ''
-      isStreaming.value = false
-      messages.value.push({
-        role: 'ai',
-        content: '大纲已生成！请在下方查看并确认。',
-        parsed: undefined,
-      })
-      await scrollToBottom()
-      emit('outline-ready')
-    },
-    (error) => {
-      streamingText.value = ''
-      isStreaming.value = false
-      ElMessage.error('生成大纲失败：' + error)
-    },
-  )
-}
-
 onMounted(async () => {
   // Load existing history from session
   if (props.session?.history?.length) {
@@ -245,6 +215,7 @@ onMounted(async () => {
         addAiMessage(msg.content)
       } else if (msg.role === 'user') {
         messages.value.push({ role: 'user', content: msg.content })
+        questionCount.value++
       }
     }
   } else {
@@ -256,6 +227,9 @@ onMounted(async () => {
         for (const msg of session.history) {
           if (msg.role === 'assistant') {
             addAiMessage(msg.content)
+          } else if (msg.role === 'user') {
+            messages.value.push({ role: 'user', content: msg.content })
+            questionCount.value++
           }
         }
       } else {
@@ -351,16 +325,18 @@ onMounted(async () => {
 
 .message-text {
   margin: 0;
-  font-size: 14px;
-  color: inherit;
+  font-size: 15px;
+  color: #1A1A1A;
   white-space: pre-wrap;
+  font-weight: 500;
 }
 
 .question-text {
   margin: 0 0 10px;
-  font-size: 14px;
-  color: #2C2C2C;
+  font-size: 15px;
+  color: #1A1A1A;
   font-family: 'Noto Serif SC', serif;
+  font-weight: 600;
 }
 
 .options-list {
