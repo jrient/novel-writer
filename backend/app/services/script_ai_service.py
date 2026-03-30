@@ -533,3 +533,49 @@ class ScriptAIService:
         messages = self._build_messages(prompt, system_prompt)
         async for chunk in self._stream(messages):
             yield chunk
+
+    async def generate_summary(
+        self,
+        script_type: str,
+        title: str,
+        concept: Optional[str],
+        history: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """根据问答历史生成结构化摘要"""
+
+        history_text = "\n".join([
+            f"{'用户' if m['role']=='user' else 'AI'}: {m.get('content', '')}"
+            for m in history
+        ])
+
+        prompt = f"""根据以下对话历史，提取剧本创作的关键信息，以 JSON 格式输出。
+
+剧本类型: {script_type}
+标题: {title}
+创意概念: {concept or '（未提供）'}
+
+对话历史:
+{history_text}
+
+请输出以下 JSON 结构（不要输出其他内容，键名使用中文）:
+{{
+  "故事概要": "一句话描述核心剧情",
+  "主要角色": ["角色1名称及简介", "角色2名称及简介"],
+  "核心冲突": "核心冲突描述",
+  "场景设定": "主要场景设定",
+  "风格基调": "风格基调（如悬疑、温情、喜剧等）"
+}}"""
+
+        messages = self._build_messages(prompt, None)
+        full_response = ""
+        async for chunk in self._stream(messages):
+            full_response += chunk
+
+        # 解析 JSON
+        json_str = full_response.strip()
+        start = json_str.find('{')
+        end = json_str.rfind('}')
+        if start != -1 and end != -1:
+            json_str = json_str[start:end+1]
+
+        return json.loads(json_str)
