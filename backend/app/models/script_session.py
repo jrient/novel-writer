@@ -44,6 +44,11 @@ class ScriptSession(Base):
         JSON, nullable=True, comment="大纲草稿"
     )
 
+    # AI 汇总的结构化信息
+    summary: Mapped[Optional[dict]] = mapped_column(
+        JSON, nullable=True, comment="AI汇总的结构化信息"
+    )
+
     # 当前处理的节点
     current_node_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("script_nodes.id", ondelete="SET NULL"),
