@@ -63,7 +63,7 @@ class ScriptProjectUpdate(BaseModel):
 
 class ScriptProjectResponse(BaseModel):
     """剧本项目响应"""
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
     user_id: int
@@ -72,7 +72,7 @@ class ScriptProjectResponse(BaseModel):
     concept: Optional[str] = None
     status: str
     ai_config: Optional[Dict[str, Any]] = None
-    metadata_: Optional[Dict[str, Any]] = Field(None, alias="metadata")
+    metadata_: Optional[Dict[str, Any]] = Field(None, serialization_alias="metadata")
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -116,7 +116,7 @@ class ScriptNodeUpdate(BaseModel):
 
 class ScriptNodeResponse(BaseModel):
     """剧本节点响应"""
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
     project_id: int
@@ -128,7 +128,7 @@ class ScriptNodeResponse(BaseModel):
     visual_desc: Optional[str] = None
     sort_order: int
     is_completed: bool
-    metadata_: Optional[Dict[str, Any]] = Field(None, alias="metadata")
+    metadata_: Optional[Dict[str, Any]] = Field(None, serialization_alias="metadata")
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -165,6 +165,15 @@ class ScriptSessionResponse(BaseModel):
     current_node_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+
+class SessionSummaryResponse(BaseModel):
+    """会话摘要响应（中文键名）"""
+    故事概要: str
+    主要角色: List[str]
+    核心冲突: str
+    场景设定: str
+    风格基调: str
 
 
 # --- AI 操作请求 ---
