@@ -19,18 +19,23 @@
     </header>
 
     <!-- Steps bar -->
-    <div class="steps-container">
-      <el-steps :active="wizardStepIndex" align-center>
-        <el-step title="AI 问答" description="完善创意" />
-        <el-step title="生成大纲" description="确认结构" />
-        <el-step title="开始创作" description="进入工作台" />
-      </el-steps>
+    <div class="steps-bar">
+      <div
+        v-for="(step, i) in wizardSteps"
+        :key="i"
+        class="step-item"
+        :class="{ active: i === wizardStepIndex, done: i < wizardStepIndex }"
+      >
+        <span class="step-dot">{{ i < wizardStepIndex ? '&#10003;' : i + 1 }}</span>
+        <span class="step-label">{{ step.title }}</span>
+        <span v-if="i < wizardSteps.length - 1" class="step-line" />
+      </div>
     </div>
 
     <!-- Main content -->
     <div class="wizard-main">
 
-      <!-- Step 0: Chat -->
+      <!-- Step 0: AI 问答 -->
       <template v-if="wizardStepIndex === 0">
         <div class="chat-container">
           <WizardChat
@@ -38,6 +43,7 @@
             :project-id="projectId"
             :session="dramaStore.session"
             @outline-ready="handleOutlineReady"
+            @questions-complete="handleQuestionsComplete"
           />
           <div v-else class="loading-area">
             <el-skeleton :rows="5" animated />
@@ -45,19 +51,76 @@
         </div>
 
         <div class="wizard-footer">
+          <span v-if="questionCount < 5" class="hint-text">
+            还需回答 {{ 5 - questionCount }} 个问题才能继续
+          </span>
           <el-button
-            text
-            :loading="skipping"
-            @click="handleSkip"
-            class="skip-btn"
+            v-else
+            type="primary"
+            size="large"
+            :loading="summarizing"
+            @click="handleNextStep"
+            round
           >
-            跳过问答，直接生成大纲
+            下一步
           </el-button>
         </div>
       </template>
 
-      <!-- Step 1: Outline review -->
+      <!-- Step 1: 信息确认 -->
       <template v-else-if="wizardStepIndex === 1">
+        <div class="summary-review">
+          <div class="summary-header">
+            <h3>创作信息汇总</h3>
+            <p>请检查 AI 汇总的信息，确认后开始生成大纲</p>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-section">
+              <h4>故事概要</h4>
+              <p>{{ sessionSummary?.故事概要 }}</p>
+            </div>
+
+            <div class="summary-section">
+              <h4>主要角色</h4>
+              <ul>
+                <li v-for="c in sessionSummary?.主要角色" :key="c">{{ c }}</li>
+              </ul>
+            </div>
+
+            <div class="summary-section">
+              <h4>核心冲突</h4>
+              <p>{{ sessionSummary?.核心冲突 }}</p>
+            </div>
+
+            <div class="summary-section">
+              <h4>场景设定</h4>
+              <p>{{ sessionSummary?.场景设定 }}</p>
+            </div>
+
+            <div class="summary-section">
+              <h4>风格基调</h4>
+              <p>{{ sessionSummary?.风格基调 }}</p>
+            </div>
+          </div>
+
+          <div class="summary-actions">
+            <el-button @click="handleBackToChat">重新问答</el-button>
+            <el-button
+              type="primary"
+              size="large"
+              :loading="generatingOutline"
+              @click="handleGenerateOutline"
+              round
+            >
+              生成大纲
+            </el-button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Step 2: 大纲预览 -->
+      <template v-else-if="wizardStepIndex === 2">
         <div class="outline-review">
           <div class="outline-header">
             <h3 class="outline-title">剧本大纲</h3>
@@ -66,18 +129,18 @@
 
           <div class="outline-tree-wrapper">
             <ScriptOutlineTree
-              :nodes="dramaStore.nodes"
+              :nodes="outlineDraftNodes"
               :script-type="dramaStore.currentProject?.script_type || 'dynamic'"
               :current-node-id="null"
               @select-node="() => {}"
               @add-node="() => {}"
-              @delete-node="handleDeleteOutlineNode"
-              @rename-node="handleRenameOutlineNode"
+              @delete-node="() => {}"
+              @rename-node="() => {}"
             />
           </div>
 
           <div class="outline-actions">
-            <el-button @click="wizardStepIndex = 0">重新问答</el-button>
+            <el-button @click="wizardStepIndex = 1">返回确认</el-button>
             <el-button
               type="primary"
               size="large"
@@ -99,9 +162,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useDramaStore } from '@/stores/drama'
-import { skipToOutline } from '@/api/drama'
+import { summarizeSession, streamGenerateOutline } from '@/api/drama'
+import type { SessionSummary } from '@/api/drama'
 import WizardChat from '@/components/drama/WizardChat.vue'
 import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
 
@@ -111,44 +175,112 @@ const dramaStore = useDramaStore()
 
 const projectId = computed(() => Number(route.params.id))
 const pageLoading = ref(true)
-const skipping = ref(false)
 const confirming = ref(false)
 const wizardStepIndex = ref(0)
+const questionCount = ref(0)
+const summarizing = ref(false)
+const sessionSummary = ref<SessionSummary | null>(null)
+const generatingOutline = ref(false)
+const wizardSteps = [
+  { title: 'AI 问答' },
+  { title: '信息确认' },
+  { title: '大纲预览' },
+  { title: '开始创作' },
+]
+
+// Convert outline_draft sections to display nodes for review step
+const outlineDraftNodes = computed(() => {
+  const session = dramaStore.session
+  if (!session?.outline_draft?.sections) return dramaStore.nodes
+
+  let idCounter = 1
+  function convertSections(sections: any[], parentId: number | null): any[] {
+    return sections.map((section, index) => {
+      const nodeId = idCounter++
+      const node: any = {
+        id: nodeId,
+        project_id: projectId.value,
+        parent_id: parentId,
+        node_type: section.node_type || 'section',
+        title: section.title,
+        content: section.content,
+        speaker: section.speaker,
+        visual_desc: section.visual_desc,
+        sort_order: index,
+        is_completed: false,
+        metadata_: null,
+        created_at: '',
+        updated_at: null,
+        children: section.children ? convertSections(section.children, nodeId) : [],
+      }
+      return node
+    })
+  }
+  return convertSections(session.outline_draft.sections as any[], null)
+})
 
 async function handleOutlineReady() {
-  // Load nodes generated by outline
-  await dramaStore.fetchNodes(projectId.value)
-  if (dramaStore.nodes.length) {
-    wizardStepIndex.value = 1
+  // Outline draft saved in session, reload and move to review step
+  try {
+    await dramaStore.fetchSession(projectId.value)
+    wizardStepIndex.value = 2
+  } catch {
+    ElMessage.error('加载大纲失败')
   }
 }
 
-async function handleSkip() {
+function handleQuestionsComplete() {
+  // 子组件通知问答完成
+  questionCount.value = 5
+}
+
+async function handleNextStep() {
+  summarizing.value = true
   try {
-    await ElMessageBox.confirm(
-      '跳过 AI 问答将直接根据你的故事创意生成大纲，确认继续？',
-      '跳过问答',
-      { confirmButtonText: '确认跳过', cancelButtonText: '取消', type: 'info' },
+    const summary = await summarizeSession(projectId.value)
+    sessionSummary.value = summary
+    wizardStepIndex.value = 1
+  } catch {
+    ElMessage.error('汇总信息失败')
+  } finally {
+    summarizing.value = false
+  }
+}
+
+function handleBackToChat() {
+  sessionSummary.value = null
+  wizardStepIndex.value = 0
+}
+
+async function handleGenerateOutline() {
+  generatingOutline.value = true
+  try {
+    // 流式生成大纲
+    streamGenerateOutline(
+      projectId.value,
+      () => {
+        // 流式输出 chunk（忽略）
+      },
+      async (outline) => {
+        generatingOutline.value = false
+        if (outline) {
+          await dramaStore.fetchSession(projectId.value)
+          wizardStepIndex.value = 2
+        } else {
+          ElMessage.warning('大纲生成中，请稍后刷新')
+        }
+      },
+      (error) => {
+        generatingOutline.value = false
+        ElMessage.error('生成大纲失败：' + error)
+      },
     )
   } catch {
-    return
-  }
-
-  skipping.value = true
-  try {
-    await skipToOutline(projectId.value)
-    await dramaStore.fetchNodes(projectId.value)
-    if (dramaStore.nodes.length) {
-      wizardStepIndex.value = 1
-    } else {
-      ElMessage.warning('大纲生成中，请稍后刷新')
-    }
-  } catch {
-    ElMessage.error('跳过失败，请重试')
-  } finally {
-    skipping.value = false
+    generatingOutline.value = false
+    ElMessage.error('生成大纲失败')
   }
 }
+
 
 async function handleConfirmOutline() {
   confirming.value = true
@@ -165,36 +297,6 @@ async function handleConfirmOutline() {
   }
 }
 
-async function handleDeleteOutlineNode(nodeId: number) {
-  try {
-    await ElMessageBox.confirm('确定删除此节点？', '删除确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-    })
-    await dramaStore.removeNode(projectId.value, nodeId)
-  } catch {
-    // cancelled
-  }
-}
-
-async function handleRenameOutlineNode(nodeId: number) {
-  const node = dramaStore.nodes.find(n => n.id === nodeId)
-  if (!node) return
-  try {
-    const { value } = await ElMessageBox.prompt('输入新名称', '重命名', {
-      inputValue: node.title || '',
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-    })
-    if (value?.trim()) {
-      await dramaStore.editNode(projectId.value, nodeId, { title: value.trim() })
-    }
-  } catch {
-    // cancelled
-  }
-}
-
 onMounted(async () => {
   pageLoading.value = true
   try {
@@ -206,7 +308,7 @@ onMounted(async () => {
 
     // If nodes already exist, skip to outline review
     if (dramaStore.nodes.length && dramaStore.currentProject?.status !== 'drafting') {
-      wizardStepIndex.value = 1
+      wizardStepIndex.value = 2
     }
   } catch {
     ElMessage.error('加载失败')
@@ -237,7 +339,7 @@ onMounted(async () => {
 
 .header-content {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -280,7 +382,7 @@ onMounted(async () => {
 }
 
 .steps-container {
-  max-width: 600px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px 32px 0;
   flex-shrink: 0;
@@ -290,7 +392,7 @@ onMounted(async () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 800px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 24px 32px 0;
@@ -319,13 +421,75 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.skip-btn {
-  color: #9E9E9E !important;
-  font-size: 13px;
+.hint-text {
+  font-size: 14px;
+  color: #9E9E9E;
 }
 
-.skip-btn:hover {
-  color: #6B7B8D !important;
+/* 信息确认页 */
+.summary-review {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 32px;
+}
+
+.summary-header {
+  text-align: center;
+}
+
+.summary-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2C2C2C;
+  margin: 0 0 6px;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.summary-header p {
+  font-size: 13px;
+  color: #7A7A7A;
+  margin: 0;
+}
+
+.summary-card {
+  background: white;
+  border: 1px solid #E0DFDC;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.summary-section {
+  margin-bottom: 16px;
+}
+
+.summary-section:last-child {
+  margin-bottom: 0;
+}
+
+.summary-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7B8D;
+  margin: 0 0 8px;
+}
+
+.summary-section p,
+.summary-section ul {
+  font-size: 15px;
+  color: #2C2C2C;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.summary-section ul {
+  padding-left: 20px;
+}
+
+.summary-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 
 /* Outline review */
@@ -369,17 +533,90 @@ onMounted(async () => {
   gap: 12px;
 }
 
-/* Steps overrides */
-:deep(.el-step__title) { font-size: 13px; }
-:deep(.el-step__description) { font-size: 11px; }
-:deep(.el-step.is-process .el-step__title) { color: #6B7B8D; }
-:deep(.el-step.is-process .el-step__icon) { border-color: #6B7B8D; color: #6B7B8D; }
-:deep(.el-step.is-finish .el-step__title) { color: #6B7B8D; }
-:deep(.el-step.is-finish .el-step__icon) { border-color: #6B7B8D; color: #6B7B8D; }
+/* Steps bar */
+.steps-bar {
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 32px 0;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.step-item:last-child {
+  flex: 0 0 auto;
+}
+
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #D0D0D0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #B0B0B0;
+  background: white;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.step-label {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #999;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.3s;
+}
+
+.step-line {
+  flex: 1;
+  height: 1px;
+  background: #D0D0D0;
+  margin: 0 12px;
+  min-width: 20px;
+  transition: background 0.3s;
+}
+
+.step-item.active .step-dot {
+  border-color: #6B7B8D;
+  color: #6B7B8D;
+  box-shadow: 0 0 0 3px rgba(107, 123, 141, 0.15);
+}
+
+.step-item.active .step-label {
+  color: #2C2C2C;
+  font-weight: 600;
+}
+
+.step-item.done .step-dot {
+  border-color: #6B7B8D;
+  background: #6B7B8D;
+  color: white;
+}
+
+.step-item.done .step-label {
+  color: #6B7B8D;
+}
+
+.step-item.done .step-line {
+  background: #6B7B8D;
+}
 
 @media (max-width: 768px) {
   .wizard-main { padding: 16px; }
-  .steps-container { padding: 16px 16px 0; }
+  .steps-bar { padding: 16px 16px 0; }
   .page-header { padding: 0 16px; }
+  .step-dot { width: 24px; height: 24px; font-size: 12px; }
+  .step-label { font-size: 13px; }
 }
 </style>
