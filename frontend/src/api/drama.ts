@@ -275,6 +275,18 @@ export function getExportUrl(projectId: number, format: 'txt' | 'markdown'): str
   return `/api/v1/drama/${projectId}/export?format=${format}`
 }
 
+export interface SessionSummary {
+  故事概要: string
+  主要角色: string[]
+  核心冲突: string
+  场景设定: string
+  风格基调: string
+}
+
+export async function summarizeSession(projectId: number): Promise<SessionSummary> {
+  return request.post<SessionSummary>(`/drama/${projectId}/session/summarize`)
+}
+
 // ── Internal SSE helper ──
 
 function _streamRequest(
@@ -340,6 +352,24 @@ function _streamRequest(
           }
         }
       }
+
+      // Process remaining buffer after stream ends
+      if (buffer.startsWith('data: ')) {
+        try {
+          const payload = JSON.parse(buffer.slice(6))
+          if (payload.type === 'done') {
+            onDone(payload.outline || payload.full_response)
+            return
+          }
+          if (payload.type === 'error') {
+            onError(payload.message)
+            return
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+
       onDone()
     })
     .catch((err) => {
