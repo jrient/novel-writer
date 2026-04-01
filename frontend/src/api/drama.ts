@@ -104,12 +104,22 @@ export interface ReorderItem {
   parent_id?: number | null
 }
 
+export interface SessionSummary {
+  故事概要: string
+  主要角色: string[]
+  核心冲突: string
+  场景设定: string
+  风格基调: string
+  目标集数: number
+}
+
 export interface ScriptSession {
   id: number
   project_id: number
   state: 'init' | 'collecting' | 'generating' | 'done'
   history: Array<{ role: string; content: string }> | null
   outline_draft: Record<string, unknown> | null
+  summary: SessionSummary | null
   current_node_id: number | null
   created_at: string
   updated_at: string | null
@@ -220,6 +230,22 @@ export function streamGenerateOutline(
   )
 }
 
+export function streamExpandEpisode(
+  projectId: number,
+  episodeIndex: number,
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (error: string) => void,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/session/expand-episode`,
+    { episode_index: episodeIndex },
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
 export function streamExpandNode(
   projectId: number,
   nodeId: number,
@@ -275,16 +301,12 @@ export function getExportUrl(projectId: number, format: 'txt' | 'markdown'): str
   return `/api/v1/drama/${projectId}/export?format=${format}`
 }
 
-export interface SessionSummary {
-  故事概要: string
-  主要角色: string[]
-  核心冲突: string
-  场景设定: string
-  风格基调: string
-}
-
 export async function summarizeSession(projectId: number): Promise<SessionSummary> {
   return request.post<SessionSummary>(`/drama/${projectId}/session/summarize`)
+}
+
+export async function updateSessionSummary(projectId: number, summary: SessionSummary): Promise<SessionSummary> {
+  return request.put<SessionSummary>(`/drama/${projectId}/session/summary`, summary)
 }
 
 // ── Internal SSE helper ──
