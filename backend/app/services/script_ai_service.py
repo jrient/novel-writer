@@ -17,33 +17,45 @@ logger = logging.getLogger(__name__)
 
 # 解说漫默认提示词
 EXPLANATORY_PROMPTS = {
-    "question": """你是一位专业的解说漫剧本策划师。你需要通过提问来了解用户的创意，帮助生成高质量的解说漫剧本。
+    "question": {
+        "system": """你是一位专业的解说漫剧本策划师，擅长通过引导式提问帮助用户梳理创意。
 
-当前会话历史：
+你必须按照以下5个槽位依次收集信息，每次只问一个问题：
+【槽位1】主题与核心内容 — 解说的主题是什么？要传达哪些关键信息？
+【槽位2】目标受众与风格 — 面向什么观众？希望什么风格基调？
+【槽位3】叙事结构 — 如何组织信息？希望用什么叙事方式（线性/对比/悬疑揭秘等）？
+【槽位4】视觉呈现 — 希望什么画面风格？有没有特殊的视觉要求？
+【槽位5】时长与节奏 — 大约多长？节奏如何安排（快节奏/缓慢叙事等）？
+
+规则：
+- 根据对话历史判断哪些槽位已有足够信息，跳过已回答的
+- 对下一个未完成的槽位提出一个自然、具体的问题
+- 如果用户的回答同时覆盖了多个槽位，直接跳到下一个未覆盖的
+- 不要提及"槽位"这个词，像正常对话一样提问""",
+        "user": """当前会话历史：
 {history}
 
 剧本基本信息：
 标题：{title}
 创意概念：{concept}
 
-请根据以上信息，提出下一个最关键的问题（一次只问一个问题），帮助我们了解：
-- 解说的主题和核心内容
-- 目标受众和风格
-- 信息结构和叙事方式
-- 视觉呈现要求
-
-直接输出问题，不要加任何前缀或解释：""",
-
-    "outline": """你是一位专业的解说漫剧本策划师。请根据以下收集的信息，生成一份完整的解说漫剧本大纲。
-
-剧本基本信息：
+请根据已有信息，对下一个未完成的槽位提出问题。直接输出问题，不要加任何前缀或解释：""",
+    },
+    "outline": {
+        "system": "你是一位专业的解说漫剧本策划师，擅长将零散信息整合为结构清晰的剧本大纲。你必须严格输出 JSON 格式，不输出任何其他内容。",
+        "user": """剧本基本信息：
 标题：{title}
 创意概念：{concept}
 
 收集到的信息：
 {history}
 
-请生成一份 JSON 格式的大纲，包含以下结构：
+请生成一份 JSON 格式的大纲，要求：
+1. 生成 5-10 个完整段落，覆盖引言、正文各部分、结语
+2. 每个段落是最小节点，content 包含完整的旁白内容
+3. sort_order 必须从 0 开始连续递增（0, 1, 2, 3...）
+
+JSON 结构如下：
 {{
   "title": "剧本标题",
   "summary": "剧本总体概述",
@@ -51,173 +63,209 @@ EXPLANATORY_PROMPTS = {
     {{
       "node_type": "intro",
       "title": "引言标题",
-      "content": "引言内容",
+      "content": "引言完整内容",
       "sort_order": 0
     }},
     {{
       "node_type": "section",
       "title": "段落标题",
-      "content": "段落内容概述",
-      "sort_order": 1,
-      "children": [
-        {{
-          "node_type": "narration",
-          "title": "旁白标题",
-          "content": "旁白内容",
-          "sort_order": 0
-        }}
-      ]
+      "content": "段落完整内容",
+      "sort_order": 1
     }}
   ]
 }}
 
 注意：只输出 JSON，不要有其他内容。""",
+    },
+    "expand": {
+        "system": "你是一位专业的解说漫剧本撰写师，擅长将简要概述扩展为详细、生动的解说漫内容。你的写作风格应当：内容详实、信息准确、语言流畅、适合配音和视觉呈现。",
+        "user": """剧本标题：{title}
 
-    "expand": """你是一位专业的解说漫剧本撰写师。请根据以下节点信息，扩展并完善剧本内容。
-
-剧本标题：{title}
+【当前节点】
 节点类型：{node_type}
 节点标题：{node_title}
 当前内容：{content}
+
+【上下文信息】
+{context}
+
 额外指令：{instructions}
 
-请提供详细、生动的剧本内容扩展。要求：
-- 符合解说漫的叙事风格
-- 内容详实、信息准确
-- 语言流畅、易于理解
-- 适合配音和视觉呈现
+请扩展并完善当前节点内容，确保与上下文保持连贯。直接输出扩展后的内容：""",
+    },
+    "rewrite": {
+        "system": "你是一位专业的解说漫剧本编辑，擅长根据指令精准改写内容，保持解说漫的风格特点和叙事连贯性。",
+        "user": """剧本标题：{title}
 
-直接输出扩展后的内容：""",
-
-    "rewrite": """你是一位专业的解说漫剧本编辑。请根据以下指令对剧本内容进行改写。
-
-剧本标题：{title}
+【当前节点】
 节点类型：{node_type}
 原始内容：{content}
+
+【上下文信息】
+{context}
+
 改写指令：{instructions}
 
-请按照指令改写内容，保持解说漫的风格特点。直接输出改写后的内容：""",
-
-    "global_directive": """你是一位专业的解说漫剧本总监。请根据全局指令，对以下剧本内容进行调整。
-
-剧本标题：{title}
+请按照指令改写内容，确保与上下文保持连贯。直接输出改写后的内容：""",
+    },
+    "global_directive": {
+        "system": "你是一位专业的解说漫剧本总监，负责确保整部剧本的风格统一和质量标准。",
+        "user": """剧本标题：{title}
 全局指令：{directive}
 
 需要调整的内容：
 {content}
 
 请根据全局指令调整内容，保持整体风格一致性。直接输出调整后的内容：""",
+    },
 }
 
 # 动态漫默认提示词
 DYNAMIC_PROMPTS = {
-    "question": """你是一位专业的动态漫剧本策划师。你需要通过提问来了解用户的创意，帮助生成高质量的动态漫剧本。
+    "question": {
+        "system": """你是一位专业的动态漫剧本策划师，擅长通过引导式提问帮助用户构建精彩的动态漫故事。
 
-当前会话历史：
+你必须按照以下5个槽位依次收集信息，每次只问一个问题：
+【槽位1】故事背景与世界观 — 故事发生在什么时代/世界？有什么特殊设定？
+【槽位2】主要角色与关系 — 主角是谁？有哪些重要角色？他们之间是什么关系？
+【槽位3】核心冲突与情节 — 故事的核心矛盾是什么？大致的剧情走向？
+【槽位4】风格与受众 — 希望什么风格基调？面向什么观众群体？
+【槽位5】集数与节奏 — 大约多少集？节奏如何安排（快节奏/层层递进等）？
+
+规则：
+- 根据对话历史判断哪些槽位已有足够信息，跳过已回答的
+- 对下一个未完成的槽位提出一个自然、具体的问题
+- 如果用户的回答同时覆盖了多个槽位，直接跳到下一个未覆盖的
+- 不要提及"槽位"这个词，像正常对话一样提问""",
+        "user": """当前会话历史：
 {history}
 
 剧本基本信息：
 标题：{title}
 创意概念：{concept}
 
-请根据以上信息，提出下一个最关键的问题（一次只问一个问题），帮助我们了解：
-- 故事背景和世界观
-- 主要人物和关系
-- 核心冲突和情节走向
-- 分集结构和节奏
-
-直接输出问题，不要加任何前缀或解释：""",
-
-    "outline": """你是一位专业的动态漫剧本策划师。请根据以下收集的信息，生成一份完整的动态漫剧本大纲。
-
-剧本基本信息：
+请根据已有信息，对下一个未完成的槽位提出问题。直接输出问题，不要加任何前缀或解释：""",
+    },
+    "outline": {
+        "system": "你是一位专业的动态漫剧本策划师，擅长将创意构思转化为结构严谨的长篇剧本大纲。你必须严格输出 JSON 格式，不输出任何其他内容。",
+        "user": """剧本基本信息：
 标题：{title}
 创意概念：{concept}
+目标集数：{episode_count}
 
 收集到的信息：
 {history}
 
-请生成一份 JSON 格式的大纲，包含以下结构：
+请生成一份 JSON 格式的简要大纲，要求：
+1. 生成 {episode_count} 集的剧情大纲，覆盖故事的开端、发展、高潮、结局
+2. 每集只需标题和一句话概要，不需要展开场景
+3. 确保剧情连贯、节奏合理，各阶段集数分配得当
+4. sort_order 必须从 0 开始连续递增
+
+JSON 结构如下：
 {{
   "title": "剧本标题",
   "summary": "剧本总体概述",
   "sections": [
     {{
       "node_type": "episode",
-      "title": "第一集标题",
-      "content": "集概述",
+      "title": "第一集：标题",
+      "content": "本集一句话概要",
       "sort_order": 0,
-      "children": [
-        {{
-          "node_type": "scene",
-          "title": "场景标题",
-          "content": "场景描述",
-          "sort_order": 0,
-          "children": [
-            {{
-              "node_type": "dialogue",
-              "title": null,
-              "content": "对白内容",
-              "speaker": "角色名",
-              "sort_order": 0
-            }},
-            {{
-              "node_type": "action",
-              "title": null,
-              "content": "动作描述",
-              "sort_order": 1
-            }}
-          ]
-        }}
-      ]
+      "children": []
     }}
   ]
 }}
 
 注意：只输出 JSON，不要有其他内容。""",
+    },
+    "expand_episode": {
+        "system": "你是一位专业的动态漫剧本撰写师，擅长将集概要展开为详细的场景描述。你必须严格输出 JSON 格式，不输出任何其他内容。",
+        "user": """剧本信息：
+标题：{title}
+总体概述：{outline_summary}
+主要角色：{main_characters}
+核心冲突：{core_conflict}
+风格基调：{style_tone}
 
-    "expand": """你是一位专业的动态漫剧本撰写师。请根据以下节点信息，扩展并完善剧本内容。
+当前集位置：{episode_position}
+前一集：{prev_episode}
+当前集：{current_episode}
+后一集：{next_episode}
 
-剧本标题：{title}
+请将当前集展开为 2-4 个详细场景，要求：
+1. 场景的 content 包含完整的场景描述、对白和动作
+2. 场景之间衔接自然，与前后集保持连贯
+3. sort_order 从 0 开始连续递增
+
+JSON 结构如下：
+{{
+  "children": [
+    {{
+      "node_type": "scene",
+      "title": "场景标题",
+      "content": "【场景】场景描述\\n\\n【对白】\\n角色A：对白内容\\n\\n【动作】\\n动作描述",
+      "sort_order": 0
+    }}
+  ]
+}}
+
+注意：只输出 JSON，不要有其他内容。""",
+    },
+    "expand": {
+        "system": "你是一位专业的动态漫剧本撰写师，擅长将场景概述扩展为生动的对白和动作描述。你的写作应当：对白自然流畅、符合人物性格；动作描述清晰、画面感强；情节紧凑、节奏感强。",
+        "user": """剧本标题：{title}
+
+【当前节点】
 节点类型：{node_type}
 节点标题：{node_title}
 当前内容：{content}
+
+【上下文信息】
+{context}
+
 额外指令：{instructions}
 
-请提供详细、生动的剧本内容扩展。要求：
-- 符合动态漫的叙事风格
-- 对白自然流畅、符合人物性格
-- 动作描述清晰、画面感强
-- 情节紧凑、节奏感强
+请扩展并完善当前节点内容，确保与上下文保持连贯。直接输出扩展后的内容：""",
+    },
+    "rewrite": {
+        "system": "你是一位专业的动态漫剧本编辑，擅长根据指令精准改写内容，保持动态漫的风格特点和叙事连贯性。",
+        "user": """剧本标题：{title}
 
-直接输出扩展后的内容：""",
-
-    "rewrite": """你是一位专业的动态漫剧本编辑。请根据以下指令对剧本内容进行改写。
-
-剧本标题：{title}
+【当前节点】
 节点类型：{node_type}
 原始内容：{content}
+
+【上下文信息】
+{context}
+
 改写指令：{instructions}
 
-请按照指令改写内容，保持动态漫的风格特点。直接输出改写后的内容：""",
-
-    "global_directive": """你是一位专业的动态漫剧本总监。请根据全局指令，对以下剧本内容进行调整。
-
-剧本标题：{title}
+请按照指令改写内容，确保与上下文保持连贯。直接输出改写后的内容：""",
+    },
+    "global_directive": {
+        "system": "你是一位专业的动态漫剧本总监，负责确保整部剧本的风格统一、人物性格一致和情节连贯。",
+        "user": """剧本标题：{title}
 全局指令：{directive}
 
 需要调整的内容：
 {content}
 
 请根据全局指令调整内容，保持整体风格一致性。直接输出调整后的内容：""",
+    },
 }
 
 
-def _get_prompts(script_type: str) -> Dict[str, str]:
+def _get_prompts(script_type: str) -> Dict[str, Dict[str, str]]:
     """根据剧本类型获取提示词模板"""
     if script_type == "explanatory":
         return EXPLANATORY_PROMPTS
     return DYNAMIC_PROMPTS
+
+
+def calc_outline_max_tokens(episode_count: int) -> int:
+    """根据集数动态计算 outline 生成所需 max_tokens，上限 32000"""
+    return min(32000, max(8000, episode_count * 150))
 
 
 def _build_history_text(history: List[Dict[str, Any]]) -> str:
@@ -278,6 +326,10 @@ class ScriptAIService:
             custom = self.custom_prompts.get("system_prompt")
             if custom:
                 return custom
+        prompts = _get_prompts(script_type)
+        prompt_entry = prompts.get(key, {})
+        if isinstance(prompt_entry, dict):
+            return prompt_entry.get("system")
         return None
 
     def _build_messages(
@@ -437,8 +489,8 @@ class ScriptAIService:
     ) -> AsyncGenerator[str, None]:
         """生成下一个 AI 问题（SSE 流式）"""
         prompts = _get_prompts(script_type)
-        template = prompts["question"]
-        prompt = template.format(
+        prompt_entry = prompts["question"]
+        prompt = prompt_entry["user"].format(
             title=title,
             concept=concept or "（未提供）",
             history=_build_history_text(history),
@@ -454,16 +506,84 @@ class ScriptAIService:
         title: str,
         concept: Optional[str],
         history: List[Dict[str, Any]],
+        episode_count: int = 20,
     ) -> AsyncGenerator[str, None]:
         """生成剧本大纲（SSE 流式）"""
         prompts = _get_prompts(script_type)
-        template = prompts["outline"]
-        prompt = template.format(
-            title=title,
-            concept=concept or "（未提供）",
-            history=_build_history_text(history),
-        )
+        prompt_entry = prompts["outline"]
+
+        # 动态漫使用 episode_count 占位符，解说漫不需要
+        if script_type == "dynamic":
+            prompt = prompt_entry["user"].format(
+                title=title,
+                concept=concept or "（未提供）",
+                history=_build_history_text(history),
+                episode_count=episode_count,
+            )
+            # 动态计算 max_tokens
+            dynamic_max_tokens = calc_outline_max_tokens(episode_count)
+            original_max_tokens = self.max_tokens
+            self.max_tokens = max(self.max_tokens, dynamic_max_tokens)
+        else:
+            prompt = prompt_entry["user"].format(
+                title=title,
+                concept=concept or "（未提供）",
+                history=_build_history_text(history),
+            )
+            original_max_tokens = self.max_tokens
+
         system_prompt = self._get_system_prompt("outline", script_type)
+        messages = self._build_messages(prompt, system_prompt)
+        try:
+            async for chunk in self._stream(messages):
+                yield chunk
+        finally:
+            self.max_tokens = original_max_tokens
+
+    async def expand_episode(
+        self,
+        title: str,
+        outline_summary: str,
+        main_characters: List[str],
+        core_conflict: str,
+        style_tone: str,
+        episode_index: int,
+        total_episodes: int,
+        current_episode: Dict[str, Any],
+        prev_episode: Optional[Dict[str, Any]],
+        next_episode: Optional[Dict[str, Any]],
+    ) -> AsyncGenerator[str, None]:
+        """展开单集为详细场景（SSE 流式）"""
+        prompt_entry = DYNAMIC_PROMPTS["expand_episode"]
+
+        def _ep_str(ep: Optional[Dict[str, Any]]) -> str:
+            if not ep:
+                return "（无）"
+            return f"{ep.get('title', '')}：{ep.get('content', '')}"
+
+        # 判断故事阶段
+        ratio = (episode_index + 1) / total_episodes
+        if ratio <= 0.2:
+            stage = "开端阶段"
+        elif ratio <= 0.6:
+            stage = "发展阶段"
+        elif ratio <= 0.85:
+            stage = "高潮阶段"
+        else:
+            stage = "结局阶段"
+
+        prompt = prompt_entry["user"].format(
+            title=title,
+            outline_summary=outline_summary,
+            main_characters="、".join(main_characters) if main_characters else "（未指定）",
+            core_conflict=core_conflict or "（未指定）",
+            style_tone=style_tone or "（未指定）",
+            episode_position=f"第 {episode_index + 1} 集 / 共 {total_episodes} 集，处于{stage}",
+            prev_episode=_ep_str(prev_episode),
+            current_episode=_ep_str(current_episode),
+            next_episode=_ep_str(next_episode),
+        )
+        system_prompt = prompt_entry["system"]
         messages = self._build_messages(prompt, system_prompt)
         async for chunk in self._stream(messages):
             yield chunk
@@ -476,16 +596,18 @@ class ScriptAIService:
         node_title: Optional[str],
         content: Optional[str],
         instructions: Optional[str],
+        context: str = "",
     ) -> AsyncGenerator[str, None]:
         """展开节点内容（SSE 流式）"""
         prompts = _get_prompts(script_type)
-        template = prompts["expand"]
-        prompt = template.format(
+        prompt_entry = prompts["expand"]
+        prompt = prompt_entry["user"].format(
             title=title,
             node_type=node_type,
             node_title=node_title or "（无标题）",
             content=content or "（暂无内容）",
             instructions=instructions or "（无额外指令）",
+            context=context or "（无上下文）",
         )
         system_prompt = self._get_system_prompt("expand", script_type)
         messages = self._build_messages(prompt, system_prompt)
@@ -499,15 +621,17 @@ class ScriptAIService:
         node_type: str,
         content: str,
         instructions: str,
+        context: str = "",
     ) -> AsyncGenerator[str, None]:
         """重写内容（SSE 流式）"""
         prompts = _get_prompts(script_type)
-        template = prompts["rewrite"]
-        prompt = template.format(
+        prompt_entry = prompts["rewrite"]
+        prompt = prompt_entry["user"].format(
             title=title,
             node_type=node_type,
             content=content,
             instructions=instructions,
+            context=context or "（无上下文）",
         )
         system_prompt = self._get_system_prompt("rewrite", script_type)
         messages = self._build_messages(prompt, system_prompt)
@@ -523,8 +647,8 @@ class ScriptAIService:
     ) -> AsyncGenerator[str, None]:
         """全局指令处理（SSE 流式）"""
         prompts = _get_prompts(script_type)
-        template = prompts["global_directive"]
-        prompt = template.format(
+        prompt_entry = prompts["global_directive"]
+        prompt = prompt_entry["user"].format(
             title=title,
             directive=directive,
             content=content,
@@ -548,6 +672,8 @@ class ScriptAIService:
             for m in history
         ])
 
+        system_prompt = "你是一位专业的剧本策划师，擅长从对话中提炼关键创作信息，以结构化 JSON 格式输出。你必须严格输出 JSON 格式，不输出任何其他内容。"
+
         prompt = f"""根据以下对话历史，提取剧本创作的关键信息，以 JSON 格式输出。
 
 剧本类型: {script_type}
@@ -566,7 +692,7 @@ class ScriptAIService:
   "风格基调": "风格基调（如悬疑、温情、喜剧等）"
 }}"""
 
-        messages = self._build_messages(prompt, None)
+        messages = self._build_messages(prompt, system_prompt)
         full_response = ""
         async for chunk in self._stream(messages):
             full_response += chunk
