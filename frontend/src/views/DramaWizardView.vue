@@ -158,18 +158,16 @@
         <div class="outline-review">
           <div class="outline-header">
             <h3 class="outline-title">剧本大纲</h3>
-            <p class="outline-subtitle">请检查 AI 生成的大纲，可以在下方编辑后确认</p>
+            <p class="outline-subtitle">
+              共 {{ outlineSections.length }} 集 · 点击"展开场景"可逐集生成详细场景
+            </p>
           </div>
 
           <div class="outline-tree-wrapper">
-            <ScriptOutlineTree
-              :nodes="outlineDraftNodes"
-              :script-type="dramaStore.currentProject?.script_type || 'dynamic'"
-              :current-node-id="null"
-              @select-node="() => {}"
-              @add-node="() => {}"
-              @delete-node="() => {}"
-              @rename-node="() => {}"
+            <OutlineDraftPreview
+              :project-id="projectId"
+              :sections="outlineSections"
+              @episode-expanded="handleEpisodeExpanded"
             />
           </div>
 
@@ -202,6 +200,7 @@ import { summarizeSession, updateSessionSummary, streamGenerateOutline } from '@
 import type { SessionSummary } from '@/api/drama'
 import WizardChat from '@/components/drama/WizardChat.vue'
 import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
+import OutlineDraftPreview from '@/components/drama/OutlineDraftPreview.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -267,6 +266,18 @@ const outlineDraftNodes = computed(() => {
     })
   }
   return convertSections(session.outline_draft.sections as any[], null)
+})
+
+const outlineSections = computed(() => {
+  const draft = dramaStore.session?.outline_draft
+  if (!draft?.sections) return []
+  return draft.sections as Array<{
+    node_type: string
+    title: string
+    content: string
+    sort_order: number
+    children: Array<{ node_type: string; title: string; content: string; sort_order: number }>
+  }>
 })
 
 async function handleOutlineReady() {
@@ -343,6 +354,11 @@ async function handleGenerateOutline() {
   }
 }
 
+
+async function handleEpisodeExpanded(_index: number) {
+  // 刷新 session 以获取最新的 outline_draft（含展开后的 children）
+  await dramaStore.fetchSession(projectId.value)
+}
 
 async function handleConfirmOutline() {
   confirming.value = true
