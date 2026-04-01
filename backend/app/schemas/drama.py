@@ -162,6 +162,7 @@ class ScriptSessionResponse(BaseModel):
     state: str
     history: Optional[List[Any]] = None
     outline_draft: Optional[Dict[str, Any]] = None
+    summary: Optional[Dict[str, Any]] = None
     current_node_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -174,6 +175,7 @@ class SessionSummaryResponse(BaseModel):
     核心冲突: str
     场景设定: str
     风格基调: str
+    目标集数: int = Field(default=20, ge=1, description="目标集数，仅动态漫有效")
 
 
 # --- AI 操作请求 ---

@@ -27,6 +27,7 @@ services:
       - "8084:8000"
     volumes:
       - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
       - ./data:/app/data
       - ./uploads:/app/uploads
       - ./reference_novels:/app/reference_novels
@@ -36,6 +37,7 @@ services:
       - TZ=Asia/Shanghai
       - HTTP_PROXY=http://172.18.0.1:7890
       - HTTPS_PROXY=http://172.18.0.1:7890
+      - NO_PROXY=yibuapi.com,localhost,127.0.0.1
     depends_on:
       db:
         condition: service_healthy

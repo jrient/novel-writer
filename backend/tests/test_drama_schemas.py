@@ -17,6 +17,7 @@ from app.schemas.drama import (
     ReorderRequest,
     SessionAnswerRequest,
     ScriptSessionResponse,
+    SessionSummaryResponse,
     ExpandNodeRequest,
     RewriteRequest,
     GlobalDirectiveRequest,
@@ -352,3 +353,39 @@ def test_dynamic_node_types():
 
 def test_node_types_are_disjoint():
     assert EXPLANATORY_NODE_TYPES.isdisjoint(DYNAMIC_NODE_TYPES)
+
+
+# ---------------------------------------------------------------------------
+# SessionSummaryResponse 测试
+# ---------------------------------------------------------------------------
+
+def test_session_summary_response_default_episode_count():
+    """目标集数有默认值 20"""
+    data = {
+        "故事概要": "一句话", "主要角色": ["角色A"],
+        "核心冲突": "冲突", "场景设定": "设定", "风格基调": "悬疑",
+    }
+    s = SessionSummaryResponse(**data)
+    assert s.目标集数 == 20
+
+
+def test_session_summary_response_custom_episode_count():
+    """目标集数可以自定义"""
+    data = {
+        "故事概要": "一句话", "主要角色": ["角色A"],
+        "核心冲突": "冲突", "场景设定": "设定", "风格基调": "悬疑",
+        "目标集数": 60,
+    }
+    s = SessionSummaryResponse(**data)
+    assert s.目标集数 == 60
+
+
+def test_session_summary_response_episode_count_min():
+    """目标集数不能小于 1"""
+    data = {
+        "故事概要": "一句话", "主要角色": [],
+        "核心冲突": "冲突", "场景设定": "设定", "风格基调": "悬疑",
+        "目标集数": 0,
+    }
+    with pytest.raises(ValidationError):
+        SessionSummaryResponse(**data)
