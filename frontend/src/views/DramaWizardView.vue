@@ -44,6 +44,7 @@
             :session="dramaStore.session"
             @outline-ready="handleOutlineReady"
             @questions-complete="handleQuestionsComplete"
+            @question-answered="(count: number) => questionCount = count"
           />
           <div v-else class="loading-area">
             <el-skeleton :rows="5" animated />
@@ -78,29 +79,62 @@
           <div class="summary-card">
             <div class="summary-section">
               <h4>故事概要</h4>
-              <p>{{ sessionSummary?.故事概要 }}</p>
+              <el-input
+                v-model="editableSummary.故事概要"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 5 }"
+                placeholder="一句话描述核心剧情"
+              />
             </div>
 
             <div class="summary-section">
               <h4>主要角色</h4>
-              <ul>
-                <li v-for="c in sessionSummary?.主要角色" :key="c">{{ c }}</li>
-              </ul>
+              <div v-for="(c, i) in editableSummary.主要角色" :key="i" class="character-row">
+                <el-input v-model="editableSummary.主要角色[i]" placeholder="角色名称及简介" />
+                <el-button text type="danger" @click="editableSummary.主要角色.splice(i, 1)">删除</el-button>
+              </div>
+              <el-button text size="small" @click="editableSummary.主要角色.push('')">+ 添加角色</el-button>
             </div>
 
             <div class="summary-section">
               <h4>核心冲突</h4>
-              <p>{{ sessionSummary?.核心冲突 }}</p>
+              <el-input
+                v-model="editableSummary.核心冲突"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                placeholder="核心冲突描述"
+              />
             </div>
 
             <div class="summary-section">
               <h4>场景设定</h4>
-              <p>{{ sessionSummary?.场景设定 }}</p>
+              <el-input
+                v-model="editableSummary.场景设定"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                placeholder="主要场景设定"
+              />
             </div>
 
             <div class="summary-section">
               <h4>风格基调</h4>
-              <p>{{ sessionSummary?.风格基调 }}</p>
+              <el-input
+                v-model="editableSummary.风格基调"
+                placeholder="风格基调（如悬疑、温情、喜剧等）"
+              />
+            </div>
+
+            <div v-if="dramaStore.currentProject?.script_type === 'dynamic'" class="summary-section">
+              <h4>目标集数</h4>
+              <p class="summary-hint">AI 将生成这么多集的简要大纲，之后可逐集展开详细场景</p>
+              <el-input-number
+                v-model="editableSummary.目标集数"
+                :min="1"
+                :max="200"
+                :step="10"
+                controls-position="right"
+                style="width: 160px"
+              />
             </div>
           </div>
 
@@ -159,12 +193,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useDramaStore } from '@/stores/drama'
-import { summarizeSession, streamGenerateOutline } from '@/api/drama'
+import { summarizeSession, updateSessionSummary, streamGenerateOutline } from '@/api/drama'
 import type { SessionSummary } from '@/api/drama'
 import WizardChat from '@/components/drama/WizardChat.vue'
 import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
@@ -176,10 +210,18 @@ const dramaStore = useDramaStore()
 const projectId = computed(() => Number(route.params.id))
 const pageLoading = ref(true)
 const confirming = ref(false)
-const wizardStepIndex = ref(0)
+const wizardStepIndex = ref(Number(route.query.step) || 0)
 const questionCount = ref(0)
 const summarizing = ref(false)
 const sessionSummary = ref<SessionSummary | null>(null)
+const editableSummary = reactive<SessionSummary>({
+  故事概要: '',
+  主要角色: [],
+  核心冲突: '',
+  场景设定: '',
+  风格基调: '',
+  目标集数: 20,
+})
 const generatingOutline = ref(false)
 const wizardSteps = [
   { title: 'AI 问答' },
@@ -187,6 +229,14 @@ const wizardSteps = [
   { title: '大纲预览' },
   { title: '开始创作' },
 ]
+
+// Sync step to URL query param
+watch(wizardStepIndex, (step) => {
+  const currentStep = Number(route.query.step) || 0
+  if (currentStep !== step) {
+    router.replace({ query: { ...route.query, step: String(step) } })
+  }
+})
 
 // Convert outline_draft sections to display nodes for review step
 const outlineDraftNodes = computed(() => {
@@ -234,11 +284,21 @@ function handleQuestionsComplete() {
   questionCount.value = 5
 }
 
+function syncEditableSummary(summary: SessionSummary) {
+  editableSummary.故事概要 = summary.故事概要 || ''
+  editableSummary.主要角色 = [...(summary.主要角色 || [])]
+  editableSummary.核心冲突 = summary.核心冲突 || ''
+  editableSummary.场景设定 = summary.场景设定 || ''
+  editableSummary.风格基调 = summary.风格基调 || ''
+  editableSummary.目标集数 = summary.目标集数 ?? 20
+}
+
 async function handleNextStep() {
   summarizing.value = true
   try {
     const summary = await summarizeSession(projectId.value)
     sessionSummary.value = summary
+    syncEditableSummary(summary)
     wizardStepIndex.value = 1
   } catch {
     ElMessage.error('汇总信息失败')
@@ -255,16 +315,18 @@ function handleBackToChat() {
 async function handleGenerateOutline() {
   generatingOutline.value = true
   try {
+    // Save edited summary before generating
+    await updateSessionSummary(projectId.value, { ...editableSummary })
     // 流式生成大纲
     streamGenerateOutline(
       projectId.value,
       () => {
         // 流式输出 chunk（忽略）
       },
-      async (outline) => {
+      async () => {
         generatingOutline.value = false
-        if (outline) {
-          await dramaStore.fetchSession(projectId.value)
+        await dramaStore.fetchSession(projectId.value)
+        if (dramaStore.session?.outline_draft) {
           wizardStepIndex.value = 2
         } else {
           ElMessage.warning('大纲生成中，请稍后刷新')
@@ -306,9 +368,34 @@ onMounted(async () => {
       dramaStore.fetchNodes(projectId.value),
     ])
 
-    // If nodes already exist, skip to outline review
+    const sess = dramaStore.session
+    const urlStep = Number(route.query.step) || 0
+
+    // Restore questionCount from session
+    if (sess) {
+      if (sess.state === 'done' || sess.state === 'generating') {
+        questionCount.value = 5
+      } else if (sess.history) {
+        const userMsgCount = sess.history.filter((m) => m.role === 'user').length
+        questionCount.value = Math.min(userMsgCount, 5)
+      }
+    }
+
+    // Determine which step to show based on URL + session state
     if (dramaStore.nodes.length && dramaStore.currentProject?.status !== 'drafting') {
+      // Nodes confirmed → outline review
       wizardStepIndex.value = 2
+    } else if (urlStep === 2 && sess?.outline_draft) {
+      // URL says step 2 and outline exists → stay on outline preview
+      wizardStepIndex.value = 2
+    } else if (urlStep === 1 && sess?.summary) {
+      // URL says step 1 and summary saved → restore summary and stay
+      sessionSummary.value = sess.summary as SessionSummary
+      syncEditableSummary(sess.summary as SessionSummary)
+      wizardStepIndex.value = 1
+    } else {
+      // Default to step 0 (Q&A)
+      wizardStepIndex.value = 0
     }
   } catch {
     ElMessage.error('加载失败')
@@ -472,6 +559,23 @@ onMounted(async () => {
   font-weight: 600;
   color: #6B7B8D;
   margin: 0 0 8px;
+}
+
+.summary-hint {
+  font-size: 12px;
+  color: #9E9E9E;
+  margin: 4px 0 8px;
+}
+
+.character-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.character-row .el-input {
+  flex: 1;
 }
 
 .summary-section p,
