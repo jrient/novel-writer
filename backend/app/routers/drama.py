@@ -20,6 +20,7 @@ from app.routers.auth import get_current_user
 from app.schemas.drama import (
     DYNAMIC_NODE_TYPES,
     EXPLANATORY_NODE_TYPES,
+    ExpandEpisodeRequest,
     ExpandNodeRequest,
     GlobalDirectiveRequest,
     ReorderRequest,
@@ -502,6 +503,25 @@ async def session_summarize(
     return summary
 
 
+@router.put("/{id}/session/summary", response_model=SessionSummaryResponse)
+async def update_session_summary(
+    body: SessionSummaryResponse,
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """保存用户编辑后的摘要"""
+    result = await db.execute(
+        select(ScriptSession).where(ScriptSession.project_id == project.id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    session.summary = body.model_dump()
+    await db.commit()
+    return body
+
+
 @router.post("/{id}/session/generate-outline")
 async def session_generate_outline(
     project: ScriptProject = Depends(get_drama_project),
@@ -518,7 +538,21 @@ async def session_generate_outline(
     session.state = "generating"
     await db.commit()
 
+    # 读取目标集数（仅动态漫有效）
+    episode_count = 20
+    if project.script_type == "dynamic" and session.summary:
+        episode_count = int((session.summary or {}).get("目标集数", 20))
+        episode_count = max(1, min(200, episode_count))
+
     history = list(session.history or [])
+    # If user edited summary, append it as extra context for outline generation
+    if session.summary:
+        import json as _json
+        summary_text = _json.dumps(session.summary, ensure_ascii=False)
+        history = history + [
+            {"role": "assistant", "content": "根据以上对话，我整理的创作信息如下："},
+            {"role": "user", "content": f"确认的创作信息：{summary_text}\n请严格基于以上确认信息生成大纲。"},
+        ]
     ai_service = ScriptAIService(project.ai_config)
 
     async def stream():
@@ -529,6 +563,7 @@ async def session_generate_outline(
                 title=project.title,
                 concept=project.concept,
                 history=history,
+                episode_count=episode_count,
             ):
                 full_response += chunk
                 yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
@@ -552,13 +587,143 @@ async def session_generate_outline(
                 )
                 updated_session = update_result.scalar_one_or_none()
                 if updated_session:
+                    # Preserve previous outline in history before overwriting
+                    if updated_session.outline_draft:
+                        outline_history = list(updated_session.outline_history or [])
+                        outline_history.append(updated_session.outline_draft)
+                        updated_session.outline_history = outline_history
                     updated_session.outline_draft = outline_json
                     updated_session.state = "done"
                     await db.commit()
-                    logger.info(f"Outline saved successfully for project {project.id}")
+                    logger.info(f"Outline saved for project {project.id}, episodes={episode_count}")
+                    # 检查生成的集数是否完整
+                    actual_count = len(outline_json.get("sections", []))
+                    if actual_count < episode_count:
+                        yield f"data: {json.dumps({'type': 'partial_warning', 'actual': actual_count, 'expected': episode_count})}\n\n"
             except json.JSONDecodeError as e:
-                logger.warning(f"Could not parse outline JSON from AI response: {e}")
-                logger.debug(f"Response was: {full_response[:500]}...")
+                logger.warning(f"Could not parse outline JSON: {e}")
+                # 尝试补全截断的 JSON
+                try:
+                    fixed = json_str.rstrip()
+                    # 补全常见截断：缺少结尾的 ]}}
+                    for suffix in [']}', ']}', ']}}']:
+                        try:
+                            outline_json = json.loads(fixed + suffix)
+                            # 解析成功，保存修复后的结果
+                            update_result = await db.execute(
+                                select(ScriptSession).where(ScriptSession.project_id == project.id)
+                            )
+                            updated_session = update_result.scalar_one_or_none()
+                            if updated_session:
+                                updated_session.outline_draft = outline_json
+                                updated_session.state = "done"
+                                await db.commit()
+                                actual_count = len(outline_json.get("sections", []))
+                                yield f"data: {json.dumps({'type': 'partial_warning', 'actual': actual_count, 'expected': episode_count})}\n\n"
+                            break
+                        except json.JSONDecodeError:
+                            continue
+                    else:
+                        # 无法修复
+                        yield f"data: {json.dumps({'type': 'error', 'message': f'大纲生成不完整，请减少集数后重试'})}\n\n"
+                        return
+                except Exception:
+                    yield f"data: {json.dumps({'type': 'error', 'message': '大纲解析失败，请重试'})}\n\n"
+                    return
+
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    return _sse_response(stream())
+
+
+@router.post("/{id}/session/expand-episode")
+async def session_expand_episode(
+    body: ExpandEpisodeRequest,
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """展开单集为详细场景（SSE 流式）"""
+    if project.script_type != "dynamic":
+        raise HTTPException(status_code=400, detail="仅动态漫支持逐集展开")
+
+    result = await db.execute(
+        select(ScriptSession).where(ScriptSession.project_id == project.id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="会话不存在")
+    if not session.outline_draft:
+        raise HTTPException(status_code=400, detail="请先生成大纲")
+
+    sections = session.outline_draft.get("sections", [])
+    idx = body.episode_index
+    if idx < 0 or idx >= len(sections):
+        raise HTTPException(status_code=400, detail=f"集索引 {idx} 超出范围（共 {len(sections)} 集）")
+
+    current_ep = sections[idx]
+    prev_ep = sections[idx - 1] if idx > 0 else None
+    next_ep = sections[idx + 1] if idx < len(sections) - 1 else None
+    total = len(sections)
+
+    summary_data = session.summary or {}
+    main_characters = summary_data.get("主要角色", [])
+    core_conflict = summary_data.get("核心冲突", "")
+    style_tone = summary_data.get("风格基调", "")
+    outline_summary = session.outline_draft.get("summary", "")
+
+    ai_service = ScriptAIService(project.ai_config)
+
+    async def stream():
+        full_response = ""
+        try:
+            async for chunk in ai_service.expand_episode(
+                title=project.title,
+                outline_summary=outline_summary,
+                main_characters=main_characters,
+                core_conflict=core_conflict,
+                style_tone=style_tone,
+                episode_index=idx,
+                total_episodes=total,
+                current_episode=current_ep,
+                prev_episode=prev_ep,
+                next_episode=next_ep,
+            ):
+                full_response += chunk
+                yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
+        except Exception as e:
+            logger.error(f"expand_episode stream error: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            return
+
+        if full_response:
+            try:
+                json_str = full_response.strip()
+                start_idx = json_str.find('{')
+                end_idx = json_str.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    json_str = json_str[start_idx:end_idx + 1]
+                result_json = json.loads(json_str)
+                children = result_json.get("children", [])
+
+                # 写回 outline_draft
+                update_result = await db.execute(
+                    select(ScriptSession).where(ScriptSession.project_id == project.id)
+                )
+                updated_session = update_result.scalar_one_or_none()
+                if updated_session and updated_session.outline_draft:
+                    import copy
+                    new_draft = copy.deepcopy(updated_session.outline_draft)
+                    new_sections = new_draft.get("sections", [])
+                    if idx < len(new_sections):
+                        new_sections[idx]["children"] = children
+                        new_draft["sections"] = new_sections
+                        updated_session.outline_draft = new_draft
+                        await db.commit()
+                        logger.info(f"Episode {idx} expanded with {len(children)} scenes for project {project.id}")
+            except json.JSONDecodeError as e:
+                logger.warning(f"Could not parse expand_episode JSON: {e}")
+                yield f"data: {json.dumps({'type': 'error', 'message': '场景生成解析失败，请重试'})}\n\n"
+                return
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
@@ -623,6 +788,58 @@ async def _write_nodes_async(
 # ─── AI Content Generation Routes (SSE) ──────────────────────────────────────
 
 
+async def _build_node_context(
+    db: AsyncSession, node: ScriptNode, project_id: int
+) -> str:
+    """构建节点的上下文信息：父节点概要 + 相邻兄弟节点标题 + 故事摘要"""
+    parts = []
+
+    # 1. 父节点信息
+    if node.parent_id:
+        parent_result = await db.execute(
+            select(ScriptNode).where(ScriptNode.id == node.parent_id)
+        )
+        parent = parent_result.scalar_one_or_none()
+        if parent:
+            parts.append(f"所属{parent.node_type}：{parent.title or '未命名'}")
+            if parent.content:
+                parts.append(f"概要：{parent.content[:200]}")
+
+            # 2. 兄弟节点（同一父节点下的相邻节点）
+            siblings_result = await db.execute(
+                select(ScriptNode)
+                .where(
+                    ScriptNode.parent_id == node.parent_id,
+                    ScriptNode.project_id == project_id,
+                )
+                .order_by(ScriptNode.sort_order)
+            )
+            siblings = siblings_result.scalars().all()
+            if len(siblings) > 1:
+                sibling_info = []
+                for s in siblings:
+                    marker = "→ " if s.id == node.id else "  "
+                    label = s.title or (s.content[:30] + "..." if s.content else "未命名")
+                    sibling_info.append(f"{marker}[{s.node_type}] {label}")
+                parts.append("同级节点：\n" + "\n".join(sibling_info))
+
+    # 3. 故事摘要（从 session 获取）
+    session_result = await db.execute(
+        select(ScriptSession).where(ScriptSession.project_id == project_id)
+    )
+    session = session_result.scalar_one_or_none()
+    if session and session.summary:
+        summary = session.summary
+        if summary.get("故事概要"):
+            parts.append(f"故事概要：{summary['故事概要']}")
+        if summary.get("核心冲突"):
+            parts.append(f"核心冲突：{summary['核心冲突']}")
+        if summary.get("风格基调"):
+            parts.append(f"风格基调：{summary['风格基调']}")
+
+    return "\n".join(parts) if parts else ""
+
+
 @router.post("/{id}/nodes/{node_id}/expand")
 async def expand_node(
     node_id: int,
@@ -641,6 +858,7 @@ async def expand_node(
     if not node:
         raise HTTPException(status_code=404, detail="节点不存在")
 
+    context = await _build_node_context(db, node, project.id)
     ai_service = ScriptAIService(project.ai_config)
 
     async def stream():
@@ -652,6 +870,7 @@ async def expand_node(
                 node_title=node.title,
                 content=node.content,
                 instructions=body.instructions,
+                context=context,
             )
         ):
             yield chunk
@@ -676,6 +895,7 @@ async def rewrite_content(
     if not node:
         raise HTTPException(status_code=404, detail="节点不存在")
 
+    context = await _build_node_context(db, node, project.id)
     ai_service = ScriptAIService(project.ai_config)
 
     async def stream():
@@ -686,6 +906,7 @@ async def rewrite_content(
                 node_type=node.node_type,
                 content=node.content or "",
                 instructions=body.instructions,
+                context=context,
             )
         ):
             yield chunk

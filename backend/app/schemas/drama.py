@@ -195,3 +195,8 @@ class RewriteRequest(BaseModel):
 class GlobalDirectiveRequest(BaseModel):
     """全局指令请求"""
     directive: str = Field(..., min_length=1, description="全局指令内容")
+
+
+class ExpandEpisodeRequest(BaseModel):
+    """展开单集请求"""
+    episode_index: int = Field(..., ge=0, description="要展开的集索引（从0开始）")
