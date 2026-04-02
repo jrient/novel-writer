@@ -200,3 +200,30 @@ class GlobalDirectiveRequest(BaseModel):
 class ExpandEpisodeRequest(BaseModel):
     """展开单集请求"""
     episode_index: int = Field(..., ge=0, description="要展开的集索引（从0开始）")
+
+
+# ── Node Version Schemas ──
+
+class CreateVersionRequest(BaseModel):
+    source: str = Field(..., pattern=r"^(ai_apply|switch|manual)$", description="版本来源")
+
+class NodeVersionResponse(BaseModel):
+    id: int
+    node_id: int
+    version_number: int
+    title: Optional[str] = None
+    content: Optional[str] = None
+    source: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class NodeVersionListResponse(BaseModel):
+    id: int
+    node_id: int
+    version_number: int
+    title: Optional[str] = None
+    source: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
