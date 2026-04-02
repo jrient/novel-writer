@@ -402,3 +402,27 @@ function _streamRequest(
 
   return controller
 }
+
+// ── Node Version API ──
+
+export interface NodeVersion {
+  id: number
+  node_id: number
+  version_number: number
+  title: string | null
+  content: string | null
+  source: 'init' | 'ai_apply' | 'switch' | 'manual'
+  created_at: string
+}
+
+export async function listNodeVersions(projectId: number, nodeId: number): Promise<NodeVersion[]> {
+  return request.get<NodeVersion[]>(`/drama/${projectId}/nodes/${nodeId}/versions`)
+}
+
+export async function createNodeVersion(projectId: number, nodeId: number, source: string): Promise<NodeVersion> {
+  return request.post<NodeVersion>(`/drama/${projectId}/nodes/${nodeId}/versions`, { source })
+}
+
+export async function restoreNodeVersion(projectId: number, nodeId: number, versionId: number): Promise<NodeVersion> {
+  return request.post<NodeVersion>(`/drama/${projectId}/nodes/${nodeId}/versions/${versionId}/restore`)
+}
