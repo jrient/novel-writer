@@ -13,16 +13,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.script_node import ScriptNode
+from app.models.script_node_version import ScriptNodeVersion
 from app.models.script_project import ScriptProject
 from app.models.script_session import ScriptSession
 from app.models.user import User
 from app.routers.auth import get_current_user
 from app.schemas.drama import (
+    CreateVersionRequest,
     DYNAMIC_NODE_TYPES,
     EXPLANATORY_NODE_TYPES,
     ExpandEpisodeRequest,
     ExpandNodeRequest,
     GlobalDirectiveRequest,
+    NodeVersionResponse,
     ReorderRequest,
     RewriteRequest,
     ScriptNodeCreate,
@@ -107,6 +110,44 @@ async def _sse_stream(generator):
 
 
 # ─── Project CRUD ─────────────────────────────────────────────────────────────
+
+
+async def _create_node_version(
+    db: AsyncSession, node: ScriptNode, source: str
+) -> ScriptNodeVersion:
+    """Create a version snapshot for an episode node, enforcing max 20 versions."""
+    result = await db.execute(
+        select(func.coalesce(func.max(ScriptNodeVersion.version_number), 0))
+        .where(ScriptNodeVersion.node_id == node.id)
+    )
+    next_version = result.scalar() + 1
+
+    version = ScriptNodeVersion(
+        node_id=node.id,
+        version_number=next_version,
+        title=node.title,
+        content=node.content,
+        source=source,
+    )
+    db.add(version)
+    await db.flush()
+
+    # Enforce max 20 versions: delete oldest if exceeded
+    count_result = await db.execute(
+        select(func.count()).where(ScriptNodeVersion.node_id == node.id)
+    )
+    total = count_result.scalar()
+    if total > 20:
+        oldest_result = await db.execute(
+            select(ScriptNodeVersion)
+            .where(ScriptNodeVersion.node_id == node.id)
+            .order_by(ScriptNodeVersion.version_number.asc())
+            .limit(total - 20)
+        )
+        for old_ver in oldest_result.scalars():
+            await db.delete(old_ver)
+
+    return version
 
 
 @router.post("/", response_model=ScriptProjectResponse, status_code=201)
@@ -753,6 +794,23 @@ async def session_confirm_outline(
     sections = outline.get("sections", [])
     await _write_nodes_async(db, project.id, sections, parent_id=None)
 
+    # Create initial versions for all episode nodes
+    ep_result = await db.execute(
+        select(ScriptNode).where(
+            ScriptNode.project_id == project.id,
+            ScriptNode.node_type == "episode",
+        )
+    )
+    for ep_node in ep_result.scalars():
+        init_ver = ScriptNodeVersion(
+            node_id=ep_node.id,
+            version_number=1,
+            title=ep_node.title,
+            content=ep_node.content,
+            source="init",
+        )
+        db.add(init_ver)
+
     # Update project status
     project.status = "outlined"
 
@@ -1056,3 +1114,83 @@ def _export_markdown(project: ScriptProject, nodes: list) -> str:
         render(root)
 
     return "\n".join(lines)
+
+
+# ── Node Version History ──
+
+
+@router.get("/{id}/nodes/{node_id}/versions", response_model=List[NodeVersionResponse])
+async def list_node_versions(
+    node_id: int,
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """查询节点版本历史列表（含 content，最多 20 条）"""
+    result = await db.execute(
+        select(ScriptNodeVersion)
+        .where(ScriptNodeVersion.node_id == node_id)
+        .order_by(ScriptNodeVersion.version_number.desc())
+    )
+    return result.scalars().all()
+
+
+@router.post("/{id}/nodes/{node_id}/versions", response_model=NodeVersionResponse)
+async def create_node_version(
+    node_id: int,
+    body: CreateVersionRequest,
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """手动创建节点版本快照"""
+    result = await db.execute(
+        select(ScriptNode).where(
+            ScriptNode.id == node_id,
+            ScriptNode.project_id == project.id,
+            ScriptNode.node_type == "episode",
+        )
+    )
+    node = result.scalar_one_or_none()
+    if not node:
+        raise HTTPException(status_code=404, detail="Episode 节点不存在")
+
+    version = await _create_node_version(db, node, body.source)
+    await db.commit()
+    await db.refresh(version)
+    return version
+
+
+@router.post("/{id}/nodes/{node_id}/versions/{version_id}/restore", response_model=NodeVersionResponse)
+async def restore_node_version(
+    node_id: int,
+    version_id: int,
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """恢复到指定版本（恢复前自动创建当前内容的快照）"""
+    node_result = await db.execute(
+        select(ScriptNode).where(
+            ScriptNode.id == node_id,
+            ScriptNode.project_id == project.id,
+            ScriptNode.node_type == "episode",
+        )
+    )
+    node = node_result.scalar_one_or_none()
+    if not node:
+        raise HTTPException(status_code=404, detail="Episode 节点不存在")
+
+    ver_result = await db.execute(
+        select(ScriptNodeVersion).where(
+            ScriptNodeVersion.id == version_id,
+            ScriptNodeVersion.node_id == node_id,
+        )
+    )
+    target = ver_result.scalar_one_or_none()
+    if not target:
+        raise HTTPException(status_code=404, detail="版本不存在")
+
+    pre_restore = await _create_node_version(db, node, "manual")
+    node.title = target.title
+    node.content = target.content
+    await db.commit()
+    await db.refresh(pre_restore)
+    return pre_restore
