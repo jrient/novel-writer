@@ -2,12 +2,15 @@
 剧本节点模型
 """
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import String, Text, Integer, Boolean, JSON, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.script_node_version import ScriptNodeVersion
 
 
 class ScriptNode(Base):
@@ -82,6 +85,11 @@ class ScriptNode(Base):
         "ScriptNode",
         back_populates="children",
         remote_side="ScriptNode.id",
+    )
+
+    versions: Mapped[List["ScriptNodeVersion"]] = relationship(
+        "ScriptNodeVersion", back_populates="node", cascade="all, delete-orphan",
+        order_by="ScriptNodeVersion.version_number.desc()"
     )
 
     def __repr__(self):

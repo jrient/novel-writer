@@ -20,6 +20,7 @@ from app.models.token_usage import TokenUsage
 
 from app.models.script_project import ScriptProject
 from app.models.script_node import ScriptNode
+from app.models.script_node_version import ScriptNodeVersion
 from app.models.script_session import ScriptSession
 
 from app.models.expansion_project import ExpansionProject
@@ -30,6 +31,6 @@ __all__ = [
     "Project", "Chapter", "ChapterVersion", "Character", "WorldbuildingEntry",
     "OutlineNode", "ReferenceNovel", "NovelChunk", "KnowledgeEntry",
     "Note", "StoryEvent", "Plotline", "TokenUsage",
-    "ScriptProject", "ScriptNode", "ScriptSession",
+    "ScriptProject", "ScriptNode", "ScriptNodeVersion", "ScriptSession",
     "ExpansionProject", "ExpansionSegment",
 ]
