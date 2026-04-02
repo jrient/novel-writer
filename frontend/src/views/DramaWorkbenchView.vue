@@ -4,6 +4,8 @@
     <header class="workbench-header">
       <div class="header-left">
         <el-button text :icon="ArrowLeft" @click="router.push('/drama')">返回</el-button>
+        <el-divider direction="vertical" />
+        <el-button text @click="router.push(`/drama/wizard/${dramaStore.currentProject?.id}`)">剧本引导</el-button>
         <span class="project-title">{{ dramaStore.currentProject?.title || '加载中...' }}</span>
         <el-tag
           v-if="dramaStore.currentProject"
@@ -75,7 +77,9 @@
         <ScriptEditor
           :node="dramaStore.currentNode"
           :script-type="dramaStore.currentProject?.script_type || 'dynamic'"
+          :project-id="projectId"
           @save="handleSaveNode"
+          @version-restored="handleVersionRestored"
         />
       </main>
 
@@ -157,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeft, ArrowDown, MagicStick, Download, Setting, Cpu,
@@ -165,6 +169,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDramaStore } from '@/stores/drama'
 import { getExportUrl } from '@/api/drama'
+import { createNodeVersion } from '@/api/drama'
 import type { ScriptNode } from '@/api/drama'
 import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
 import ScriptEditor from '@/components/drama/ScriptEditor.vue'
@@ -275,8 +280,29 @@ const availableNodeTypes = computed(() => {
   ]
 })
 
+// Track loaded content for dirty checking on node switch
+const loadedNodeContent = ref<string | null>(null)
+
+watch(() => dramaStore.currentNode, (node) => {
+  loadedNodeContent.value = node?.content ?? null
+}, { immediate: true })
+
 // Handlers
-function handleSelectNode(node: ScriptNode) {
+async function handleSelectNode(node: ScriptNode) {
+  const prev = dramaStore.currentNode
+  // Snapshot if switching away from a dirty episode
+  if (
+    prev &&
+    prev.node_type === 'episode' &&
+    prev.id !== node.id &&
+    prev.content !== loadedNodeContent.value
+  ) {
+    try {
+      await createNodeVersion(projectId.value, prev.id, 'switch')
+    } catch {
+      // Snapshot failure should not block switch
+    }
+  }
   dramaStore.selectNode(node)
 }
 
@@ -354,7 +380,21 @@ async function handleSaveNode(data: {
 
 function handleApplyAiText(text: string) {
   if (!dramaStore.currentNode) return
+  // Snapshot before AI apply (only for episode nodes)
+  if (dramaStore.currentNode.node_type === 'episode') {
+    createNodeVersion(projectId.value, dramaStore.currentNode.id, 'ai_apply').catch(() => {
+      // Snapshot failure should not block apply
+    })
+  }
   handleSaveNode({ content: text })
+}
+
+async function handleVersionRestored() {
+  await dramaStore.fetchNodes(projectId.value)
+  if (dramaStore.currentNode) {
+    const updated = dramaStore.nodes.find(n => n.id === dramaStore.currentNode?.id)
+    if (updated) dramaStore.selectNode(updated)
+  }
 }
 
 async function handleExport(format: 'txt' | 'markdown') {

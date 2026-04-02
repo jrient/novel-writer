@@ -23,6 +23,15 @@
           @change="handleTitleChange"
         />
         <div class="header-actions">
+          <el-button
+            v-if="node.node_type === 'episode'"
+            size="small"
+            text
+            @click="showVersions = true"
+          >
+            <el-icon><Clock /></el-icon>
+            历史版本
+          </el-button>
           <el-tag v-if="node.is_completed" type="success" size="small" effect="plain">已完成</el-tag>
           <span v-if="saveStatus" class="save-status">{{ saveStatus }}</span>
         </div>
@@ -64,23 +73,35 @@
           @input="handleContentInput"
         />
       </div>
+
+      <!-- Version history dialog for episode nodes -->
+      <VersionHistoryDialog
+        v-if="node?.node_type === 'episode'"
+        v-model="showVersions"
+        :project-id="projectId"
+        :node-id="node.id"
+        @restored="emit('version-restored')"
+      />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Document } from '@element-plus/icons-vue'
+import { Document, Clock } from '@element-plus/icons-vue'
 import type { ScriptNode } from '@/api/drama'
 import NodeTypeIcon from './NodeTypeIcon.vue'
+import VersionHistoryDialog from './VersionHistoryDialog.vue'
 
 const props = defineProps<{
   node: ScriptNode | null
   scriptType: 'explanatory' | 'dynamic'
+  projectId: number
 }>()
 
 const emit = defineEmits<{
   (e: 'save', data: { title?: string; content?: string; speaker?: string; visual_desc?: string }): void
+  (e: 'version-restored'): void
 }>()
 
 const localTitle = ref('')
@@ -88,6 +109,7 @@ const localContent = ref('')
 const localSpeaker = ref('')
 const localVisualDesc = ref('')
 const saveStatus = ref('')
+const showVersions = ref(false)
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 const nodeTypeLabels: Record<string, string> = {
