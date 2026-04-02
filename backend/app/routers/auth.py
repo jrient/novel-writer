@@ -54,7 +54,9 @@ async def get_current_user(
     if token:
         user_id = verify_token(token)
         if user_id:
-            result = await db.execute(select(User).where(User.id == user_id))
+            result = await db.execute(
+                select(User).where(User.id == user_id, User.deleted_at == None)
+            )
             user = result.scalar_one_or_none()
             if user and user.is_active:
                 return user
@@ -62,7 +64,7 @@ async def get_current_user(
     # 其次 API Key
     if x_api_key:
         result = await db.execute(
-            select(User).where(User.api_key == x_api_key)
+            select(User).where(User.api_key == x_api_key, User.deleted_at == None)
         )
         user = result.scalar_one_or_none()
         if user and user.is_active:
@@ -123,7 +125,8 @@ async def register(
     # 检查用户名和邮箱是否已存在
     result = await db.execute(
         select(User).where(
-            or_(User.username == user_data.username, User.email == user_data.email)
+            or_(User.username == user_data.username, User.email == user_data.email),
+            User.deleted_at == None,
         )
     )
     if result.scalar_one_or_none():
@@ -169,7 +172,8 @@ async def login(
             or_(
                 User.username == form_data.username,
                 User.email == form_data.username,
-            )
+            ),
+            User.deleted_at == None,
         )
     )
     user = result.scalar_one_or_none()
@@ -217,7 +221,8 @@ async def login_json(
             or_(
                 User.username == login_data.username,
                 User.email == login_data.username,
-            )
+            ),
+            User.deleted_at == None,
         )
     )
     user = result.scalar_one_or_none()
@@ -273,7 +278,9 @@ async def refresh_token(
             detail="无效的刷新令牌",
         )
 
-    result = await db.execute(select(User).where(User.id == user_id))
+    result = await db.execute(
+        select(User).where(User.id == user_id, User.deleted_at == None)
+    )
     user = result.scalar_one_or_none()
 
     if not user or not user.is_active:
@@ -468,14 +475,14 @@ async def github_callback(
 
     # 查找或创建用户
     result = await db.execute(
-        select(User).where(User.github_id == github_id)
+        select(User).where(User.github_id == github_id, User.deleted_at == None)
     )
     user = result.scalar_one_or_none()
 
     if not user and email:
         # 尝试通过邮箱查找已有用户
         result = await db.execute(
-            select(User).where(User.email == email)
+            select(User).where(User.email == email, User.deleted_at == None)
         )
         user = result.scalar_one_or_none()
 
@@ -584,14 +591,14 @@ async def wechat_callback(
 
     # 查找或创建用户
     result = await db.execute(
-        select(User).where(User.wechat_openid == openid)
+        select(User).where(User.wechat_openid == openid, User.deleted_at == None)
     )
     user = result.scalar_one_or_none()
 
     if not user and unionid:
         # 尝试通过 unionid 查找
         result = await db.execute(
-            select(User).where(User.wechat_unionid == unionid)
+            select(User).where(User.wechat_unionid == unionid, User.deleted_at == None)
         )
         user = result.scalar_one_or_none()
 

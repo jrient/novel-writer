@@ -230,5 +230,5 @@ class ConvertRequest(BaseModel):
 
 class ExpandSegmentRequest(BaseModel):
     """单段扩写请求"""
-    segment_id: int = Field(..., description="要扩写的分段ID")
+    segment_id: Optional[int] = Field(None, description="要扩写的分段ID（可选，已在URL中）")
     instructions: Optional[str] = Field(None, description="额外指令")

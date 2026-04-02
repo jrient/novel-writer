@@ -124,7 +124,7 @@
               />
             </div>
 
-            <div v-if="dramaStore.currentProject?.script_type === 'dynamic'" class="summary-section">
+            <div class="summary-section">
               <h4>目标集数</h4>
               <p class="summary-hint">AI 将生成这么多集的简要大纲，之后可逐集展开详细场景</p>
               <el-input-number
@@ -642,9 +642,9 @@ onMounted(async () => {
   background: white;
   border: 1px solid #E0DFDC;
   border-radius: 16px;
-  overflow: hidden;
+  overflow-y: auto;
   min-height: 300px;
-  max-height: 480px;
+  max-height: calc(100vh - 320px);
 }
 
 .outline-actions {

@@ -79,6 +79,16 @@
       </el-button>
 
       <el-button
+        v-if="currentSegment"
+        size="small"
+        @click="$emit('split')"
+        style="width: 100%"
+      >
+        <el-icon><Scissor /></el-icon>
+        拆分此段
+      </el-button>
+
+      <el-button
         v-if="currentSegment?.status === 'error'"
         type="warning"
         :loading="isRetrying"
@@ -129,7 +139,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { VideoPlay, VideoPause, RefreshRight } from '@element-plus/icons-vue'
+import { VideoPlay, VideoPause, RefreshRight, Scissor } from '@element-plus/icons-vue'
 import type { ExpansionSegment } from '@/api/expansion'
 
 const props = defineProps<{
@@ -147,6 +157,7 @@ const emit = defineEmits<{
   'pause': []
   'resume': []
   'retry': [segmentId: number]
+  'split': []
 }>()
 
 const localConfig = ref({

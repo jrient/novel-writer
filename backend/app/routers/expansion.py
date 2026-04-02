@@ -131,7 +131,7 @@ async def create_project(
 
 @router.post("/upload", response_model=ExpansionProjectResponse, status_code=201)
 async def upload_project(
-    title: str = Query(..., min_length=1, max_length=200),
+    title: Optional[str] = Query(None, max_length=200),
     expansion_level: str = Query("medium", pattern="^(light|medium|deep)$"),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
@@ -140,6 +140,10 @@ async def upload_project(
     """上传文件创建扩写项目（支持 txt/markdown/docx）"""
     content = await file.read()
     filename = file.filename.lower()
+
+    # 如果没有提供标题，使用文件名
+    if not title:
+        title = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
 
     try:
         if filename.endswith(".txt"):
@@ -382,7 +386,78 @@ async def delete_project(
     await db.commit()
 
 
+# ─── Analysis Helpers ─────────────────────────────────────────────────────────
+
+
+def _extract_json_from_response(text: str) -> Optional[Dict[str, Any]]:
+    """从 AI 响应中提取 JSON 对象"""
+    json_text = text.strip()
+    # 移除可能的 markdown 代码块标记
+    if json_text.startswith("```"):
+        first_newline = json_text.find("\n")
+        if first_newline != -1:
+            json_text = json_text[first_newline + 1:]
+        if json_text.endswith("```"):
+            json_text = json_text[:-3].strip()
+
+    start_idx = json_text.find("{")
+    end_idx = json_text.rfind("}") + 1
+    if start_idx != -1 and end_idx > start_idx:
+        return json.loads(json_text[start_idx:end_idx])
+    return None
+
+
+async def _create_segments_from_breakpoints(
+    db: AsyncSession,
+    project: ExpansionProject,
+    breakpoints: List[Dict[str, Any]],
+) -> int:
+    """
+    两阶段分段 - 阶段2：用本地算法根据断点创建分段记录。
+    返回创建的分段数量。
+    """
+    # 删除旧分段
+    await db.execute(
+        delete(ExpansionSegment).where(
+            ExpansionSegment.project_id == project.id
+        )
+    )
+
+    original_text = project.original_text
+    computed = ExpansionAIService.compute_segments_from_breakpoints(
+        original_text, breakpoints
+    )
+
+    for idx, seg_info in enumerate(computed):
+        start = seg_info["start"]
+        end = seg_info["end"]
+        original_content = original_text[start:end]
+
+        segment = ExpansionSegment(
+            project_id=project.id,
+            sort_order=idx,
+            title=seg_info.get("title"),
+            original_content=original_content,
+            original_word_count=len(original_content),
+            status="pending",
+        )
+        db.add(segment)
+
+    # 重新查询项目对象（SSE 长时间流后原对象可能已脱离 session）
+    result = await db.execute(
+        select(ExpansionProject).where(ExpansionProject.id == project.id)
+    )
+    fresh_project = result.scalar_one_or_none()
+    if fresh_project:
+        fresh_project.status = "segmented"
+        logger.info(f"[_create_segments] Setting project {project.id} status to 'segmented'")
+    await db.commit()
+    logger.info(f"[_create_segments] Committed transaction for project {project.id}")
+    return len(computed)
+
+
 # ─── Analysis (SSE) ───────────────────────────────────────────────────────────
+
 
 
 @router.post("/{id}/analyze")
@@ -390,78 +465,288 @@ async def analyze_project(
     project: ExpansionProject = Depends(get_expansion_project),
     db: AsyncSession = Depends(get_db),
 ):
-    """分析文本（SSE 流式），生成摘要、文风画像和分段建议"""
+    """
+    两阶段智能分段（SSE 流式）：
+    阶段1 - AI 识别自然断点（流式返回）
+    阶段2 - 本地算法根据断点 + 字数约束计算最优分段
+    """
     ai_service = ExpansionAIService(project.ai_config)
 
+    MAX_ANALYSIS_CHARS = 10000
+    analysis_text = project.original_text
+    if len(analysis_text) > MAX_ANALYSIS_CHARS:
+        analysis_text = analysis_text[:MAX_ANALYSIS_CHARS]
+
     async def stream():
+        # 阶段1：AI 识别断点
+        logger.info(f"[ANALYZE] Starting analysis for project {project.id}, text length: {len(analysis_text)}")
+        yield f"data: {json.dumps({'type': 'phase', 'phase': 'identifying_breakpoints', 'message': '正在识别自然断点...'})}\n\n"
+
         full_response = ""
-        async for chunk in _sse_stream(ai_service.analyze_text(project.original_text)):
-            try:
-                data = json.loads(chunk.removeprefix("data: ").strip())
-                if data.get("type") == "text":
-                    full_response += data.get("text", "")
-            except Exception:
-                pass
-            yield chunk
+        try:
+            logger.info(f"Calling AI analyze_text for project {project.id}")
+            async for chunk in ai_service.analyze_text(analysis_text):
+                full_response += chunk
+                yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
+        except Exception as e:
+            logger.error(f"AI analyze stream error: {e}", exc_info=True)
+            logger.info(f"AI analyze_text completed for project {project.id}, response length: {len(full_response)}")
+            yield f"data: {json.dumps({'type': 'error', 'message': f'AI 调用失败: {str(e)}'})}\n\n"
+            return
 
-        # 解析 AI 返回的 JSON，创建分段
-        if full_response:
-            try:
-                # 尝试提取 JSON 部分
-                json_match = None
-                start_idx = full_response.find("{")
-                end_idx = full_response.rfind("}") + 1
-                if start_idx != -1 and end_idx != -1:
-                    json_str = full_response[start_idx:end_idx]
-                    analysis = json.loads(json_str)
+        if not full_response:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'AI 未返回有效结果'})}\n\n"
+            return
 
-                    # 更新项目摘要和文风画像
-                    summary = analysis.get("summary", "")
-                    style_profile = analysis.get("style_profile", {})
+        # 解析 AI 返回的 JSON
+        try:
+            analysis = _extract_json_from_response(full_response)
+            if not analysis:
+                yield f"data: {json.dumps({'type': 'error', 'message': '无法解析 AI 返回的 JSON'})}\n\n"
+                return
 
-                    if summary or style_profile:
-                        update_result = await db.execute(
-                            select(ExpansionProject).where(ExpansionProject.id == project.id)
-                        )
-                        updated_project = update_result.scalar_one_or_none()
-                        if updated_project:
-                            updated_project.summary = summary
-                            updated_project.style_profile = style_profile
-                            await db.commit()
+            # 更新项目摘要和文风画像
+            summary = analysis.get("summary", "")
+            style_profile = analysis.get("style_profile", {})
+            breakpoints = analysis.get("breakpoints", [])
 
-                    # 创建分段
-                    segment_suggestions = analysis.get("segment_suggestions", [])
-                    if segment_suggestions:
-                        # 删除可能存在的旧分段
-                        await db.execute(
-                            delete(ExpansionSegment).where(
-                                ExpansionSegment.project_id == project.id
-                            )
-                        )
+            # 兼容旧格式：如果返回的是 segment_suggestions 而不是 breakpoints
+            if not breakpoints and analysis.get("segment_suggestions"):
+                for seg in analysis["segment_suggestions"]:
+                    breakpoints.append({
+                        "anchor_text": seg.get("start_text", ""),
+                        "type": "段落结束",
+                        "strength": 2,
+                        "label": seg.get("title", ""),
+                    })
 
-                        # 创建新分段
-                        for idx, seg in enumerate(segment_suggestions):
-                            start = seg.get("start", 0)
-                            end = seg.get("end", 0)
-                            original_content = project.original_text[start:end]
+            if summary or style_profile:
+                update_result = await db.execute(
+                    select(ExpansionProject).where(ExpansionProject.id == project.id)
+                )
+                updated_project = update_result.scalar_one_or_none()
+                if updated_project:
+                    updated_project.summary = summary
+                    updated_project.style_profile = style_profile
+                    await db.commit()
 
-                            segment = ExpansionSegment(
-                                project_id=project.id,
-                                sort_order=idx,
-                                title=seg.get("title"),
-                                original_content=original_content,
-                                original_word_count=len(original_content),
-                                status="pending",
-                            )
-                            db.add(segment)
+            # 阶段2：本地算法计算分段
+            yield f"data: {json.dumps({'type': 'phase', 'phase': 'computing_segments', 'message': f'已识别 {len(breakpoints)} 个断点，正在计算最优分段...'})}\n\n"
 
-                        project.status = "segmented"
-                        await db.commit()
+            segment_count = await _create_segments_from_breakpoints(
+                db, project, breakpoints
+            )
 
-            except json.JSONDecodeError:
-                logger.warning("Could not parse analysis JSON from AI response")
-            except Exception as e:
-                logger.error(f"Error processing analysis result: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'phase', 'phase': 'segmentation_done', 'message': f'分段完成，共 {segment_count} 段'})}\n\n"
+
+        except json.JSONDecodeError:
+            logger.warning("Could not parse analysis JSON from AI response")
+            yield f"data: {json.dumps({'type': 'error', 'message': '解析 AI 返回的 JSON 失败'})}\n\n"
+        except Exception as e:
+            logger.error(f"Error processing analysis result: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'处理分析结果出错: {str(e)}'})}\n\n"
+
+        # 最后发 done 事件
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    return _sse_response(stream())
+
+
+@router.post("/{id}/segments/resegment")
+async def resegment_segments(
+    id: int,
+    body: SegmentMergeRequest,  # 复用这个 schema，它有 segment_ids
+    project: ExpansionProject = Depends(get_expansion_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    对指定分段重新分段（SSE 流式）
+    将选中的分段内容合并后重新分析分段
+    """
+    if not body.segment_ids:
+        raise HTTPException(status_code=400, detail="请选择要重新分段的段落")
+
+    # 获取选中的分段
+    result = await db.execute(
+        select(ExpansionSegment)
+        .where(ExpansionSegment.project_id == id)
+        .where(ExpansionSegment.id.in_(body.segment_ids))
+        .order_by(ExpansionSegment.sort_order)
+    )
+    selected_segments = result.scalars().all()
+
+    if not selected_segments:
+        raise HTTPException(status_code=404, detail="未找到选中的分段")
+
+    # 合并选中分段的内容
+    combined_text = "\n\n".join(seg.original_content for seg in selected_segments)
+    combined_word_count = sum(seg.original_word_count for seg in selected_segments)
+    min_sort_order = min(seg.sort_order for seg in selected_segments)
+
+    ai_service = ExpansionAIService(project.ai_config)
+
+    MAX_ANALYSIS_CHARS = 10000
+    analysis_text = combined_text
+    if len(analysis_text) > MAX_ANALYSIS_CHARS:
+        analysis_text = analysis_text[:MAX_ANALYSIS_CHARS]
+
+    async def stream():
+        yield f"data: {json.dumps({'type': 'phase', 'phase': 'identifying_breakpoints', 'message': f'正在对 {len(selected_segments)} 段内容重新分段...'})}\n\n"
+
+        full_response = ""
+        try:
+            async for chunk in ai_service.analyze_text(analysis_text):
+                full_response += chunk
+                yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
+        except Exception as e:
+            logger.error(f"AI resegment segments stream error: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'AI 调用失败: {str(e)}'})}\n\n"
+            return
+
+        if not full_response:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'AI 未返回有效结果'})}\n\n"
+            return
+
+        try:
+            analysis = _extract_json_from_response(full_response)
+            if not analysis:
+                yield f"data: {json.dumps({'type': 'error', 'message': '无法解析 AI 返回的 JSON'})}\n\n"
+                return
+
+            breakpoints = analysis.get("breakpoints", [])
+
+            # 兼容旧格式
+            if not breakpoints and analysis.get("segment_suggestions"):
+                for seg in analysis["segment_suggestions"]:
+                    breakpoints.append({
+                        "anchor_text": seg.get("start_text", ""),
+                        "type": "段落结束",
+                        "strength": 2,
+                        "label": seg.get("title", ""),
+                    })
+
+            yield f"data: {json.dumps({'type': 'phase', 'phase': 'computing_segments', 'message': f'已识别 {len(breakpoints)} 个断点，正在计算最优分段...'})}\n\n"
+
+            # 计算新分段
+            computed = ExpansionAIService.compute_segments_from_breakpoints(
+                combined_text, breakpoints
+            )
+
+            # 删除原来的分段
+            old_ids = [seg.id for seg in selected_segments]
+            await db.execute(
+                delete(ExpansionSegment).where(ExpansionSegment.id.in_(old_ids))
+            )
+
+            # 创建新分段，保持原来的排序位置
+            for idx, seg_info in enumerate(computed):
+                start = seg_info["start"]
+                end = seg_info["end"]
+                original_content = combined_text[start:end]
+
+                segment = ExpansionSegment(
+                    project_id=id,
+                    sort_order=min_sort_order + idx,
+                    title=seg_info.get("title"),
+                    original_content=original_content,
+                    original_word_count=len(original_content),
+                    status="pending",
+                )
+                db.add(segment)
+
+            # 更新后续分段的排序
+            await db.execute(
+                update(ExpansionSegment)
+                .where(ExpansionSegment.project_id == id)
+                .where(ExpansionSegment.sort_order >= min_sort_order + len(computed))
+                .values(sort_order=ExpansionSegment.sort_order + len(computed) - len(selected_segments))
+            )
+
+            await db.commit()
+
+            yield f"data: {json.dumps({'type': 'phase', 'phase': 'segmentation_done', 'message': f'重新分段完成，原 {len(selected_segments)} 段拆分为 {len(computed)} 段'})}\n\n"
+
+        except json.JSONDecodeError:
+            logger.warning("Could not parse analysis JSON from AI response")
+            yield f"data: {json.dumps({'type': 'error', 'message': '解析 AI 返回的 JSON 失败'})}\n\n"
+        except Exception as e:
+            logger.error(f"Error processing resegment segments result: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'处理重新分段结果出错: {str(e)}'})}\n\n"
+
+    return _sse_response(stream())
+
+
+@router.post("/{id}/resegment")
+async def resegment_project(
+    project: ExpansionProject = Depends(get_expansion_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """重新分段（SSE 流式），两阶段智能分段"""
+    ai_service = ExpansionAIService(project.ai_config)
+
+    MAX_ANALYSIS_CHARS = 10000
+    analysis_text = project.original_text
+    if len(analysis_text) > MAX_ANALYSIS_CHARS:
+        analysis_text = analysis_text[:MAX_ANALYSIS_CHARS]
+
+    async def stream():
+        yield f"data: {json.dumps({'type': 'phase', 'phase': 'identifying_breakpoints', 'message': '正在重新识别自然断点...'})}\n\n"
+
+        full_response = ""
+        try:
+            async for chunk in ai_service.analyze_text(analysis_text):
+                full_response += chunk
+                yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
+        except Exception as e:
+            logger.error(f"AI resegment stream error: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'AI 调用失败: {str(e)}'})}\n\n"
+            return
+
+        if not full_response:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'AI 未返回有效结果'})}\n\n"
+            return
+
+        try:
+            analysis = _extract_json_from_response(full_response)
+            if not analysis:
+                yield f"data: {json.dumps({'type': 'error', 'message': '无法解析 AI 返回的 JSON'})}\n\n"
+                return
+
+            # 更新摘要和文风
+            summary = analysis.get("summary", "")
+            style_profile = analysis.get("style_profile", {})
+            breakpoints = analysis.get("breakpoints", [])
+
+            # 兼容旧格式
+            if not breakpoints and analysis.get("segment_suggestions"):
+                for seg in analysis["segment_suggestions"]:
+                    breakpoints.append({
+                        "anchor_text": seg.get("start_text", ""),
+                        "type": "段落结束",
+                        "strength": 2,
+                        "label": seg.get("title", ""),
+                    })
+
+            if summary or style_profile:
+                project.summary = summary
+                project.style_profile = style_profile
+
+            yield f"data: {json.dumps({'type': 'phase', 'phase': 'computing_segments', 'message': f'已识别 {len(breakpoints)} 个断点，正在计算最优分段...'})}\n\n"
+
+            segment_count = await _create_segments_from_breakpoints(
+                db, project, breakpoints
+            )
+
+            yield f"data: {json.dumps({'type': 'phase', 'phase': 'segmentation_done', 'message': f'重新分段完成，共 {segment_count} 段'})}\n\n"
+
+        except json.JSONDecodeError:
+            logger.warning("Could not parse analysis JSON from AI response")
+            yield f"data: {json.dumps({'type': 'error', 'message': '解析 AI 返回的 JSON 失败'})}\n\n"
+        except Exception as e:
+            logger.error(f"Error processing resegment result: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'处理重新分段结果出错: {str(e)}'})}\n\n"
+
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
     return _sse_response(stream())
 
@@ -1061,6 +1346,42 @@ def _export_markdown(project: ExpansionProject, segments: List[ExpansionSegment]
 
     return "\n".join(lines)
 
+
+@router.post("/{id}/analyze-test")
+async def analyze_project_test(
+    project: ExpansionProject = Depends(get_expansion_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """测试：非流式分析"""
+    ai_service = ExpansionAIService(project.ai_config)
+    
+    MAX_ANALYSIS_CHARS = 10000
+    analysis_text = project.original_text
+    if len(analysis_text) > MAX_ANALYSIS_CHARS:
+        analysis_text = analysis_text[:MAX_ANALYSIS_CHARS]
+    
+    try:
+        full_response = await ai_service.analyze_text_non_stream(analysis_text)
+        logger.info(f"Non-stream test response length: {len(full_response)}")
+        
+        analysis = _extract_json_from_response(full_response)
+        if not analysis:
+            return {"error": "无法解析 AI 返回的 JSON", "response_length": len(full_response), "response_preview": full_response[:500]}
+        
+        summary = analysis.get("summary", "")
+        style_profile = analysis.get("style_profile", {})
+        breakpoints = analysis.get("breakpoints", [])
+        
+        return {
+            "success": True,
+            "summary_length": len(summary),
+            "breakpoints_count": len(breakpoints),
+            "style_profile_keys": list(style_profile.keys()) if style_profile else [],
+            "full_response_length": len(full_response),
+        }
+    except Exception as e:
+        logger.error(f"Non-stream analyze error: {e}", exc_info=True)
+        return {"error": str(e)}
 
 @router.post("/{id}/convert", status_code=201)
 async def convert_project(

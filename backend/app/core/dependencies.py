@@ -5,7 +5,7 @@
 from typing import Optional
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -37,13 +37,16 @@ async def get_project_with_auth(
 ) -> Project:
     """
     获取项目（带用户认证和数据隔离）
-    确保用户只能访问自己的项目
+    管理员可访问所有项目，普通用户只能访问自己的项目
     """
     result = await db.execute(
         select(Project)
         .where(
             Project.id == project_id,
-            Project.owner_id == current_user.id,
+            or_(
+                Project.owner_id == current_user.id,
+                current_user.is_superuser == True,
+            ),
         )
         .options(selectinload(Project.chapters))
     )

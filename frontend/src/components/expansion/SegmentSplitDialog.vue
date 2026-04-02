@@ -23,14 +23,17 @@
         class="text-container"
         @click="handleTextClick"
       >
-        <span
-          v-for="(char, idx) in textChars"
-          :key="idx"
-          :class="{ 'cursor-position': idx === splitPosition }"
-          class="text-char"
-        >
-          {{ char }}
-        </span>
+        <template v-for="(line, lineIdx) in textLines" :key="lineIdx">
+          <br v-if="lineIdx > 0" />
+          <span
+            v-for="(char, charIdx) in line.chars"
+            :key="`${lineIdx}-${charIdx}`"
+            :class="{ 'cursor-position': lineIdx === cursorLine && charIdx === cursorChar }"
+            class="text-char"
+          >
+            {{ char }}
+          </span>
+        </template>
       </div>
 
       <div v-if="splitPosition !== null" class="split-preview">
@@ -114,21 +117,43 @@ const loading = ref(false)
 const splitPosition = ref<number | null>(null)
 const selectedSegmentIds = ref<number[]>([])
 
-// Split mode
-const textChars = computed(() => {
+// Split mode - split by lines for proper rendering
+const textLines = computed(() => {
   if (!props.segment) return []
-  return props.segment.original_content.split('')
+  const lines = props.segment.original_content.split('\n')
+  let offset = 0
+  return lines.map((line) => {
+    const chars = line.split('')
+    const lineData = { chars, startOffset: offset }
+    offset += line.length + 1 // +1 for the newline
+    return lineData
+  })
 })
+
+const cursorLine = ref<number | null>(null)
+const cursorChar = ref<number | null>(null)
 
 function handleTextClick(event: MouseEvent) {
   const target = event.target as HTMLElement
   if (target.classList.contains('text-char')) {
-    const container = target.parentElement
+    const container = target.closest('.text-container')
     if (!container) return
-    const chars = container.querySelectorAll('.text-char')
-    const idx = Array.from(chars).indexOf(target)
+    const allChars = container.querySelectorAll('.text-char')
+    const idx = Array.from(allChars).indexOf(target)
     if (idx !== -1) {
-      splitPosition.value = idx
+      // Calculate line and character position
+      let charCount = 0
+      for (let lineIdx = 0; lineIdx < textLines.value.length; lineIdx++) {
+        const line = textLines.value[lineIdx]
+        if (charCount + line.chars.length > idx) {
+          cursorLine.value = lineIdx
+          cursorChar.value = idx - charCount
+          // Calculate absolute position
+          splitPosition.value = line.startOffset + cursorChar.value
+          return
+        }
+        charCount += line.chars.length
+      }
     }
   }
 }

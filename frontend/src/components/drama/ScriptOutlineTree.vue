@@ -25,7 +25,7 @@
           >
             <NodeTypeIcon :node-type="data.node_type" size="small" />
             <span class="node-label" :class="{ 'node-label--completed': data.is_completed }">
-              {{ data.title || '未命名' }}
+              {{ getNodeLabel(data) }}
             </span>
             <el-icon v-if="data.is_completed" class="check-icon"><Select /></el-icon>
           </div>
@@ -92,26 +92,20 @@ const contextMenu = reactive({
   node: null as ScriptNode | null,
 })
 
-// Build tree data from flat nodes
-const treeData = computed(() => {
-  const map = new Map<number, ScriptNode & { children: ScriptNode[] }>()
-  const roots: (ScriptNode & { children: ScriptNode[] })[] = []
+// API already returns nested tree structure, use directly
+const treeData = computed(() => props.nodes)
 
-  for (const n of props.nodes) {
-    map.set(n.id, { ...n, children: [] })
+function getNodeLabel(data: ScriptNode): string {
+  if (data.title) return data.title
+  if (data.node_type === 'dialogue' && data.speaker) {
+    const preview = data.content ? data.content.slice(0, 20) : ''
+    return `${data.speaker}：${preview}${data.content && data.content.length > 20 ? '...' : ''}`
   }
-
-  for (const n of props.nodes) {
-    const node = map.get(n.id)!
-    if (n.parent_id && map.has(n.parent_id)) {
-      map.get(n.parent_id)!.children.push(node)
-    } else {
-      roots.push(node)
-    }
+  if (data.content) {
+    return data.content.slice(0, 30) + (data.content.length > 30 ? '...' : '')
   }
-
-  return roots
-})
+  return '未命名'
+}
 
 function handleNodeClick(data: ScriptNode) {
   emit('select-node', data)

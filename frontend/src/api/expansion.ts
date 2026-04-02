@@ -189,6 +189,10 @@ export function streamAnalyzeProject(id: number, callbacks: StreamCallbacks): Ab
   return _expansionStreamRequest(`/api/v1/expansion/${id}/analyze`, {}, callbacks)
 }
 
+export function streamResegmentProject(id: number, callbacks: StreamCallbacks): AbortController {
+  return _expansionStreamRequest(`/api/v1/expansion/${id}/resegment`, {}, callbacks)
+}
+
 // ── Segments ──
 
 export async function getSegments(projectId: number): Promise<ExpansionSegment[]> {
@@ -260,6 +264,18 @@ export function streamRetrySegment(
   )
 }
 
+export function streamResegmentSegments(
+  projectId: number,
+  segmentIds: number[],
+  callbacks: StreamCallbacks,
+): AbortController {
+  return _expansionStreamRequest(
+    `/api/v1/expansion/${projectId}/segments/resegment`,
+    { segment_ids: segmentIds },
+    callbacks,
+  )
+}
+
 // ── Export & Convert ──
 
 export function getExportUrl(
@@ -283,6 +299,7 @@ function _expansionStreamRequest(
   url: string,
   body: Record<string, unknown>,
   callbacks: StreamCallbacks,
+  timeoutMs: number = 600000, // 默认 10 分钟超时（长文本分析可能需要）
 ): AbortController {
   const controller = new AbortController()
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
@@ -291,13 +308,21 @@ function _expansionStreamRequest(
     headers['Authorization'] = `Bearer ${token}`
   }
 
+  // 设置整体超时
+  const timeoutId = setTimeout(() => {
+    controller.abort()
+    callbacks.onError?.('请求超时，文本过长或服务器响应过慢')
+  }, timeoutMs)
+
   fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify(body),
     signal: controller.signal,
+    credentials: 'same-origin',
   })
     .then(async (response) => {
+      console.log('[SSE] Response status:', response.status, 'headers:', Array.from(response.headers.entries()))
       if (!response.ok) {
         const err = await response.json().catch(() => ({ detail: '请求失败' }))
         callbacks.onError?.(err.detail || '请求失败')
@@ -309,13 +334,47 @@ function _expansionStreamRequest(
         callbacks.onError?.('无法读取响应流')
         return
       }
+      console.log('[SSE] Reader acquired, starting to read stream...')
 
       const decoder = new TextDecoder()
       let buffer = ''
+      // TTFB 超时：首字节最多等 60 秒
+      const TTFB_TIMEOUT = 60000
+      // 读取超时：后续每块数据最多等 180 秒
+      const READ_TIMEOUT = 180000
+
+      let readTimeoutId: ReturnType<typeof setTimeout> | null = null
+      let isFirstChunk = true
+
+      const resetReadTimeout = () => {
+        if (readTimeoutId) clearTimeout(readTimeoutId)
+        readTimeoutId = setTimeout(() => {
+          controller.abort()
+          callbacks.onError?.('服务器响应超时，AI 模型可能过慢或网络不稳定')
+        }, READ_TIMEOUT)
+      }
+
+      // 首字节超时检测
+      const ttfbTimeoutId = setTimeout(() => {
+        if (isFirstChunk) {
+          controller.abort()
+          callbacks.onError?.('AI 响应超时（60 秒未收到首字节），请重试或检查 AI 服务状态')
+        }
+      }, TTFB_TIMEOUT)
+
+      resetReadTimeout()
 
       while (true) {
         const { done, value } = await reader.read()
+        console.log('[SSE] Read chunk:', { done, valueLength: value?.length })
         if (done) break
+
+        if (isFirstChunk) {
+          clearTimeout(ttfbTimeoutId)
+          isFirstChunk = false
+        }
+
+        resetReadTimeout()
 
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
@@ -332,16 +391,18 @@ function _expansionStreamRequest(
               }
 
               if (type === 'done') {
+                if (readTimeoutId) clearTimeout(readTimeoutId)
                 callbacks.onDone?.(rest)
                 return
               }
 
               if (type === 'error') {
+                if (readTimeoutId) clearTimeout(readTimeoutId)
                 callbacks.onError?.(payload.message || '发生错误')
                 return
               }
 
-              // Handle all other event types: status, segments, segment_start, segment_done, await_confirm
+              // Handle all other event types: status, segments, segment_start, segment_done, await_confirm, phase
               if (type) {
                 callbacks.onEvent?.(type, payload)
               }
@@ -351,12 +412,18 @@ function _expansionStreamRequest(
           }
         }
       }
+      if (readTimeoutId) clearTimeout(readTimeoutId)
+      if (ttfbTimeoutId) clearTimeout(ttfbTimeoutId)
       callbacks.onDone?.()
     })
     .catch((err) => {
+      console.error('[SSE] Fetch error:', err)
       if (err.name !== 'AbortError') {
         callbacks.onError?.(err.message || '网络请求失败')
       }
+    })
+    .finally(() => {
+      clearTimeout(timeoutId)
     })
 
   return controller

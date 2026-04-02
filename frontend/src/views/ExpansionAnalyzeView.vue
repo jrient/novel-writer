@@ -51,7 +51,7 @@
                 </div>
                 <div v-else class="waiting-text">
                   <el-icon class="is-loading"><Loading /></el-icon>
-                  AI 正在分析文本...
+                  {{ analysisPhase || 'AI 正在分析文本...' }}
                 </div>
               </div>
             </div>
@@ -102,6 +102,15 @@
               <div class="card-header">
                 <span class="header-title">分段列表</span>
                 <div class="header-actions">
+                  <el-button
+                    v-if="segments.length > 0"
+                    text
+                    size="small"
+                    :loading="analyzing"
+                    @click="startResegment"
+                  >
+                    重新分段
+                  </el-button>
                   <el-tag size="small" type="info">
                     共 {{ segments.length }} 段 / {{ totalWordCount.toLocaleString() }} 字
                   </el-tag>
@@ -262,6 +271,7 @@ const projectId = computed(() => Number(route.params.id))
 const pageLoading = ref(true)
 const analyzing = ref(false)
 const streamingSummary = ref('')
+const analysisPhase = ref('')  // 当前分析阶段提示
 const editingSummary = ref(false)
 const editedSummary = ref('')
 const abortController = ref<AbortController | null>(null)
@@ -366,11 +376,6 @@ async function loadData() {
         style_instructions: project.value.style_instructions || '',
       }
     }
-
-    // Auto-start analysis if status is 'created'
-    if (project.value?.status === 'created') {
-      startAnalysis()
-    }
   } finally {
     pageLoading.value = false
   }
@@ -379,18 +384,61 @@ async function loadData() {
 function startAnalysis() {
   analyzing.value = true
   streamingSummary.value = ''
+  analysisPhase.value = '正在识别自然断点...'
 
   abortController.value = expansionStore.startAnalysis(projectId.value, {
     onText: (text) => {
       streamingSummary.value += text
     },
+    onEvent: (type, data) => {
+      if (type === 'phase') {
+        const phaseData = data as { phase?: string; message?: string }
+        analysisPhase.value = phaseData.message || ''
+      }
+    },
     onDone: () => {
       analyzing.value = false
+      analysisPhase.value = ''
       ElMessage.success('分析完成')
+      // 刷新项目和分段数据
+      expansionStore.fetchProject(projectId.value)
+      expansionStore.fetchSegments(projectId.value)
     },
     onError: (error) => {
       analyzing.value = false
+      analysisPhase.value = ''
       ElMessage.error(error || '分析失败')
+    },
+  })
+}
+
+function startResegment() {
+  analyzing.value = true
+  streamingSummary.value = ''
+  analysisPhase.value = '正在重新识别自然断点...'
+
+  abortController.value = expansionStore.resegment(projectId.value, {
+    onText: (text) => {
+      streamingSummary.value += text
+    },
+    onEvent: (type, data) => {
+      if (type === 'phase') {
+        const phaseData = data as { phase?: string; message?: string }
+        analysisPhase.value = phaseData.message || ''
+      }
+    },
+    onDone: () => {
+      analyzing.value = false
+      analysisPhase.value = ''
+      ElMessage.success('重新分段完成')
+      // 刷新项目和分段数据
+      expansionStore.fetchProject(projectId.value)
+      expansionStore.fetchSegments(projectId.value)
+    },
+    onError: (error) => {
+      analyzing.value = false
+      analysisPhase.value = ''
+      ElMessage.error(error || '重新分段失败')
     },
   })
 }

@@ -44,6 +44,11 @@ class ScriptSession(Base):
         JSON, nullable=True, comment="大纲草稿"
     )
 
+    # 大纲历史版本（每次重新生成时保留旧版本）
+    outline_history: Mapped[Optional[list]] = mapped_column(
+        JSON, nullable=True, default=list, comment="大纲历史版本"
+    )
+
     # AI 汇总的结构化信息
     summary: Mapped[Optional[dict]] = mapped_column(
         JSON, nullable=True, comment="AI汇总的结构化信息"

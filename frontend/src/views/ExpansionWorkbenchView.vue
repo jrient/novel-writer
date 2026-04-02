@@ -37,10 +37,12 @@
       <!-- Left: segment list -->
       <aside class="sidebar-left" :style="{ width: leftWidth + 'px' }">
         <ExpansionSegmentList
+          ref="segmentListRef"
           :segments="segments"
           :current-segment-id="currentSegmentId"
           :expanding-segment-id="expandingSegmentId"
           @select="handleSelectSegment"
+          @resegment="handleResegment"
         />
       </aside>
 
@@ -83,6 +85,7 @@
           @pause="handlePause"
           @resume="handleResume"
           @retry="handleRetry"
+          @split="showSplitDialog = true"
         />
       </aside>
     </div>
@@ -136,6 +139,15 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
+    <!-- Split Dialog -->
+    <SegmentSplitDialog
+      v-model="showSplitDialog"
+      mode="split"
+      :segment="currentSegment"
+      :adjacent-segments="[]"
+      @split="handleSplit"
+    />
   </div>
 </template>
 
@@ -149,6 +161,7 @@ import ExpansionSegmentList from '@/components/expansion/ExpansionSegmentList.vu
 import ExpansionComparePanel from '@/components/expansion/ExpansionComparePanel.vue'
 import ExpansionControlPanel from '@/components/expansion/ExpansionControlPanel.vue'
 import ExpansionProgressBar from '@/components/expansion/ExpansionProgressBar.vue'
+import SegmentSplitDialog from '@/components/expansion/SegmentSplitDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -170,6 +183,9 @@ const showExportDialog = ref(false)
 const exportFormat = ref<'txt' | 'md' | 'docx'>('txt')
 const exportVersion = ref<'original' | 'expanded' | 'both'>('expanded')
 const convertTarget = ref<'novel' | 'drama'>('novel')
+
+// Split
+const showSplitDialog = ref(false)
 
 // Computed
 const project = computed(() => expansionStore.currentProject)
@@ -237,6 +253,35 @@ async function loadData() {
 
 function handleSelectSegment(id: number) {
   expansionStore.setCurrentSegment(id)
+}
+
+const segmentListRef = ref<InstanceType<typeof ExpansionSegmentList> | null>(null)
+
+function handleResegment(segmentIds: number[]) {
+  if (!segmentListRef.value) return
+  segmentListRef.value.setResegmenting(true)
+
+  abortController.value = expansionStore.resegmentSegments(projectId.value, segmentIds, {
+    onText: () => {},
+    onEvent: (type, data) => {
+      if (type === 'phase') {
+        const phaseData = data as { message?: string }
+        if (phaseData.message) {
+          ElMessage.info(phaseData.message)
+        }
+      }
+    },
+    onDone: () => {
+      segmentListRef.value?.setResegmenting(false)
+      ElMessage.success('重新分段完成')
+      // 刷新分段列表
+      expansionStore.fetchSegments(projectId.value)
+    },
+    onError: (error) => {
+      segmentListRef.value?.setResegmenting(false)
+      ElMessage.error(error || '重新分段失败')
+    },
+  })
 }
 
 function handleConfigUpdate(config: { expansion_level: string; target_word_count: number | null; style_instructions: string }) {
@@ -354,6 +399,18 @@ async function handleConvert() {
     }
   } catch {
     ElMessage.error('转换失败')
+  }
+}
+
+async function handleSplit(segmentId: number, splitPosition: number) {
+  try {
+    await expansionStore.splitSegmentAction(projectId.value, {
+      segment_id: segmentId,
+      split_position: splitPosition,
+    })
+    ElMessage.success('拆分成功')
+  } catch {
+    ElMessage.error('拆分失败')
   }
 }
 

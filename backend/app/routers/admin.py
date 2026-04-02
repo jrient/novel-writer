@@ -85,12 +85,18 @@ async def list_users(
     search: Optional[str] = Query(None, description="搜索关键词（用户名/邮箱/昵称）"),
     is_active: Optional[bool] = Query(None, description="按激活状态筛选"),
     is_superuser: Optional[bool] = Query(None, description="按管理员角色筛选"),
+    include_deleted: bool = Query(False, description="是否包含已删除用户"),
     db: AsyncSession = Depends(get_db),
 ):
     """获取用户列表（分页、搜索、筛选）"""
     # 构建基础查询
     query = select(User)
     count_query = select(func.count(User.id))
+
+    # 过滤软删除用户
+    if not include_deleted:
+        query = query.where(User.deleted_at == None)
+        count_query = count_query.where(User.deleted_at == None)
 
     # 搜索条件
     if search:
@@ -255,6 +261,29 @@ async def toggle_user_active(
     response.project_count = project_count
     response.has_api_key = bool(user.api_key)
     return response
+
+
+@router.delete("/users/{user_id}", summary="删除用户（软删除）")
+async def delete_user(
+    user_id: int,
+    current_user: User = Depends(get_current_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    """软删除用户（设置 deleted_at，不物理删除）"""
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="不能删除自己的账号")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if user.deleted_at is not None:
+        raise HTTPException(status_code=400, detail="用户已被删除")
+
+    user.deleted_at = datetime.utcnow()
+    user.is_active = False
+    await db.commit()
+    return {"detail": "用户已删除"}
 
 
 @router.post("/users/{user_id}/reset-password", summary="重置用户密码")
@@ -506,7 +535,7 @@ async def list_all_projects(
     db: AsyncSession = Depends(get_db),
 ):
     """获取所有用户的项目列表（仅管理员）"""
-    query = select(Project, User.username, User.nickname, User.email).join(
+    query = select(Project, User.username, User.nickname, User.email).outerjoin(
         User, Project.owner_id == User.id
     )
     count_query = select(func.count(Project.id))

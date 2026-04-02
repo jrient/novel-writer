@@ -13,6 +13,8 @@ import {
   updateExpansionProject,
   deleteExpansionProject,
   streamAnalyzeProject,
+  streamResegmentProject,
+  streamResegmentSegments,
   getSegments,
   updateSegment,
   splitSegment,
@@ -147,7 +149,7 @@ export const useExpansionStore = defineStore('expansion', () => {
 
   // ── Analysis (SSE) ──
 
-  function startAnalysis(id: number, callbacks?: { onText?: (text: string) => void; onDone?: () => void; onError?: (error: string) => void }): AbortController {
+  function startAnalysis(id: number, callbacks?: { onText?: (text: string) => void; onEvent?: (type: string, data: unknown) => void; onDone?: () => void; onError?: (error: string) => void }): AbortController {
     isAnalyzing.value = true
 
     const streamCallbacks: StreamCallbacks = {
@@ -162,6 +164,8 @@ export const useExpansionStore = defineStore('expansion', () => {
             currentProject.value.status = newStatus as ProjectStatus
           }
         }
+        // Forward phase events to caller
+        callbacks?.onEvent?.(type, data)
       },
       onDone: () => {
         isAnalyzing.value = false
@@ -177,6 +181,41 @@ export const useExpansionStore = defineStore('expansion', () => {
     }
 
     return streamAnalyzeProject(id, streamCallbacks)
+  }
+
+  function resegment(id: number, callbacks?: { onText?: (text: string) => void; onEvent?: (type: string, data: unknown) => void; onDone?: () => void; onError?: (error: string) => void }): AbortController {
+    isAnalyzing.value = true
+
+    const streamCallbacks: StreamCallbacks = {
+      onText: (text) => {
+        callbacks?.onText?.(text)
+      },
+      onEvent: (type, data) => {
+        callbacks?.onEvent?.(type, data)
+      },
+      onDone: () => {
+        isAnalyzing.value = false
+        callbacks?.onDone?.()
+        // Refresh project and segments after resegment
+        fetchProject(id)
+        fetchSegments(id)
+      },
+      onError: (error) => {
+        isAnalyzing.value = false
+        callbacks?.onError?.(error)
+      },
+    }
+
+    return streamResegmentProject(id, streamCallbacks)
+  }
+
+  function resegmentSegments(id: number, segmentIds: number[], callbacks?: { onText?: (text: string) => void; onEvent?: (type: string, data: unknown) => void; onDone?: () => void; onError?: (error: string) => void }): AbortController {
+    return streamResegmentSegments(id, segmentIds, {
+      onText: (text) => callbacks?.onText?.(text),
+      onEvent: (type, data) => callbacks?.onEvent?.(type, data),
+      onDone: () => callbacks?.onDone?.(),
+      onError: (error) => callbacks?.onError?.(error),
+    })
   }
 
   // ── Segment Actions ──
@@ -420,6 +459,8 @@ export const useExpansionStore = defineStore('expansion', () => {
 
     // Analysis
     startAnalysis,
+    resegment,
+    resegmentSegments,
 
     // Segment Actions
     fetchSegments,

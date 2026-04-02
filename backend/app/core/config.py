@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
     OPENAI_MODEL: str = "gpt-4o"
 
+    OPENAI_FALLBACK_API_KEY: Optional[str] = None
+    OPENAI_FALLBACK_BASE_URL: Optional[str] = None
+    OPENAI_FALLBACK_MODEL: Optional[str] = None
+
     ANTHROPIC_API_KEY: Optional[str] = None
     ANTHROPIC_MODEL: str = "claude-sonnet-4-20250514"
 

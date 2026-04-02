@@ -209,6 +209,13 @@
             <el-table-column label="更新时间" width="170">
               <template #default="{ row }">{{ row.updated_at ? formatTime(row.updated_at) : '-' }}</template>
             </el-table-column>
+            <el-table-column label="操作" width="120" align="center" fixed="right">
+              <template #default="{ row }">
+                <el-button type="primary" link size="small" @click="$router.push(`/workbench/${row.id}`)">
+                  进入工作台
+                </el-button>
+              </template>
+            </el-table-column>
           </el-table>
 
           <div class="pagination-wrapper">

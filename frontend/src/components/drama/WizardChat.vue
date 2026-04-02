@@ -116,6 +116,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'outline-ready'): void
   (e: 'questions-complete'): void
+  (e: 'question-answered', count: number): void
 }>()
 
 const messages = ref<ChatMessage[]>([])
@@ -171,6 +172,7 @@ async function sendMessage() {
   messages.value.push({ role: 'user', content: text })
   inputText.value = ''
   questionCount.value++
+  emit('question-answered', questionCount.value)
   if (questionCount.value >= MAX_QUESTIONS) {
     emit('questions-complete')
   }
@@ -218,6 +220,10 @@ onMounted(async () => {
         questionCount.value++
       }
     }
+    emit('question-answered', questionCount.value)
+    if (questionCount.value >= MAX_QUESTIONS) {
+      emit('questions-complete')
+    }
   } else {
     // Fresh session — get first question from server
     isStreaming.value = true
@@ -231,6 +237,10 @@ onMounted(async () => {
             messages.value.push({ role: 'user', content: msg.content })
             questionCount.value++
           }
+        }
+        emit('question-answered', questionCount.value)
+        if (questionCount.value >= MAX_QUESTIONS) {
+          emit('questions-complete')
         }
       } else {
         // Trigger first question by sending empty init

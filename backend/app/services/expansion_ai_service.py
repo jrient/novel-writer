@@ -16,18 +16,19 @@ logger = logging.getLogger(__name__)
 
 # ─── 提示词模板 ─────────────────────────────────────────────────────────────
 
-ANALYZE_PROMPT = """你是一位专业的文本分析师。请分析以下原文，生成：
+ANALYZE_PROMPT = """你是一位专业的文本分析师。请分析以下原文，完成两项任务：
 
-1. **摘要**：用2-3句话概括原文的核心内容和主题
-2. **文风画像**：分析原文的叙事风格特点
-3. **分段建议**：根据内容逻辑，建议如何将文本分成若干段落进行扩写
+1. **摘要与文风画像**：概括核心内容，分析叙事风格特点
+2. **识别自然断点**：找出文本中所有适合分段的"自然断点"位置
+
+自然断点是指：章节边界、段落结束、对话完成、情节转折、场景切换、时间跳跃等位置。
 
 原文：
 {original_text}
 
 请以 JSON 格式输出，结构如下：
 {{
-  "summary": "原文摘要...",
+  "summary": "用2-3句话概括原文的核心内容和主题",
   "style_profile": {{
     "narrative_pov": "叙事视角（第一人称/第三人称等）",
     "tone": "基调氛围",
@@ -36,17 +37,22 @@ ANALYZE_PROMPT = """你是一位专业的文本分析师。请分析以下原文
     "rhythm": "节奏特点",
     "notable_features": "其他显著特征"
   }},
-  "segment_suggestions": [
+  "breakpoints": [
     {{
-      "title": "段落标题",
-      "start": 0,
-      "end": 100,
-      "reason": "分段理由"
+      "anchor_text": "断点位置前后的10-20个字符（从原文精确复制，用于定位）",
+      "type": "章节结束|段落结束|对话结束|情节转折|场景切换|时间跳跃|其他",
+      "strength": 3,
+      "label": "简短描述，如：第一章结束、回忆结束回到现实"
     }}
   ]
 }}
 
-注意：只输出 JSON，不要有其他内容。"""
+重要提示：
+1. **断点数量**：尽可能多地识别自然断点，不要遗漏。宁多勿少，后续算法会自动选择最优分段
+2. **anchor_text**：必须从原文中精确复制，是断点附近的文本片段，用于精确定位
+3. **strength 强度**：1=弱断点（句末、段落内自然停顿），2=中断点（段落结束、对话结束），3=强断点（章节边界、重大情节转折、场景切换）
+4. **断点按原文顺序排列**
+5. 只输出 JSON，不要有其他内容"""
 
 EXPAND_SYSTEM_PROMPT = """你是一位专业的文学扩写专家。你的任务是在保持原文风格和精髓的基础上，对文本进行扩写。
 
@@ -107,6 +113,9 @@ class ExpansionAIService:
     API keys 来自全局 settings，不存储在 ai_config 中
     """
 
+    # 分析任务使用更高的 max_tokens（长文本 JSON 输出可能需要 32000+ tokens）
+    ANALYSIS_MAX_TOKENS = 64000
+
     def __init__(self, ai_config: Optional[Dict[str, Any]] = None):
         self.ai_config = ai_config or {}
         self.provider = self.ai_config.get("provider") or settings.DEFAULT_AI_PROVIDER
@@ -162,26 +171,74 @@ class ExpansionAIService:
 
     # ─── OpenAI / Compatible ────────────────────────────────────────────────
 
+    def _get_openai_endpoints(self) -> List[Dict[str, str]]:
+        """返回主 + 备用 OpenAI 兼容端点列表"""
+        endpoints = [{
+            "api_key": settings.OPENAI_API_KEY or "demo",
+            "base_url": settings.OPENAI_BASE_URL.rstrip("/"),
+            "model": self.model,
+        }]
+        if settings.OPENAI_FALLBACK_API_KEY and settings.OPENAI_FALLBACK_BASE_URL:
+            endpoints.append({
+                "api_key": settings.OPENAI_FALLBACK_API_KEY,
+                "base_url": settings.OPENAI_FALLBACK_BASE_URL.rstrip("/"),
+                "model": settings.OPENAI_FALLBACK_MODEL or self.model,
+            })
+        return endpoints
+
     async def _stream_openai(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
-        api_key = settings.OPENAI_API_KEY or "demo"
-        base_url = settings.OPENAI_BASE_URL.rstrip("/")
+        endpoints = self._get_openai_endpoints()
+        last_error = None
+
+        for i, ep in enumerate(endpoints):
+            try:
+                async for chunk in self._do_stream_openai(messages, ep):
+                    yield chunk
+                return  # 成功则直接返回
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                logger.warning(f"OpenAI endpoint {i} ({ep['base_url']}) failed: {e.response.status_code} - trying next")
+                continue
+            except Exception as e:
+                last_error = e
+                logger.warning(f"OpenAI endpoint {i} ({ep['base_url']}) error: {e} - trying next")
+                continue
+
+        raise last_error or RuntimeError("All OpenAI endpoints failed")
+
+    async def _do_stream_openai(
+        self, messages: List[Dict[str, str]], endpoint: Dict[str, str]
+    ) -> AsyncGenerator[str, None]:
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {endpoint['api_key']}",
             "Content-Type": "application/json",
         }
+        # OpenRouter 需要额外的 headers
+        if "openrouter.ai" in endpoint["base_url"]:
+            headers["HTTP-Referer"] = "https://novel.al.jrient.cn"
+            headers["X-Title"] = "Novel Writer"
         payload = {
-            "model": self.model,
+            "model": endpoint["model"],
             "messages": messages,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
             "stream": True,
         }
-        async with httpx.AsyncClient(timeout=120) as client:
+        # 代理逻辑：检查是否需要跳过代理
+        import os
+        proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
+        no_proxy = os.environ.get("NO_PROXY", "").split(",")
+        base_url = endpoint["base_url"]
+        # 如果 URL 在 NO_PROXY 列表中，不使用代理；否则使用代理
+        should_skip_proxy = any(np in base_url for np in no_proxy if np)
+        use_proxy = None if should_skip_proxy else proxy
+
+        async with httpx.AsyncClient(timeout=None, proxy=use_proxy) as client:
             async with client.stream(
                 "POST",
-                f"{base_url}/chat/completions",
+                f"{endpoint['base_url']}/chat/completions",
                 headers=headers,
                 json=payload,
             ) as resp:
@@ -194,11 +251,20 @@ class ExpansionAIService:
                         break
                     try:
                         chunk = json.loads(data)
-                        delta = chunk["choices"][0]["delta"]
+                        choice = chunk.get("choices", [{}])[0]
+                        finish_reason = choice.get("finish_reason")
+                        if finish_reason:
+                            logger.info(f"Chunk finish_reason: {finish_reason}")
+                        if finish_reason == "length":
+                            logger.warning("AI response was truncated due to max_tokens limit")
+                        elif finish_reason == "stop":
+                            logger.info("AI completed response normally")
+                        delta = choice.get("delta", {})
                         text = delta.get("content", "")
                         if text:
                             yield text
-                    except (json.JSONDecodeError, KeyError, IndexError):
+                    except (json.JSONDecodeError, KeyError, IndexError) as e:
+                        logger.debug(f"Error parsing chunk: {e}")
                         continue
 
     # ─── Anthropic ──────────────────────────────────────────────────────────
@@ -230,7 +296,7 @@ class ExpansionAIService:
         if system:
             payload["system"] = system
 
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             async with client.stream(
                 "POST",
                 "https://api.anthropic.com/v1/messages",
@@ -297,6 +363,65 @@ class ExpansionAIService:
 
     # ─── Public Generation Methods ──────────────────────────────────────────
 
+
+    async def analyze_text_non_stream(
+        self,
+        original_text: str,
+    ) -> str:
+        """分析全文，非流式模式，返回完整响应"""
+        prompt = ANALYZE_PROMPT.format(original_text=original_text)
+        messages = self._build_messages(prompt)
+        
+        endpoints = self._get_openai_endpoints()
+        last_error = None
+
+        for i, ep in enumerate(endpoints):
+            headers = {
+                "Authorization": f"Bearer {ep['api_key']}",
+                "Content-Type": "application/json",
+            }
+            # OpenRouter 需要额外的 headers
+            if "openrouter.ai" in ep["base_url"]:
+                headers["HTTP-Referer"] = "https://novel.al.jrient.cn"
+                headers["X-Title"] = "Novel Writer"
+            payload = {
+                "model": ep["model"],
+                "messages": messages,
+                "temperature": self.temperature,
+                "max_tokens": self.max_tokens,
+                "stream": False,
+            }
+            # 代理逻辑：检查是否需要跳过代理
+            import os
+            proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
+            no_proxy = os.environ.get("NO_PROXY", "").split(",")
+            base_url = ep["base_url"]
+            should_skip_proxy = any(np in base_url for np in no_proxy if np)
+            use_proxy = None if should_skip_proxy else proxy
+
+            try:
+                async with httpx.AsyncClient(timeout=None, proxy=use_proxy) as client:
+                    resp = await client.post(
+                        f"{ep['base_url']}/chat/completions",
+                        headers=headers,
+                        json=payload,
+                    )
+                    resp.raise_for_status()
+                    result = resp.json()
+                    logger.info(f"Non-stream response finish_reason: {result.get('choices', [{}])[0].get('finish_reason')}")
+                    logger.info(f"Non-stream response usage: {result.get('usage')}")
+                    return result["choices"][0]["message"]["content"]
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                logger.warning(f"OpenAI endpoint {i} ({ep['base_url']}) non-stream failed: {e.response.status_code} - trying next")
+                continue
+            except Exception as e:
+                last_error = e
+                logger.warning(f"OpenAI endpoint {i} ({ep['base_url']}) non-stream error: {e} - trying next")
+                continue
+
+        raise last_error or RuntimeError("All OpenAI endpoints failed")
+
     async def analyze_text(
         self,
         original_text: str,
@@ -304,8 +429,15 @@ class ExpansionAIService:
         """分析全文，SSE流式返回摘要+文风+分段建议"""
         prompt = ANALYZE_PROMPT.format(original_text=original_text)
         messages = self._build_messages(prompt)
-        async for chunk in self._stream(messages):
-            yield chunk
+
+        # 临时提升 max_tokens 到 64000，确保长文本分析的 JSON 输出完整
+        original_max_tokens = self.max_tokens
+        self.max_tokens = self.ANALYSIS_MAX_TOKENS
+        try:
+            async for chunk in self._stream(messages):
+                yield chunk
+        finally:
+            self.max_tokens = original_max_tokens
 
     async def expand_segment(
         self,
@@ -372,6 +504,231 @@ class ExpansionAIService:
             parts.append(f"其他特征：{style_profile['notable_features']}")
 
         return "；".join(parts) if parts else "保持原文风格"
+
+    # ─── Breakpoint-based Segmentation ──────────────────────────────────────
+
+    @staticmethod
+    def locate_breakpoint(text: str, anchor_text: str) -> int:
+        """
+        在原文中定位断点的精确位置。
+        返回断点字符索引（anchor_text 结束后最近的句子边界），找不到返回 -1。
+        """
+        if not anchor_text:
+            return -1
+
+        pos = text.find(anchor_text)
+        if pos == -1:
+            # 模糊匹配：去空白
+            stripped = anchor_text.strip()
+            pos = text.find(stripped)
+            if pos == -1:
+                return -1
+            anchor_len = len(stripped)
+        else:
+            anchor_len = len(anchor_text)
+
+        # 从 anchor 结束位置向后找最近的句子边界
+        end_pos = pos + anchor_len
+        return ExpansionAIService._find_nearest_sentence_boundary(text, end_pos)
+
+    @staticmethod
+    def _find_nearest_sentence_boundary(text: str, pos: int, search_range: int = 100) -> int:
+        """
+        从 pos 附近找最近的句子边界（句号、感叹号、问号、换行符等）。
+        优先向后找，再向前找。
+        """
+        sentence_endings = {'。', '！', '？', '.', '!', '?', '"', '"', '」', '』'}
+        text_len = len(text)
+
+        # 向后搜索
+        for i in range(pos, min(pos + search_range, text_len)):
+            if text[i] in sentence_endings:
+                return i + 1
+            if text[i] == '\n' and i > pos:
+                return i + 1
+
+        # 向前搜索
+        for i in range(pos - 1, max(pos - search_range, -1), -1):
+            if text[i] in sentence_endings:
+                return i + 1
+            if text[i] == '\n':
+                return i + 1
+
+        # 找不到句子边界，返回原始位置
+        return pos
+
+    @staticmethod
+    def compute_segments_from_breakpoints(
+        original_text: str,
+        breakpoints: List[Dict[str, Any]],
+        min_segment_chars: int = 300,
+        max_segment_chars: int = 2000,
+    ) -> List[Dict[str, Any]]:
+        """
+        两阶段分段 - 阶段2：根据 AI 识别的断点列表，用本地算法计算最优分段。
+
+        算法：
+        1. 将所有断点定位到原文中的精确字符位置
+        2. 用贪心策略选择断点：从上一个分段结束位置开始，寻找在 [min, max] 字数范围内
+           强度最高的断点作为分段结束位置
+        3. 如果没有断点落在范围内，在 max 位置附近找句子边界强制切分
+
+        Returns:
+            [{"start": int, "end": int, "title": str, "breakpoint_type": str}, ...]
+        """
+        text_len = len(original_text)
+        if text_len == 0:
+            return []
+
+        # 如果文本很短，不需要分段
+        if text_len <= max_segment_chars:
+            return [{
+                "start": 0,
+                "end": text_len,
+                "title": None,
+                "breakpoint_type": None,
+            }]
+
+        # Step 1: 定位所有断点的精确位置
+        located_breakpoints = []
+        for bp in breakpoints:
+            anchor = bp.get("anchor_text", "")
+            pos = ExpansionAIService.locate_breakpoint(original_text, anchor)
+            if pos > 0 and pos < text_len:
+                located_breakpoints.append({
+                    "position": pos,
+                    "strength": bp.get("strength", 1),
+                    "type": bp.get("type", "其他"),
+                    "label": bp.get("label", ""),
+                })
+
+        # 去重并排序
+        seen_positions = set()
+        unique_breakpoints = []
+        for bp in located_breakpoints:
+            # 合并相近的断点（50字符内）
+            merged = False
+            for ubp in unique_breakpoints:
+                if abs(ubp["position"] - bp["position"]) < 50:
+                    # 保留强度更高的
+                    if bp["strength"] > ubp["strength"]:
+                        ubp.update(bp)
+                    merged = True
+                    break
+            if not merged:
+                unique_breakpoints.append(bp)
+
+        unique_breakpoints.sort(key=lambda x: x["position"])
+
+        # Step 2: 贪心算法选择最优分段点
+        segments = []
+        current_start = 0
+
+        while current_start < text_len:
+            remaining = text_len - current_start
+
+            # 剩余文本不超过 max，直接作为最后一段
+            if remaining <= max_segment_chars:
+                segments.append({
+                    "start": current_start,
+                    "end": text_len,
+                    "title": None,
+                    "breakpoint_type": None,
+                })
+                break
+
+            # 剩余文本如果分成两段会导致下一段太短，适当放宽
+            if remaining < min_segment_chars + max_segment_chars:
+                # 尽量在中间找断点平均分
+                mid = current_start + remaining // 2
+                best_bp = None
+                best_dist = float('inf')
+                for bp in unique_breakpoints:
+                    if current_start + min_segment_chars * 0.7 <= bp["position"] <= current_start + remaining - min_segment_chars * 0.7:
+                        dist = abs(bp["position"] - mid)
+                        # 强断点加权：距离 / 强度
+                        weighted_dist = dist / bp["strength"]
+                        if weighted_dist < best_dist:
+                            best_dist = weighted_dist
+                            best_bp = bp
+
+                if best_bp:
+                    segments.append({
+                        "start": current_start,
+                        "end": best_bp["position"],
+                        "title": best_bp.get("label"),
+                        "breakpoint_type": best_bp.get("type"),
+                    })
+                    current_start = best_bp["position"]
+                else:
+                    # 没有合适断点，在中间找句子边界
+                    cut_pos = ExpansionAIService._find_nearest_sentence_boundary(
+                        original_text, mid
+                    )
+                    segments.append({
+                        "start": current_start,
+                        "end": cut_pos,
+                        "title": None,
+                        "breakpoint_type": None,
+                    })
+                    current_start = cut_pos
+                continue
+
+            # 在 [min, max] 范围内寻找最佳断点
+            range_start = current_start + min_segment_chars
+            range_end = current_start + max_segment_chars
+
+            # 收集范围内的断点
+            candidates = [
+                bp for bp in unique_breakpoints
+                if range_start <= bp["position"] <= range_end
+            ]
+
+            if candidates:
+                # 选择强度最高的断点；强度相同时选更靠后的（段落更完整）
+                best = max(candidates, key=lambda bp: (bp["strength"], bp["position"]))
+                segments.append({
+                    "start": current_start,
+                    "end": best["position"],
+                    "title": best.get("label"),
+                    "breakpoint_type": best.get("type"),
+                })
+                current_start = best["position"]
+            else:
+                # 没有断点在范围内，扩大搜索到 [min*0.8, max*1.2]
+                extended_candidates = [
+                    bp for bp in unique_breakpoints
+                    if current_start + min_segment_chars * 0.8 <= bp["position"] <= current_start + max_segment_chars * 1.2
+                ]
+
+                if extended_candidates:
+                    # 选最接近理想长度（min_segment_chars + max_segment_chars）/ 2 的断点
+                    ideal = current_start + (min_segment_chars + max_segment_chars) // 2
+                    best = min(extended_candidates, key=lambda bp: abs(bp["position"] - ideal) / bp["strength"])
+                    segments.append({
+                        "start": current_start,
+                        "end": best["position"],
+                        "title": best.get("label"),
+                        "breakpoint_type": best.get("type"),
+                    })
+                    current_start = best["position"]
+                else:
+                    # 完全没有断点，在 max 附近找句子边界强制切分
+                    cut_pos = ExpansionAIService._find_nearest_sentence_boundary(
+                        original_text, current_start + max_segment_chars
+                    )
+                    # 确保不会切到太后面
+                    if cut_pos > current_start + max_segment_chars * 1.3:
+                        cut_pos = current_start + max_segment_chars
+                    segments.append({
+                        "start": current_start,
+                        "end": cut_pos,
+                        "title": None,
+                        "breakpoint_type": None,
+                    })
+                    current_start = cut_pos
+
+        return segments
 
     # ─── Static Utility Methods ──────────────────────────────────────────────
 

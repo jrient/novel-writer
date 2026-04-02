@@ -36,6 +36,7 @@ class AdminUserResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     last_login_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
     project_count: int = 0
     total_tokens: int = 0
     has_api_key: bool = False  # 是否已生成 API Key
@@ -149,11 +150,11 @@ class AdminProjectResponse(BaseModel):
     genre: Optional[str] = None
     status: str
     current_word_count: int
-    target_word_count: int
-    owner_id: int
-    owner_username: str
+    target_word_count: Optional[int] = None
+    owner_id: Optional[int] = None
+    owner_username: Optional[str] = None
     owner_nickname: Optional[str] = None
-    owner_email: str
+    owner_email: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 

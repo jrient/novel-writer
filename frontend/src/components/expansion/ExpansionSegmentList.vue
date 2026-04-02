@@ -12,6 +12,18 @@
           {{ totalWordCount.toLocaleString() }} 字
         </span>
       </div>
+      <!-- Resegment button -->
+      <el-button
+        v-if="selectedIds.length >= 2"
+        type="primary"
+        size="small"
+        :loading="isResegmenting"
+        @click="handleResegment"
+        style="margin-top: 8px; width: 100%"
+      >
+        <el-icon><Grid /></el-icon>
+        再次分段 ({{ selectedIds.length }}段)
+      </el-button>
     </div>
 
     <!-- Segment list -->
@@ -23,9 +35,18 @@
         :class="{
           active: segment.id === currentSegmentId,
           'is-expanding': segment.id === expandingSegmentId,
+          selected: selectedIds.includes(segment.id),
         }"
-        @click="selectSegment(segment.id)"
+        @click="handleItemClick(segment.id, $event)"
       >
+        <!-- Checkbox for multi-select -->
+        <el-checkbox
+          :model-value="selectedIds.includes(segment.id)"
+          @change="(val: boolean) => toggleSelect(segment.id, val)"
+          @click.stop
+          class="segment-checkbox"
+        />
+
         <div class="segment-status">
           <el-icon v-if="segment.status === 'pending'" class="status-dot"><Loading v-if="segment.id === expandingSegmentId" /><span v-else class="dot" /></el-icon>
           <el-icon v-else-if="segment.status === 'expanding'" class="status-loading is-loading"><Loading /></el-icon>
@@ -53,8 +74,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Document, EditPen, Loading, CircleCheck, Warning, Minus } from '@element-plus/icons-vue'
+import { ref, computed } from 'vue'
+import { Document, EditPen, Loading, CircleCheck, Warning, Minus, Grid } from '@element-plus/icons-vue'
 import type { ExpansionSegment } from '@/api/expansion'
 
 const props = defineProps<{
@@ -65,7 +86,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [segmentId: number]
+  resegment: [segmentIds: number[]]
 }>()
+
+const selectedIds = ref<number[]>([])
+const isResegmenting = ref(false)
 
 const completedCount = computed(() => {
   return props.segments.filter(s => s.status === 'completed').length
@@ -75,9 +100,38 @@ const totalWordCount = computed(() => {
   return props.segments.reduce((sum, s) => sum + s.original_word_count, 0)
 })
 
-function selectSegment(id: number) {
-  emit('select', id)
+function toggleSelect(id: number, selected: boolean) {
+  if (selected) {
+    if (!selectedIds.value.includes(id)) {
+      selectedIds.value.push(id)
+    }
+  } else {
+    selectedIds.value = selectedIds.value.filter(i => i !== id)
+  }
 }
+
+function handleItemClick(id: number, event: MouseEvent) {
+  // Ctrl/Cmd + click for multi-select
+  if (event.ctrlKey || event.metaKey) {
+    toggleSelect(id, !selectedIds.value.includes(id))
+  } else {
+    // Normal click: select single and clear multi-selection
+    selectedIds.value = []
+    emit('select', id)
+  }
+}
+
+function handleResegment() {
+  if (selectedIds.value.length >= 2) {
+    emit('resegment', [...selectedIds.value])
+    selectedIds.value = []
+  }
+}
+
+// Expose for parent to control loading state
+defineExpose({
+  setResegmenting: (val: boolean) => { isResegmenting.value = val }
+})
 </script>
 
 <style scoped>
@@ -135,6 +189,15 @@ function selectSegment(id: number) {
 
 .segment-item.is-expanding {
   background: #FFF8E6;
+}
+
+.segment-item.selected {
+  background: #E6F7FF;
+  border: 1px solid #1890FF;
+}
+
+.segment-checkbox {
+  flex-shrink: 0;
 }
 
 .segment-status {

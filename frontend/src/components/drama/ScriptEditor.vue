@@ -160,7 +160,9 @@ watch(
   { immediate: true },
 )
 
-function scheduleSave(data: Parameters<typeof emit>[1]) {
+type SaveData = { title?: string; content?: string; speaker?: string; visual_desc?: string }
+
+function scheduleSave(data: SaveData) {
   if (saveTimer) clearTimeout(saveTimer)
   saveStatus.value = '编辑中...'
   saveTimer = setTimeout(() => {
