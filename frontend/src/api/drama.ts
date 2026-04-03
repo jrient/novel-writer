@@ -22,6 +22,28 @@ export interface AIConfig {
   prompts?: AIPromptConfig
 }
 
+export interface CharacterSetting {
+  id: string
+  name: string
+  description: string
+}
+
+export interface ProjectSettings {
+  characters: CharacterSetting[]
+  world_setting: string
+  tone: string
+  plot_anchors: string
+  persistent_directive: string
+}
+
+export const defaultProjectSettings: ProjectSettings = {
+  characters: [],
+  world_setting: '',
+  tone: '',
+  plot_anchors: '',
+  persistent_directive: '',
+}
+
 export interface ScriptProject {
   id: number
   user_id: number
@@ -155,6 +177,10 @@ export async function deleteDramaProject(id: number): Promise<void> {
 
 export async function updateAIConfig(id: number, data: AIConfig): Promise<ScriptProject> {
   return request.put<ScriptProject>(`/drama/${id}/ai-config`, { ai_config: data })
+}
+
+export async function updateProjectSettings(id: number, data: ProjectSettings): Promise<ScriptProject> {
+  return request.put<ScriptProject>(`/drama/${id}/settings`, data)
 }
 
 // ── Node API ──

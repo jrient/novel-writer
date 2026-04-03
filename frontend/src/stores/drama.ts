@@ -2,7 +2,7 @@
  * 剧本模块 Pinia Store
  */
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   getDramaProjects,
   createDramaProject,
@@ -10,6 +10,7 @@ import {
   updateDramaProject,
   deleteDramaProject,
   updateAIConfig,
+  updateProjectSettings as apiUpdateProjectSettings,
   getNodes,
   createNode,
   updateNode,
@@ -30,7 +31,9 @@ import type {
   ReorderItem,
   ScriptSession,
   AIConfig,
+  ProjectSettings,
 } from '@/api/drama'
+import { defaultProjectSettings } from '@/api/drama'
 
 export const useDramaStore = defineStore('drama', () => {
   // State
@@ -40,6 +43,23 @@ export const useDramaStore = defineStore('drama', () => {
   const currentNode = ref<ScriptNode | null>(null)
   const session = ref<ScriptSession | null>(null)
   const loading = ref(false)
+
+  // Settings — derived from currentProject.metadata_["settings"]
+  const projectSettings = computed<ProjectSettings>(() => {
+    const meta = currentProject.value?.metadata_
+    if (meta && typeof meta === 'object' && 'settings' in meta) {
+      return meta.settings as ProjectSettings
+    }
+    return { ...defaultProjectSettings }
+  })
+
+  async function updateProjectSettings(id: number, settings: ProjectSettings) {
+    const updated = await apiUpdateProjectSettings(id, settings)
+    if (currentProject.value?.id === id) {
+      currentProject.value = updated
+    }
+    return updated
+  }
 
   // ── Project Actions ──
 
@@ -161,12 +181,14 @@ export const useDramaStore = defineStore('drama', () => {
     currentNode,
     session,
     loading,
+    projectSettings,
     fetchProjects,
     fetchProject,
     createProject,
     updateProject,
     removeProject,
     updateProjectAIConfig,
+    updateProjectSettings,
     fetchNodes,
     addNode,
     editNode,
