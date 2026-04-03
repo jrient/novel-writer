@@ -18,6 +18,16 @@
       </div>
 
       <div class="header-right">
+        <el-button
+          size="small"
+          class="toolbar-btn"
+          :class="{ 'toolbar-btn--active': showSettingsDrawer }"
+          @click="showSettingsDrawer = !showSettingsDrawer"
+        >
+          <el-icon><Setting /></el-icon>
+          设定
+        </el-button>
+
         <el-button size="small" class="toolbar-btn" @click="showDirectiveDialog = true">
           <el-icon><MagicStick /></el-icon>
           全局指令
@@ -128,6 +138,24 @@
       @saved="dramaStore.fetchProject(projectId)"
     />
 
+    <!-- Settings Drawer -->
+    <ScriptSettingsDrawer
+      v-model:visible="showSettingsDrawer"
+      :settings="dramaStore.projectSettings"
+      :project-id="projectId"
+      ref="settingsDrawerRef"
+      @save="handleSaveSettings"
+      @edit-character="handleEditCharacter"
+    />
+
+    <!-- Character Edit Overlay -->
+    <CharacterEditOverlay
+      :visible="showCharacterOverlay"
+      :character="editingCharacter"
+      @save="handleCharacterSave"
+      @cancel="showCharacterOverlay = false"
+    />
+
     <!-- Add node dialog -->
     <el-dialog
       v-model="showAddNodeDialog"
@@ -176,6 +204,9 @@ import ScriptEditor from '@/components/drama/ScriptEditor.vue'
 import ScriptAiPanel from '@/components/drama/ScriptAiPanel.vue'
 import GlobalDirectiveDialog from '@/components/drama/GlobalDirectiveDialog.vue'
 import AiConfigPanel from '@/components/drama/AiConfigPanel.vue'
+import ScriptSettingsDrawer from '@/components/drama/ScriptSettingsDrawer.vue'
+import CharacterEditOverlay from '@/components/drama/CharacterEditOverlay.vue'
+import type { CharacterSetting, ProjectSettings } from '@/api/drama'
 
 const route = useRoute()
 const router = useRouter()
@@ -187,6 +218,31 @@ const projectId = computed(() => Number(route.params.id))
 const showAiPanel = ref(true)
 const showDirectiveDialog = ref(false)
 const showAiConfig = ref(false)
+
+// Settings drawer state
+const showSettingsDrawer = ref(false)
+const showCharacterOverlay = ref(false)
+const editingCharacter = ref<CharacterSetting | null>(null)
+const settingsDrawerRef = ref<InstanceType<typeof ScriptSettingsDrawer> | null>(null)
+
+async function handleSaveSettings(settings: ProjectSettings) {
+  try {
+    await dramaStore.updateProjectSettings(projectId.value, settings)
+  } catch (err) {
+    console.error('Save settings failed:', err)
+    ElMessage.error('设定保存失败')
+  }
+}
+
+function handleEditCharacter(char: CharacterSetting) {
+  editingCharacter.value = char
+  showCharacterOverlay.value = true
+}
+
+function handleCharacterSave(updated: CharacterSetting) {
+  showCharacterOverlay.value = false
+  settingsDrawerRef.value?.updateCharacter(updated)
+}
 
 // Add node dialog
 const showAddNodeDialog = ref(false)
