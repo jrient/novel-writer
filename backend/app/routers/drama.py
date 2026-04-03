@@ -460,7 +460,8 @@ async def session_answer(
     session.state = "collecting"
     await db.commit()
 
-    ai_service = ScriptAIService(project.ai_config)
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
         full_response = ""
@@ -529,7 +530,8 @@ async def session_summarize(
         raise HTTPException(status_code=404, detail="会话不存在")
 
     history = list(session.history or [])
-    ai_service = ScriptAIService(project.ai_config)
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     summary = await ai_service.generate_summary(
         script_type=project.script_type,
@@ -594,7 +596,8 @@ async def session_generate_outline(
             {"role": "assistant", "content": "根据以上对话，我整理的创作信息如下："},
             {"role": "user", "content": f"确认的创作信息：{summary_text}\n请严格基于以上确认信息生成大纲。"},
         ]
-    ai_service = ScriptAIService(project.ai_config)
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
         full_response = ""
@@ -712,7 +715,8 @@ async def session_expand_episode(
     style_tone = summary_data.get("风格基调", "")
     outline_summary = session.outline_draft.get("summary", "")
 
-    ai_service = ScriptAIService(project.ai_config)
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
         full_response = ""
@@ -917,7 +921,8 @@ async def expand_node(
         raise HTTPException(status_code=404, detail="节点不存在")
 
     context = await _build_node_context(db, node, project.id)
-    ai_service = ScriptAIService(project.ai_config)
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
         async for chunk in _sse_stream(
@@ -954,7 +959,8 @@ async def rewrite_content(
         raise HTTPException(status_code=404, detail="节点不存在")
 
     context = await _build_node_context(db, node, project.id)
-    ai_service = ScriptAIService(project.ai_config)
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
         async for chunk in _sse_stream(
