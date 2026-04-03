@@ -20,7 +20,7 @@
 - `backend/tests/test_drama_settings.py` — 后端 settings schema 单元测试
 
 ### 修改文件
-- `backend/app/services/script_ai_service.py` — `ScriptAIService.__init__` 增加 `project_settings` 参数；新增 `_build_settings_context()` 方法；`_get_system_prompt()` 末尾注入设定
+- `backend/app/services/script_ai_service.py` — `ScriptAIService.__init__` 增加 `project_settings` 参数；新增 `_build_settings_context()` 方法；替换 `_get_system_prompt()` 方法体以在 system prompt 头部注入设定
 - `backend/app/routers/drama.py` — 新增 `ProjectSettingsUpdate` schema + `PUT /{id}/settings` 端点；6 个 AI 端点传入 `project_settings`；补充 `Field` 导入
 - `backend/tests/test_drama_ai_service.py` — 追加 `_build_settings_context` 单元测试（文件已存在）
 - `frontend/src/api/drama.ts` — 新增 `ProjectSettings` 类型 + `updateProjectSettings()` 函数
