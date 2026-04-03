@@ -40,7 +40,7 @@ from app.schemas.drama import (
     SessionSummaryResponse,
 )
 from app.services.script_ai_service import ScriptAIService
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,22 @@ router = APIRouter(prefix="/api/v1/drama", tags=["drama"])
 class AIConfigUpdate(BaseModel):
     """AI 配置更新请求（drama router 本地定义）"""
     ai_config: Optional[Dict[str, Any]] = None
+
+
+class CharacterSettingItem(BaseModel):
+    """角色设定项"""
+    id: str
+    name: str = Field(..., max_length=100)
+    description: str = Field("", max_length=2000)
+
+
+class ProjectSettingsUpdate(BaseModel):
+    """剧本设定更新请求"""
+    characters: List[CharacterSettingItem] = Field(default_factory=list, max_length=50)
+    world_setting: str = Field("", max_length=3000)
+    tone: str = Field("", max_length=1000)
+    plot_anchors: str = Field("", max_length=3000)
+    persistent_directive: str = Field("", max_length=2000)
 
 
 async def get_drama_project(
@@ -257,6 +273,21 @@ async def update_ai_config(
 ):
     """更新 AI 配置"""
     project.ai_config = body.ai_config
+    await db.commit()
+    await db.refresh(project)
+    return project
+
+
+@router.put("/{id}/settings", response_model=ScriptProjectResponse)
+async def update_project_settings(
+    body: ProjectSettingsUpdate,
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """更新剧本设定（人物/世界观/风格/剧情/持久化AI指令）"""
+    current_meta = dict(project.metadata_ or {})
+    current_meta["settings"] = body.model_dump()
+    project.metadata_ = current_meta
     await db.commit()
     await db.refresh(project)
     return project
