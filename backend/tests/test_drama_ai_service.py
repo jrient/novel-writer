@@ -45,3 +45,61 @@ def test_generate_outline_accepts_episode_count():
     import inspect
     sig = inspect.signature(ScriptAIService.generate_outline)
     assert "episode_count" in sig.parameters
+
+
+def test_build_settings_context_empty():
+    """空 settings 返回空字符串"""
+    svc = ScriptAIService(ai_config={}, project_settings={})
+    assert svc._build_settings_context() == ""
+
+
+def test_build_settings_context_full():
+    """非空 settings 返回正确格式的上下文字符串"""
+    settings_data = {
+        "characters": [
+            {"id": "c1", "name": "张三", "description": "豪爽"},
+            {"id": "c2", "name": "李四", "description": ""},  # 空描述不追加冒号
+        ],
+        "world_setting": "架空古代",
+        "tone": "热血",
+        "plot_anchors": "主角不能死",
+        "persistent_directive": "不要出现现代词汇",
+    }
+    svc = ScriptAIService(ai_config={}, project_settings=settings_data)
+    ctx = svc._build_settings_context()
+    assert "【剧本设定】" in ctx
+    assert "张三：豪爽" in ctx
+    assert "李四" in ctx
+    assert "架空古代" in ctx
+    assert "热血" in ctx
+    assert "主角不能死" in ctx
+    assert "不要出现现代词汇" in ctx
+
+
+def test_build_settings_context_partial():
+    """只填了部分字段，不注入空字段"""
+    svc = ScriptAIService(ai_config={}, project_settings={"tone": "悬疑"})
+    ctx = svc._build_settings_context()
+    assert "悬疑" in ctx
+    assert "世界观" not in ctx
+    assert "人物" not in ctx
+
+
+def test_settings_prepended_to_system_prompt():
+    """project_settings 内容出现在 system prompt 的最前面"""
+    svc = ScriptAIService(
+        ai_config={},
+        project_settings={"persistent_directive": "保持角色一致性"},
+    )
+    system = svc._get_system_prompt("question", "dynamic")
+    assert system is not None
+    assert system.startswith("【剧本设定】")
+    assert "保持角色一致性" in system
+
+
+def test_empty_settings_does_not_modify_system_prompt():
+    """空 settings 不影响原有 system prompt"""
+    svc_with = ScriptAIService(ai_config={}, project_settings={})
+    svc_without = ScriptAIService(ai_config={})
+    assert svc_with._get_system_prompt("question", "dynamic") == \
+           svc_without._get_system_prompt("question", "dynamic")

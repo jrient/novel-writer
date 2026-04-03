@@ -289,13 +289,42 @@ class ScriptAIService:
     API keys 来自全局 settings，不存储在 ai_config 中
     """
 
-    def __init__(self, ai_config: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        ai_config: Optional[Dict[str, Any]] = None,
+        project_settings: Optional[Dict[str, Any]] = None,
+    ):
         self.ai_config = ai_config or {}
+        self.project_settings = project_settings or {}
         self.provider = self.ai_config.get("provider") or settings.DEFAULT_AI_PROVIDER
         self.model = self._resolve_model()
         self.temperature = self._resolve_temperature()
         self.max_tokens = self._resolve_max_tokens()
         self.custom_prompts: Dict[str, Any] = self.ai_config.get("prompt_config") or {}
+
+    def _build_settings_context(self) -> str:
+        """将非空设定字段构建为可注入 system prompt 的字符串"""
+        s = self.project_settings
+        lines = ["【剧本设定】"]
+        chars = s.get("characters", [])
+        if chars:
+            lines.append("人物：")
+            for c in chars:
+                name = c.get("name", "未命名角色")
+                desc = c.get("description") or ""
+                if desc:
+                    lines.append(f"  - {name}：{desc}")
+                else:
+                    lines.append(f"  - {name}")
+        if s.get("world_setting"):
+            lines.append(f"世界观：{s['world_setting']}")
+        if s.get("tone"):
+            lines.append(f"风格基调：{s['tone']}")
+        if s.get("plot_anchors"):
+            lines.append(f"核心要素：{s['plot_anchors']}")
+        if s.get("persistent_directive"):
+            lines.append(f"持久指令：{s['persistent_directive']}")
+        return "\n".join(lines) if len(lines) > 1 else ""
 
     def _resolve_model(self) -> str:
         model = self.ai_config.get("model")
@@ -324,16 +353,26 @@ class ScriptAIService:
         return settings.AI_MAX_TOKENS_STREAM
 
     def _get_system_prompt(self, key: str, script_type: str) -> Optional[str]:
-        """获取系统提示词：优先使用用户自定义，否则用默认"""
+        """获取系统提示词：优先使用用户自定义，否则用默认；前置注入 project_settings"""
         if isinstance(self.custom_prompts, dict):
             custom = self.custom_prompts.get("system_prompt")
             if custom:
-                return custom
-        prompts = _get_prompts(script_type)
-        prompt_entry = prompts.get(key, {})
-        if isinstance(prompt_entry, dict):
-            return prompt_entry.get("system")
-        return None
+                base: Optional[str] = custom
+            else:
+                prompts = _get_prompts(script_type)
+                prompt_entry = prompts.get(key, {})
+                base = prompt_entry.get("system") if isinstance(prompt_entry, dict) else None
+        else:
+            prompts = _get_prompts(script_type)
+            prompt_entry = prompts.get(key, {})
+            base = prompt_entry.get("system") if isinstance(prompt_entry, dict) else None
+
+        settings_ctx = self._build_settings_context()
+        if not settings_ctx:
+            return base
+        if base:
+            return f"{settings_ctx}\n\n{base}"
+        return settings_ctx
 
     def _build_messages(
         self,
