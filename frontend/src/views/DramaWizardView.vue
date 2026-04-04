@@ -191,12 +191,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDramaStore } from '@/stores/drama'
-import { summarizeSession, updateSessionSummary, streamGenerateOutline } from '@/api/drama'
+import { summarizeSession, updateSessionSummary, streamGenerateOutline, streamExpandEpisode } from '@/api/drama'
 import type { SessionSummary } from '@/api/drama'
 import WizardChat from '@/components/drama/WizardChat.vue'
 import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
@@ -209,6 +209,14 @@ const dramaStore = useDramaStore()
 const projectId = computed(() => Number(route.params.id))
 const pageLoading = ref(true)
 const confirming = ref(false)
+
+// 一键展开全部场景
+const isExpandingAll = ref(false)
+const expandAllCurrent = ref(0)
+const expandAllTotal = ref(0)
+const isSingleExpanding = ref(false)
+const currentAbortController = ref<AbortController | null>(null)
+
 const wizardStepIndex = ref(Number(route.query.step) || 0)
 const questionCount = ref(0)
 const summarizing = ref(false)
@@ -276,9 +284,14 @@ const outlineSections = computed(() => {
     title: string
     content: string
     sort_order: number
-    children: Array<{ node_type: string; title: string; content: string; sort_order: number }>
+    children?: Array<{ node_type: string; title: string; content: string; sort_order: number }>
   }>
 })
+
+const allExpanded = computed(() =>
+  outlineSections.value.length > 0 &&
+  outlineSections.value.every(ep => (ep.children?.length ?? 0) > 0)
+)
 
 async function handleOutlineReady() {
   // Outline draft saved in session, reload and move to review step
