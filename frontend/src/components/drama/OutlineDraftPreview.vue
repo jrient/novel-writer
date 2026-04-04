@@ -20,7 +20,7 @@
           <div class="episode-actions">
             <el-tag v-if="isExpanded(index)" type="success" size="small">已展开</el-tag>
             <el-button
-              v-else
+              v-if="!props.disableIndividual && !isExpanded(index)"
               size="small"
               :loading="expandingIndex === index"
               @click="handleExpand(index)"
@@ -59,16 +59,18 @@ interface EpisodeSection {
   title: string
   content: string
   sort_order: number
-  children: Array<{ node_type: string; title: string; content: string; sort_order: number }>
+  children?: Array<{ node_type: string; title: string; content: string; sort_order: number }>
 }
 
 const props = defineProps<{
   projectId: number
   sections: EpisodeSection[]
+  disableIndividual?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'episode-expanded', index: number): void
+  (e: 'expanding-change', isExpanding: boolean): void
 }>()
 
 const expandingIndex = ref<number | null>(null)
@@ -83,17 +85,20 @@ function handleExpand(index: number) {
     return
   }
   expandingIndex.value = index
+  emit('expanding-change', true)
 
   streamExpandEpisode(
     props.projectId,
     index,
-    () => { /* chunk 忽略，完成后刷新 */ },
+    () => { /* chunk 忽略 */ },
     () => {
       expandingIndex.value = null
+      emit('expanding-change', false)
       emit('episode-expanded', index)
     },
     (error) => {
       expandingIndex.value = null
+      emit('expanding-change', false)
       ElMessage.error(`展开失败：${error}`)
     },
   )
