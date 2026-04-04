@@ -374,6 +374,11 @@ async function handleEpisodeExpanded(_index: number) {
 }
 
 async function handleExpandAll() {
+  // 防止重复触发
+  if (isExpandingAll.value) {
+    ElMessage.warning('正在展开全部场景，请等待完成')
+    return
+  }
   // 单集正在展开中，拒绝
   if (isSingleExpanding.value) {
     ElMessage.warning('请等待当前集展开完成')
@@ -422,6 +427,7 @@ async function handleExpandAll() {
 
   expandAllTotal.value = targets.length
   isExpandingAll.value = true
+  let failCount = 0
 
   for (let i = 0; i < targets.length; i++) {
     const { originalIndex } = targets[i]
@@ -440,6 +446,7 @@ async function handleExpandAll() {
         (error) => {
           ElMessage.error(`第 ${originalIndex + 1} 集展开失败：${error}`)
           currentAbortController.value = null
+          failCount++
           resolve()
         },
       )
@@ -450,7 +457,14 @@ async function handleExpandAll() {
   isExpandingAll.value = false
   expandAllCurrent.value = 0
   currentAbortController.value = null
-  ElMessage.success('全部场景展开完成')
+
+  if (failCount === targets.length) {
+    ElMessage.error('全部集展开失败')
+  } else if (failCount > 0) {
+    ElMessage.warning(`${failCount} 集展开失败，其余已完成`)
+  } else {
+    ElMessage.success('全部场景展开完成')
+  }
 }
 
 async function handleConfirmOutline() {
