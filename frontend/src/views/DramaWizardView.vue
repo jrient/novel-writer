@@ -373,6 +373,86 @@ async function handleEpisodeExpanded(_index: number) {
   await dramaStore.fetchSession(projectId.value)
 }
 
+async function handleExpandAll() {
+  // 单集正在展开中，拒绝
+  if (isSingleExpanding.value) {
+    ElMessage.warning('请等待当前集展开完成')
+    return
+  }
+
+  const sections = outlineSections.value
+  let targets: Array<{ originalIndex: number }>
+
+  // 检查是否有已展开的集
+  const hasExpanded = sections.some(ep => (ep.children?.length ?? 0) > 0)
+
+  if (hasExpanded) {
+    try {
+      await ElMessageBox.confirm(
+        '部分集已展开，请选择展开方式',
+        '展开全部场景',
+        {
+          distinguishCancelAndClose: true,
+          confirmButtonText: '全部重新展开',
+          cancelButtonText: '跳过已展开',
+        },
+      )
+      // 用户点"全部重新展开" (confirm)
+      targets = sections.map((_, i) => ({ originalIndex: i }))
+    } catch (action) {
+      if (action === 'cancel') {
+        // 用户点"跳过已展开"
+        targets = sections
+          .map((ep, i) => ({ ep, originalIndex: i }))
+          .filter(({ ep }) => (ep.children?.length ?? 0) === 0)
+          .map(({ originalIndex }) => ({ originalIndex }))
+      } else {
+        // 用户点关闭 (close) 或按 Esc
+        return
+      }
+    }
+  } else {
+    targets = sections.map((_, i) => ({ originalIndex: i }))
+  }
+
+  if (targets.length === 0) {
+    ElMessage.info('没有需要展开的集')
+    return
+  }
+
+  expandAllTotal.value = targets.length
+  isExpandingAll.value = true
+
+  for (let i = 0; i < targets.length; i++) {
+    const { originalIndex } = targets[i]
+    expandAllCurrent.value = i + 1
+
+    await new Promise<void>((resolve) => {
+      const ctrl = streamExpandEpisode(
+        projectId.value,
+        originalIndex,
+        () => { /* chunk 忽略 */ },
+        async () => {
+          currentAbortController.value = null
+          await dramaStore.fetchSession(projectId.value)
+          resolve()
+        },
+        (error) => {
+          ElMessage.error(`第 ${originalIndex + 1} 集展开失败：${error}`)
+          currentAbortController.value = null
+          resolve()
+        },
+      )
+      currentAbortController.value = ctrl
+    })
+  }
+
+  isExpandingAll.value = false
+  expandAllCurrent.value = 0
+  currentAbortController.value = null
+  ElMessage.success('全部场景展开完成')
+}
+
 async function handleConfirmOutline() {
   confirming.value = true
   try {
@@ -431,6 +511,12 @@ onMounted(async () => {
   } finally {
     pageLoading.value = false
   }
+})
+
+onUnmounted(() => {
+  currentAbortController.value?.abort()
+  isExpandingAll.value = false
+  expandAllCurrent.value = 0
 })
 </script>
 
