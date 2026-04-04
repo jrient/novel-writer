@@ -159,7 +159,7 @@
           <div class="outline-header">
             <h3 class="outline-title">剧本大纲</h3>
             <p class="outline-subtitle">
-              共 {{ outlineSections.length }} 集 · 点击"展开场景"可逐集生成详细场景
+              共 {{ outlineSections.length }} 集 · 可逐集展开或一键展开全部场景
             </p>
           </div>
 
@@ -167,12 +167,22 @@
             <OutlineDraftPreview
               :project-id="projectId"
               :sections="outlineSections"
+              :disable-individual="isExpandingAll"
               @episode-expanded="handleEpisodeExpanded"
+              @expanding-change="isSingleExpanding = $event"
             />
           </div>
 
           <div class="outline-actions">
             <el-button @click="wizardStepIndex = 1">返回确认</el-button>
+            <el-button
+              plain
+              :loading="isExpandingAll"
+              :disabled="allExpanded"
+              @click="handleExpandAll"
+            >
+              {{ isExpandingAll ? `展开中 (${expandAllCurrent}/${expandAllTotal})` : allExpanded ? '已全部展开' : '展开全部场景' }}
+            </el-button>
             <el-button
               type="primary"
               size="large"
