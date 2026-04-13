@@ -22,7 +22,7 @@ class EmbeddingService:
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """批量生成embedding向量"""
         proxy = _get_proxy()
-        async with httpx.AsyncClient(timeout=60.0, proxy=proxy, verify=False) as client:
+        async with httpx.AsyncClient(timeout=60.0, proxy=proxy) as client:
             response = await client.post(
                 f"{self.api_base}/embeddings",
                 headers={

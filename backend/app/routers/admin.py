@@ -98,12 +98,13 @@ async def list_users(
         query = query.where(User.deleted_at == None)
         count_query = count_query.where(User.deleted_at == None)
 
-    # 搜索条件
+    # 搜索条件（转义 LIKE 通配符 % 和 _）
     if search:
+        safe_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         search_filter = or_(
-            User.username.ilike(f"%{search}%"),
-            User.email.ilike(f"%{search}%"),
-            User.nickname.ilike(f"%{search}%"),
+            User.username.ilike(f"%{safe_search}%", escape="\\"),
+            User.email.ilike(f"%{safe_search}%", escape="\\"),
+            User.nickname.ilike(f"%{safe_search}%", escape="\\"),
         )
         query = query.where(search_filter)
         count_query = count_query.where(search_filter)
@@ -541,8 +542,9 @@ async def list_all_projects(
     count_query = select(func.count(Project.id))
 
     if search:
-        query = query.where(Project.title.ilike(f"%{search}%"))
-        count_query = count_query.where(Project.title.ilike(f"%{search}%"))
+        safe_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        query = query.where(Project.title.ilike(f"%{safe_search}%", escape="\\"))
+        count_query = count_query.where(Project.title.ilike(f"%{safe_search}%", escape="\\"))
 
     if status:
         query = query.where(Project.status == status)

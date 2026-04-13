@@ -1,3 +1,5 @@
+import secrets as _secrets
+
 from pydantic_settings import BaseSettings
 from typing import Optional, List
 
@@ -9,8 +11,8 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:8083"
 
-    # JWT Authentication
-    JWT_SECRET_KEY: str = "change-this-to-a-random-secret-key-in-production"
+    # JWT Authentication — 必须通过 .env 或环境变量设置，否则每次重启 token 失效
+    JWT_SECRET_KEY: str = _secrets.token_urlsafe(64)
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7

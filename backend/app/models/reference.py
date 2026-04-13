@@ -4,7 +4,7 @@
 """
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Text, Integer, DateTime, func, JSON
+from sqlalchemy import String, Text, Integer, DateTime, func, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -15,6 +15,9 @@ class ReferenceNovel(Base):
     __tablename__ = "reference_novels"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # 所属用户
+    owner_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
 
     # 基本信息
     title: Mapped[str] = mapped_column(String(200), nullable=False)

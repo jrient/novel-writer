@@ -10,10 +10,14 @@ COPY requirements.txt .
 # 使用清华镜像加速 pip 安装
 RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
-RUN mkdir -p /app/data /app/uploads
+RUN adduser --disabled-password --gecos '' appuser && \
+    mkdir -p /app/data /app/uploads && \
+    chown -R appuser:appuser /app
 
 # 开发模式下通过 volume 挂载代码，无需 COPY
 # 生产模式取消注释下行
 # COPY . .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "300", "--reload"]
+USER appuser
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "300"]

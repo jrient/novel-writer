@@ -1,7 +1,10 @@
 """
 认证路由 - 登录、注册、OAuth、邀请码管理
 """
+import json
 import secrets
+import time
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -18,6 +21,7 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     verify_token,
+    blacklist_token,
 )
 from app.models.user import User
 from app.models.invitation import Invitation
@@ -36,6 +40,27 @@ router = APIRouter(prefix="/api/v1/auth", tags=["认证"])
 
 # OAuth2 密码模式
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
+
+# 登录速率限制：每个 IP 每分钟最多 5 次尝试
+_login_attempts: dict[str, list[float]] = defaultdict(list)
+_LOGIN_RATE_LIMIT = 5
+_LOGIN_RATE_WINDOW = 60  # seconds
+
+
+def _check_login_rate_limit(request: Request):
+    """检查登录请求速率限制"""
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    # 清理过期记录
+    _login_attempts[client_ip] = [
+        t for t in _login_attempts[client_ip] if now - t < _LOGIN_RATE_WINDOW
+    ]
+    if len(_login_attempts[client_ip]) >= _LOGIN_RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="登录尝试过于频繁，请稍后再试",
+        )
+    _login_attempts[client_ip].append(now)
 
 
 async def get_current_user(
@@ -162,10 +187,12 @@ async def register(
 
 @router.post("/login", response_model=Token, summary="用户登录")
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
     """用户登录（OAuth2 密码模式）"""
+    _check_login_rate_limit(request)
     # 支持用户名或邮箱登录
     result = await db.execute(
         select(User).where(
@@ -211,10 +238,12 @@ async def login(
 
 @router.post("/login/json", response_model=Token, summary="用户登录（JSON）")
 async def login_json(
+    request: Request,
     login_data: UserLogin,
     db: AsyncSession = Depends(get_db),
 ):
     """用户登录（JSON 格式）"""
+    _check_login_rate_limit(request)
     # 支持用户名或邮箱登录
     result = await db.execute(
         select(User).where(
@@ -345,9 +374,14 @@ async def change_password(
 
 @router.post("/logout", summary="用户登出")
 async def logout(
+    request: Request,
     current_user: User = Depends(get_current_user),
 ):
-    """用户登出（客户端应删除本地令牌）"""
+    """用户登出（将当前 token 加入黑名单）"""
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
+        blacklist_token(token)
     return {"detail": "登出成功"}
 
 
@@ -518,6 +552,23 @@ async def github_callback(
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
     # 返回 HTML 页面，通过 postMessage 将令牌发送给父窗口
+    # 使用 json.dumps 安全序列化，防止 XSS 注入
+    safe_data = json.dumps({
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email or "",
+            "nickname": user.nickname or "",
+            "avatar_url": user.avatar_url or "",
+        }
+    }, ensure_ascii=True)
+
+    # 限制 postMessage 目标源
+    allowed_origins = settings.ALLOWED_ORIGINS.split(",")
+    target_origin = json.dumps(allowed_origins[0].strip() if allowed_origins else "*")
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -525,19 +576,10 @@ async def github_callback(
     <body>
     <script>
     (function() {{
-        const data = {{
-            access_token: '{access_token}',
-            refresh_token: '{refresh_token}',
-            user: {{
-                id: {user.id},
-                username: '{user.username}',
-                email: '{user.email}',
-                nickname: '{user.nickname or ""}',
-                avatar_url: '{user.avatar_url or ""}'
-            }}
-        }};
+        const data = {safe_data};
+        const targetOrigin = {target_origin};
         if (window.opener) {{
-            window.opener.postMessage({{ type: 'oauth-success', data: data }}, '*');
+            window.opener.postMessage({{ type: 'oauth-success', data: data }}, targetOrigin);
             window.close();
         }} else {{
             localStorage.setItem('access_token', data.access_token);
@@ -632,7 +674,22 @@ async def wechat_callback(
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
-    # 返回 HTML 页面
+    # 返回 HTML 页面（使用 json.dumps 安全序列化，防止 XSS）
+    safe_data = json.dumps({
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email or "",
+            "nickname": user.nickname or "",
+            "avatar_url": user.avatar_url or "",
+        }
+    }, ensure_ascii=True)
+
+    allowed_origins = settings.ALLOWED_ORIGINS.split(",")
+    target_origin = json.dumps(allowed_origins[0].strip() if allowed_origins else "*")
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -640,19 +697,10 @@ async def wechat_callback(
     <body>
     <script>
     (function() {{
-        const data = {{
-            access_token: '{access_token}',
-            refresh_token: '{refresh_token}',
-            user: {{
-                id: {user.id},
-                username: '{user.username}',
-                email: '{user.email}',
-                nickname: '{user.nickname or ""}',
-                avatar_url: '{user.avatar_url or ""}'
-            }}
-        }};
+        const data = {safe_data};
+        const targetOrigin = {target_origin};
         if (window.opener) {{
-            window.opener.postMessage({{ type: 'oauth-success', data: data }}, '*');
+            window.opener.postMessage({{ type: 'oauth-success', data: data }}, targetOrigin);
             window.close();
         }} else {{
             localStorage.setItem('access_token', data.access_token);

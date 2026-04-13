@@ -171,7 +171,7 @@ async def ai_generate(
                     break
                 except Exception as e:
                     _logger.error(f"extract_characters 生成异常: {e}", exc_info=True)
-                    yield f"data: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+                    yield f"data: {_json.dumps({'error': 'AI 服务处理异常，请稍后再试'}, ensure_ascii=False)}\n\n"
                     break
 
             # 记录 token 使用
@@ -344,7 +344,7 @@ async def ai_generate(
                 break
             except Exception as e:
                 logger.error(f"AI 生成异常: {e}", exc_info=True)
-                yield f"data: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+                yield f"data: {_json.dumps({'error': 'AI 服务处理异常，请稍后再试'}, ensure_ascii=False)}\n\n"
                 break
 
         # 记录 token 使用（优先使用 API 返回的真实数据）
@@ -758,7 +758,8 @@ async def batch_generate(
             yield f"data: {_json.dumps({'type': 'done', 'total_chapters': len(outline_data), 'total_words': total_words}, ensure_ascii=False)}\n\n"
 
         except Exception as e:
-            yield f"data: {_json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+            logger.error(f"批量扩写异常: {e}", exc_info=True)
+            yield f"data: {_json.dumps({'type': 'error', 'message': 'AI 服务处理异常，请稍后再试'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         event_stream(),

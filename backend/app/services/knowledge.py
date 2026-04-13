@@ -79,7 +79,7 @@ class KnowledgeService:
         timeout = httpx.Timeout(10.0)
         proxy = _get_proxy()
 
-        async with httpx.AsyncClient(timeout=timeout, proxy=proxy, verify=False) as client:
+        async with httpx.AsyncClient(timeout=timeout, proxy=proxy) as client:
             # 1. Wikipedia 中文搜索
             try:
                 url = f"https://zh.wikipedia.org/api/rest_v1/page/summary/{quote(keyword)}"

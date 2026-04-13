@@ -210,8 +210,11 @@ async def upload_reference(
     if ext not in (".txt", ".md", ".text"):
         raise HTTPException(status_code=400, detail="仅支持 .txt 和 .md 格式")
 
-    # 读取内容
+    # 限制文件大小（最大 20MB）
+    MAX_FILE_SIZE = 20 * 1024 * 1024
     raw = await file.read()
+    if len(raw) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="文件大小不能超过 20MB")
     # 尝试多种编码
     content = None
     for encoding in ["utf-8", "gbk", "gb2312", "gb18030", "big5", "latin-1"]:
@@ -239,6 +242,7 @@ async def upload_reference(
     auto_genre = genre or _guess_genre(content, auto_title)
 
     novel = ReferenceNovel(
+        owner_id=current_user.id,
         title=auto_title,
         author=author,
         genre=auto_genre,
@@ -270,7 +274,7 @@ async def create_reference(
     db: AsyncSession = Depends(get_db),
 ):
     """手动创建参考小说记录"""
-    novel = ReferenceNovel(**payload.model_dump())
+    novel = ReferenceNovel(**payload.model_dump(), owner_id=current_user.id)
     db.add(novel)
     await db.commit()
     await db.refresh(novel)
@@ -286,7 +290,9 @@ async def list_references(
     db: AsyncSession = Depends(get_db),
 ):
     """列出参考小说，支持按类型和参考类型筛选"""
-    stmt = select(ReferenceNovel)
+    stmt = select(ReferenceNovel).where(
+        (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None)
+    )
 
     if genre:
         stmt = stmt.where(ReferenceNovel.genre == genre)
@@ -309,7 +315,9 @@ async def get_reference_stats(
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考库统计信息"""
-    result = await db.execute(select(ReferenceNovel))
+    result = await db.execute(select(ReferenceNovel).where(
+        (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None)
+    ))
     novels = result.scalars().all()
 
     genre_dist = {}
@@ -340,7 +348,10 @@ async def get_reference(
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考小说详情"""
-    result = await db.execute(select(ReferenceNovel).where(ReferenceNovel.id == novel_id))
+    result = await db.execute(select(ReferenceNovel).where(
+        ReferenceNovel.id == novel_id,
+        (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None),
+    ))
     novel = result.scalar_one_or_none()
     if not novel:
         raise HTTPException(status_code=404, detail="参考小说不存在")
@@ -361,7 +372,10 @@ async def update_reference(
     db: AsyncSession = Depends(get_db),
 ):
     """更新参考小说信息"""
-    result = await db.execute(select(ReferenceNovel).where(ReferenceNovel.id == novel_id))
+    result = await db.execute(select(ReferenceNovel).where(
+        ReferenceNovel.id == novel_id,
+        ReferenceNovel.owner_id == current_user.id,
+    ))
     novel = result.scalar_one_or_none()
     if not novel:
         raise HTTPException(status_code=404, detail="参考小说不存在")
@@ -382,7 +396,10 @@ async def delete_reference(
     db: AsyncSession = Depends(get_db),
 ):
     """删除参考小说"""
-    result = await db.execute(select(ReferenceNovel).where(ReferenceNovel.id == novel_id))
+    result = await db.execute(select(ReferenceNovel).where(
+        ReferenceNovel.id == novel_id,
+        ReferenceNovel.owner_id == current_user.id,
+    ))
     novel = result.scalar_one_or_none()
     if not novel:
         raise HTTPException(status_code=404, detail="参考小说不存在")
@@ -402,7 +419,10 @@ async def get_reference_chapters(
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考小说的章节列表"""
-    result = await db.execute(select(ReferenceNovel).where(ReferenceNovel.id == novel_id))
+    result = await db.execute(select(ReferenceNovel).where(
+        ReferenceNovel.id == novel_id,
+        (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None),
+    ))
     novel = result.scalar_one_or_none()
     if not novel:
         raise HTTPException(status_code=404, detail="参考小说不存在")
@@ -419,7 +439,10 @@ async def get_reference_analysis(
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考小说的分析结果"""
-    result = await db.execute(select(ReferenceNovel).where(ReferenceNovel.id == novel_id))
+    result = await db.execute(select(ReferenceNovel).where(
+        ReferenceNovel.id == novel_id,
+        (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None),
+    ))
     novel = result.scalar_one_or_none()
     if not novel:
         raise HTTPException(status_code=404, detail="参考小说不存在")

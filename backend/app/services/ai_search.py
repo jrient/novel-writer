@@ -20,7 +20,7 @@ def _get_proxy() -> Optional[str]:
 class AISearchService:
     def __init__(self, openai_api_key: str, openai_base_url: str, jina_api_key: Optional[str] = None, gemini_api_key: Optional[str] = None):
         proxy = _get_proxy()
-        http_client = httpx.AsyncClient(proxy=proxy, verify=False) if proxy else None
+        http_client = httpx.AsyncClient(proxy=proxy) if proxy else None
         self.client = AsyncOpenAI(api_key=openai_api_key, base_url=openai_base_url, http_client=http_client)
         self.jina_api_key = jina_api_key
         self.gemini_api_key = gemini_api_key
@@ -90,7 +90,7 @@ class AISearchService:
                 if self.jina_api_key:
                     headers["Authorization"] = f"Bearer {self.jina_api_key}"
 
-                async with httpx.AsyncClient(timeout=8.0, proxy=proxy, verify=False) as client:
+                async with httpx.AsyncClient(timeout=8.0, proxy=proxy) as client:
                     resp = await client.get(
                         f"https://s.jina.ai/{keyword}",
                         headers=headers

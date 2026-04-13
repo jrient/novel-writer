@@ -238,6 +238,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, MagicStick, Reading } from '@element-plus/icons-vue'
+import DOMPurify from 'dompurify'
 import { useCharacterStore } from '@/stores/character'
 import { useChapterStore } from '@/stores/chapter'
 import type { Character, CreateCharacterData, UpdateCharacterData } from '@/api/character'
@@ -360,13 +361,14 @@ const analyzing = ref(false)
 const analysisResult = ref('')
 
 function renderMarkdown(text: string): string {
-  return text
+  const html = text
     .replace(/### (.+)/g, '<h4>$1</h4>')
     .replace(/## (.+)/g, '<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n- /g, '\n<br>• ')
     .replace(/\n(\d+)\. /g, '\n<br>$1. ')
     .replace(/\n/g, '<br>')
+  return DOMPurify.sanitize(html)
 }
 
 async function analyzeCharacter() {

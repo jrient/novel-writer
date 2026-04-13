@@ -39,3 +39,18 @@ async def get_db():
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # 增量迁移：为已有表添加 owner_id 列（如果不存在）
+        if not settings.DATABASE_URL.startswith("sqlite"):
+            from sqlalchemy import text
+            for table in ("reference_novels", "knowledge_entries"):
+                result = await conn.execute(text(
+                    f"SELECT column_name FROM information_schema.columns "
+                    f"WHERE table_name='{table}' AND column_name='owner_id'"
+                ))
+                if not result.fetchone():
+                    await conn.execute(text(
+                        f"ALTER TABLE {table} ADD COLUMN owner_id INTEGER REFERENCES users(id)"
+                    ))
+                    await conn.execute(text(
+                        f"CREATE INDEX IF NOT EXISTS ix_{table}_owner_id ON {table}(owner_id)"
+                    ))

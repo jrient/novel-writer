@@ -47,6 +47,7 @@ async def create_knowledge(
 ):
     """手动创建知识条目"""
     entry = KnowledgeEntry(**payload.model_dump())
+    entry.owner_id = current_user.id
     entry.char_count = len(payload.content)
     entry.source_type = "manual"
     db.add(entry)
@@ -66,7 +67,9 @@ async def list_knowledge(
     db: AsyncSession = Depends(get_db)
 ):
     """获取所有知识条目"""
-    query = select(KnowledgeEntry)
+    query = select(KnowledgeEntry).where(
+        (KnowledgeEntry.owner_id == current_user.id) | (KnowledgeEntry.owner_id == None)
+    )
     if keyword:
         query = query.where(KnowledgeEntry.keyword.contains(keyword))
 
@@ -82,7 +85,10 @@ async def get_knowledge(
 ):
     """获取单个知识条目"""
     result = await db.execute(
-        select(KnowledgeEntry).where(KnowledgeEntry.id == entry_id)
+        select(KnowledgeEntry).where(
+            KnowledgeEntry.id == entry_id,
+            (KnowledgeEntry.owner_id == current_user.id) | (KnowledgeEntry.owner_id == None),
+        )
     )
     entry = result.scalar_one_or_none()
     if not entry:
@@ -99,7 +105,10 @@ async def update_knowledge(
 ):
     """更新知识条目"""
     result = await db.execute(
-        select(KnowledgeEntry).where(KnowledgeEntry.id == entry_id)
+        select(KnowledgeEntry).where(
+            KnowledgeEntry.id == entry_id,
+            KnowledgeEntry.owner_id == current_user.id,
+        )
     )
     entry = result.scalar_one_or_none()
     if not entry:
@@ -129,7 +138,10 @@ async def delete_knowledge(
 ):
     """删除知识条目"""
     result = await db.execute(
-        select(KnowledgeEntry).where(KnowledgeEntry.id == entry_id)
+        select(KnowledgeEntry).where(
+            KnowledgeEntry.id == entry_id,
+            KnowledgeEntry.owner_id == current_user.id,
+        )
     )
     entry = result.scalar_one_or_none()
     if not entry:

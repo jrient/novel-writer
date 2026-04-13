@@ -24,7 +24,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """用户创建模型"""
-    password: str = Field(..., min_length=6, max_length=100, description="密码")
+    password: str = Field(..., min_length=8, max_length=100, description="密码")
     invitation_code: str = Field(..., description="邀请码")
 
 
@@ -71,7 +71,7 @@ class TokenPayload(BaseModel):
 class PasswordChange(BaseModel):
     """密码修改模型"""
     old_password: str = Field(..., description="旧密码")
-    new_password: str = Field(..., min_length=6, max_length=100, description="新密码")
+    new_password: str = Field(..., min_length=8, max_length=100, description="新密码")
 
 
 class InvitationCreate(BaseModel):
