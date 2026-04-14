@@ -88,3 +88,51 @@ async def test_wrap_stream_preamble_inserted_after_connected():
     assert lines[0] == ": connected\n\n"
     assert lines[1] == 'data: {"type": "context_used"}\n\n'
     assert lines[2] == 'data: {"text": "x"}\n\n'
+
+
+import asyncio
+
+
+@pytest.mark.asyncio
+async def test_wrap_stream_handles_exception_in_source():
+    """原始流抛异常时，应输出错误 SSE 并正常结束"""
+    async def failing_stream():
+        yield 'data: {"text": "x"}\n\n'
+        raise RuntimeError("upstream broken")
+
+    helper = SSEStreamHelper(error_message="出错了")
+    lines = [line async for line in helper.wrap_stream(failing_stream())]
+
+    assert any('"error"' in line and "出错了" in line for line in lines)
+
+
+@pytest.mark.asyncio
+async def test_wrap_stream_emits_heartbeat_on_slow_source():
+    """源流慢于 heartbeat_interval 时，应输出心跳"""
+    async def slow_stream():
+        await asyncio.sleep(0.4)
+        yield 'data: {"text": "late"}\n\n'
+
+    helper = SSEStreamHelper(heartbeat_interval=0.05, max_heartbeats=100)
+    lines = [line async for line in helper.wrap_stream(slow_stream())]
+
+    heartbeats = [l for l in lines if l == ": heartbeat\n\n"]
+    assert len(heartbeats) >= 1
+
+
+@pytest.mark.asyncio
+async def test_wrap_stream_timeout_after_max_heartbeats():
+    """max_heartbeats 后应发送 timeout 错误并退出"""
+    async def never_ending():
+        while True:
+            await asyncio.sleep(1)
+            yield 'data: {"text":"x"}\n\n'
+
+    helper = SSEStreamHelper(heartbeat_interval=0.05, max_heartbeats=2, timeout_message="超时了")
+    lines = []
+    async for line in helper.wrap_stream(never_ending()):
+        lines.append(line)
+        if len(lines) > 10:
+            break
+
+    assert any("超时了" in line for line in lines)
