@@ -107,3 +107,70 @@ class SSEStreamHelper:
                 logger.error(f"SSE 流异常: {e}", exc_info=True)
                 yield sse_event({"error": self.error_message})
                 break
+
+
+# ----------------------------------------------------------------------------
+# TokenTracker
+# ----------------------------------------------------------------------------
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.token_usage_service import log_token_usage, estimate_tokens
+
+
+class TokenTracker:
+    """请求作用域的 token 使用收集器。
+
+    使用方式：
+        tracker = TokenTracker(db=..., user_id=..., provider=..., ...)
+        async for line in helper.wrap_stream(
+            stream, on_text=tracker.on_text, on_usage=tracker.on_usage,
+        ):
+            yield line
+        await tracker.flush(input_text=prompt)
+    """
+
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        provider: str,
+        model: str,
+        action: str,
+        project_id: int,
+    ):
+        self.db = db
+        self.user_id = user_id
+        self.provider = provider
+        self.model = model
+        self.action = action
+        self.project_id = project_id
+        self._collected_text: list = []
+        self._real_usage: Optional[dict] = None
+
+    def on_text(self, text: str) -> None:
+        self._collected_text.append(text)
+
+    def on_usage(self, usage: dict) -> None:
+        self._real_usage = usage
+
+    async def flush(self, input_text: str = "") -> None:
+        if self.provider == "demo":
+            return
+
+        if self._real_usage:
+            in_tok = self._real_usage.get("input_tokens", 0)
+            out_tok = self._real_usage.get("output_tokens", 0)
+        else:
+            output_text = "".join(self._collected_text)
+            in_tok = estimate_tokens(input_text)
+            out_tok = estimate_tokens(output_text)
+
+        await log_token_usage(
+            db=self.db,
+            user_id=self.user_id,
+            provider=self.provider,
+            model=self.model,
+            action=self.action,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            project_id=self.project_id,
+        )
