@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from script_rubric.config import (
-    HANDBOOK_DIR, PROMPT_DIR, DIMENSION_KEYS, DIMENSION_NAMES_ZH,
+    HANDBOOK_DIR, PROMPT_DIR, DIMENSION_KEYS, DIMENSION_NAMES_ZH, MODEL,
 )
 from script_rubric.models import ScriptArchive
 from script_rubric.pipeline.llm_client import get_client, call_llm
@@ -123,7 +123,7 @@ async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tup
     handbook = f"""# 剧本评审手册 v{version}
 
 > 基于 {len(archives)} 部剧本的评审数据提炼
-> 生成日期: {now} | 模型: Claude Sonnet 4.6
+> 生成日期: {now} | 模型: {MODEL}
 
 ---
 

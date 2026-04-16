@@ -4,6 +4,7 @@ import asyncio
 import json
 import re
 
+import json_repair
 from openai import AsyncOpenAI
 
 from script_rubric.config import API_BASE_URL, API_KEY, MODEL, PASS1_CONCURRENCY
@@ -48,5 +49,23 @@ def extract_json(text: str) -> dict:
     text = text.strip()
     match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
     if match:
-        text = match.group(1).strip()
-    return json.loads(text)
+        candidate = match.group(1).strip()
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            pass
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidate = text[start:end + 1]
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            repaired = json_repair.loads(candidate)
+            if isinstance(repaired, dict):
+                return repaired
+    raise json.JSONDecodeError("No JSON object found in response", text, 0)

@@ -20,7 +20,7 @@ DRAMA_DIR = PROJECT_ROOT / "uploads" / "drama"
 
 API_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://yibuapi.com/v1")
 API_KEY = os.getenv("OPENAI_API_KEY", "")
-MODEL = os.getenv("RUBRIC_MODEL", "claude-sonnet-4-6-20250514")
+MODEL = os.getenv("RUBRIC_MODEL") or os.getenv("OPENAI_MODEL") or "claude-sonnet-4-6-20250514"
 
 PASS1_CONCURRENCY = 5
 PASS1_MAX_RETRIES = 2
