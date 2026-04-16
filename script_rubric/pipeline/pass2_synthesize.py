@@ -108,7 +108,25 @@ def _build_calibration_section(archives: list[ScriptArchive]) -> str:
         + "\n".join(rows)
     )
 
-    return table
+    threshold_lines = ["", "### B. 推荐阈值（advisory）", ""]
+    if "签" in status_stats and "改" in status_stats:
+        cut1 = round((status_stats["签"]["mean"] + status_stats["改"]["mean"]) / 2, 1)
+        overlap_lo = min(status_stats["签"]["p25"], status_stats["改"]["p75"])
+        overlap_hi = max(status_stats["签"]["p25"], status_stats["改"]["p75"])
+        threshold_lines.append(
+            f"- 签 / 改 边界 ≈ {cut1}（重叠区 {overlap_lo}-{overlap_hi} 需结合质性判断）"
+        )
+    if "改" in status_stats and "拒" in status_stats:
+        cut2 = round((status_stats["改"]["mean"] + status_stats["拒"]["mean"]) / 2, 1)
+        overlap_lo = min(status_stats["改"]["p25"], status_stats["拒"]["p75"])
+        overlap_hi = max(status_stats["改"]["p25"], status_stats["拒"]["p75"])
+        threshold_lines.append(
+            f"- 改 / 拒 边界 ≈ {cut2}（重叠区 {overlap_lo}-{overlap_hi} 需结合质性判断）"
+        )
+    threshold_lines.append("")
+    threshold_lines.append("> 分数与状态高度重叠，刻度仅为参考；最终 status 取决于质性维度（红旗/绿旗）。")
+
+    return table + "\n" + "\n".join(threshold_lines)
 
 
 def _build_data_overview(archives: list[ScriptArchive]) -> str:

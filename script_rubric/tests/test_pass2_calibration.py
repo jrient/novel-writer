@@ -59,3 +59,19 @@ class TestCalibrationStats:
         assert "78.0" in text
         assert "77.7" in text
         assert "73.0" in text
+
+    def test_section_has_advisory_thresholds(self):
+        from script_rubric.pipeline.pass2_synthesize import _build_calibration_section
+
+        text = _build_calibration_section(_sample_archives())
+        # midpoints (banker's rounding): (78.0+77.7)/2 -> 77.8; (77.7+73.0)/2 -> 75.3
+        assert "77.8" in text
+        assert "75.3" in text
+        assert "参考" in text or "刻度仅为参考" in text
+
+    def test_section_has_overlap_warning(self):
+        from script_rubric.pipeline.pass2_synthesize import _build_calibration_section
+
+        text = _build_calibration_section(_sample_archives())
+        assert "重叠" in text
+        assert "质性" in text
