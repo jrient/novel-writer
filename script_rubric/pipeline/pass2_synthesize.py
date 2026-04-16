@@ -1,0 +1,219 @@
+from __future__ import annotations
+
+import json
+import logging
+from collections import defaultdict
+from datetime import datetime
+
+from script_rubric.config import (
+    HANDBOOK_DIR, PROMPT_DIR, DIMENSION_KEYS, DIMENSION_NAMES_ZH,
+)
+from script_rubric.models import ScriptArchive
+from script_rubric.pipeline.llm_client import get_client, call_llm
+
+logger = logging.getLogger(__name__)
+
+
+def _summarize_archive(archive: ScriptArchive) -> str:
+    dim_scores = ", ".join(
+        f"{DIMENSION_NAMES_ZH.get(k, k)}{archive.dimensions[k].score}"
+        for k in DIMENSION_KEYS
+        if k in archive.dimensions
+    )
+    consensus = "; ".join(archive.consensus_points[:3]) if archive.consensus_points else "无"
+    disagreement = "; ".join(archive.disagreement_points[:2]) if archive.disagreement_points else "无"
+    return (
+        f"### {archive.title} | {archive.genre} | {archive.status} | 均分 {archive.mean_score}\n"
+        f"维度分: {dim_scores}\n"
+        f"共识: {consensus}\n"
+        f"分歧: {disagreement}\n"
+    )
+
+
+def _full_archive_text(archive: ScriptArchive) -> str:
+    return json.dumps(archive.model_dump(), ensure_ascii=False, indent=1)
+
+
+async def synthesize_universal(archives: list[ScriptArchive]) -> str:
+    system_prompt = (PROMPT_DIR / "pass2_universal.md").read_text(encoding="utf-8")
+    summaries = "\n".join(_summarize_archive(a) for a in archives)
+    user_prompt = f"## 档案摘要（{len(archives)} 部）\n\n{summaries}"
+
+    client = get_client()
+    return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+
+
+async def synthesize_overlay(archives: list[ScriptArchive], genre: str) -> str:
+    template = (PROMPT_DIR / "pass2_overlay.md").read_text(encoding="utf-8")
+    system_prompt = template.replace("{genre}", genre)
+    details = "\n\n".join(_full_archive_text(a) for a in archives)
+    user_prompt = f"## {genre} 档案（{len(archives)} 部）\n\n{details}"
+
+    client = get_client()
+    return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+
+
+async def synthesize_redflags(
+    rejected: list[ScriptArchive],
+    borderline: list[ScriptArchive],
+) -> str:
+    system_prompt = (PROMPT_DIR / "pass2_redflags.md").read_text(encoding="utf-8")
+    rej_text = "\n\n".join(_full_archive_text(a) for a in rejected)
+    bord_text = "\n\n".join(_full_archive_text(a) for a in borderline)
+    user_prompt = (
+        f"## 被拒剧本（{len(rejected)} 部）\n\n{rej_text}\n\n"
+        f"## 待改剧本（{len(borderline)} 部，供对比）\n\n{bord_text}"
+    )
+
+    client = get_client()
+    return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+
+
+def _build_data_overview(archives: list[ScriptArchive]) -> str:
+    total = len(archives)
+    by_status: dict[str, int] = defaultdict(int)
+    by_genre: dict[str, int] = defaultdict(int)
+    for a in archives:
+        by_status[a.status] += 1
+        by_genre[a.genre] += 1
+
+    dim_avgs = {}
+    for key in DIMENSION_KEYS:
+        scores = [a.dimensions[key].score for a in archives if key in a.dimensions]
+        if scores:
+            dim_avgs[DIMENSION_NAMES_ZH.get(key, key)] = round(sum(scores) / len(scores), 1)
+
+    lines = [
+        f"- 总样本: {total} 部",
+        "- 状态分布: " + ", ".join(f"{k} {v}" for k, v in sorted(by_status.items())),
+        "- 类型分布: " + ", ".join(f"{k} {v}" for k, v in sorted(by_genre.items())),
+        "- 各维度平均分:",
+    ]
+    for name, avg in dim_avgs.items():
+        lines.append(f"  - {name}: {avg}")
+    return "\n".join(lines)
+
+
+async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tuple[str, dict]:
+    logger.info(f"Pass 2: synthesizing handbook v{version} from {len(archives)} archives")
+
+    logger.info("Batch A: universal rules")
+    universal = await synthesize_universal(archives)
+
+    by_genre: dict[str, list[ScriptArchive]] = defaultdict(list)
+    for a in archives:
+        if a.genre:
+            by_genre[a.genre].append(a)
+
+    overlays = {}
+    for genre, group in by_genre.items():
+        if len(group) >= 3:
+            logger.info(f"Batch B: overlay for {genre} ({len(group)} scripts)")
+            overlays[genre] = await synthesize_overlay(group, genre)
+        else:
+            logger.warning(f"Skipping overlay for {genre}: only {len(group)} scripts")
+            overlays[genre] = f"*{genre}类型仅有 {len(group)} 部样本，数据不足，暂不生成专项规律。*"
+
+    rejected = [a for a in archives if a.status == "拒"]
+    borderline = [a for a in archives if a.status == "改"]
+    logger.info(f"Batch C: red flags ({len(rejected)} rejected, {len(borderline)} borderline)")
+    redflags = await synthesize_redflags(rejected, borderline)
+
+    now = datetime.now().strftime("%Y-%m-%d")
+    handbook = f"""# 剧本评审手册 v{version}
+
+> 基于 {len(archives)} 部剧本的评审数据提炼
+> 生成日期: {now} | 模型: Claude Sonnet 4.6
+
+---
+
+## 第一部分：通用规律
+
+{universal}
+
+---
+
+## 第二部分：类型专项
+
+"""
+    for genre, text in overlays.items():
+        handbook += f"### {genre}\n\n{text}\n\n"
+
+    handbook += f"""---
+
+## 第三部分：地雷清单
+
+{redflags}
+
+---
+
+## 附录：数据概览
+
+{_build_data_overview(archives)}
+"""
+
+    rubric = _build_rubric(archives, version, now)
+
+    HANDBOOK_DIR.mkdir(parents=True, exist_ok=True)
+    handbook_path = HANDBOOK_DIR / f"handbook_v{version}.md"
+    handbook_path.write_text(handbook, encoding="utf-8")
+    logger.info(f"Saved: {handbook_path}")
+
+    rubric_path = HANDBOOK_DIR / f"rubric_v{version}.json"
+    rubric_path.write_text(json.dumps(rubric, ensure_ascii=False, indent=2), encoding="utf-8")
+    logger.info(f"Saved: {rubric_path}")
+
+    return handbook, rubric
+
+
+def _build_rubric(archives: list[ScriptArchive], version: int, date: str) -> dict:
+    dim_stats = {}
+    for key in DIMENSION_KEYS:
+        scores_by_status: dict[str, list[int]] = defaultdict(list)
+        for a in archives:
+            if key in a.dimensions:
+                scores_by_status[a.status].append(a.dimensions[key].score)
+
+        all_scores = [s for lst in scores_by_status.values() for s in lst]
+        avg = round(sum(all_scores) / len(all_scores), 1) if all_scores else 0
+
+        red_flags: set[str] = set()
+        green_flags: set[str] = set()
+        for a in archives:
+            if key in a.dimensions:
+                if a.status == "拒":
+                    red_flags.update(a.red_flags)
+                elif a.status == "签":
+                    green_flags.update(a.green_flags)
+
+        dim_stats[key] = {
+            "name_zh": DIMENSION_NAMES_ZH.get(key, key),
+            "avg_score": avg,
+            "avg_by_status": {
+                status: round(sum(scores) / len(scores), 1) if scores else None
+                for status, scores in scores_by_status.items()
+            },
+            "red_flags_sample": list(red_flags)[:5],
+            "green_flags_sample": list(green_flags)[:5],
+        }
+
+    by_genre: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
+    for a in archives:
+        for key in DIMENSION_KEYS:
+            if key in a.dimensions:
+                by_genre[a.genre][key].append(a.dimensions[key].score)
+
+    type_overlays = {}
+    for genre, dims in by_genre.items():
+        type_overlays[genre] = {
+            key: round(sum(scores) / len(scores), 1) if scores else None
+            for key, scores in dims.items()
+        }
+
+    return {
+        "version": str(version),
+        "generated_at": date,
+        "sample_size": len(archives),
+        "universal_dimensions": dim_stats,
+        "type_overlays": type_overlays,
+    }
