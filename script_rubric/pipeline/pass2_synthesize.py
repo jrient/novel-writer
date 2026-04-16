@@ -70,6 +70,10 @@ async def synthesize_redflags(
     return await call_llm(client, system_prompt, user_prompt, max_retries=2)
 
 
+def _select_anchor(group: list[ScriptArchive], target_mean: float) -> ScriptArchive:
+    return min(group, key=lambda a: (abs(a.mean_score - target_mean), a.title))
+
+
 def _build_calibration_section(archives: list[ScriptArchive]) -> str:
     by_status: dict[str, list[ScriptArchive]] = defaultdict(list)
     for a in archives:
@@ -126,7 +130,33 @@ def _build_calibration_section(archives: list[ScriptArchive]) -> str:
     threshold_lines.append("")
     threshold_lines.append("> 分数与状态高度重叠，刻度仅为参考；最终 status 取决于质性维度（红旗/绿旗）。")
 
-    return table + "\n" + "\n".join(threshold_lines)
+    anchor_lines = ["", "### C. 锚点剧本（每状态 1 部，按 mean_score 离均值最近选）", ""]
+    for status in status_order:
+        group = by_status.get(status, [])
+        if not group:
+            continue
+        target = status_stats[status]["mean"]
+        anchor = _select_anchor(group, target)
+        dim_parts = [
+            f"{DIMENSION_NAMES_ZH.get(k, k)} {anchor.dimensions[k].score}"
+            for k in DIMENSION_KEYS
+            if k in anchor.dimensions
+        ]
+        consensus = "；".join(anchor.consensus_points[:2]) if anchor.consensus_points else "无"
+        if status == "签":
+            flag_label, flag_items = "绿旗", anchor.green_flags[:1]
+        else:
+            flag_label, flag_items = "红旗", anchor.red_flags[:1]
+        flag_text = "；".join(flag_items) if flag_items else "无"
+
+        anchor_lines.append(f"#### 锚点 · {status} · 《{anchor.title}》")
+        anchor_lines.append(f"- 类型：{anchor.genre} / 实际均分：{anchor.mean_score}")
+        anchor_lines.append(f"- 维度：{' / '.join(dim_parts)}")
+        anchor_lines.append(f"- 共识：{consensus}")
+        anchor_lines.append(f"- {flag_label}：{flag_text}")
+        anchor_lines.append("")
+
+    return table + "\n" + "\n".join(threshold_lines) + "\n" + "\n".join(anchor_lines)
 
 
 def _build_data_overview(archives: list[ScriptArchive]) -> str:

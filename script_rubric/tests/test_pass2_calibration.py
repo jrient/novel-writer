@@ -75,3 +75,39 @@ class TestCalibrationStats:
         text = _build_calibration_section(_sample_archives())
         assert "重叠" in text
         assert "质性" in text
+
+
+class TestAnchorSelection:
+    def test_anchor_per_status_present(self):
+        from script_rubric.pipeline.pass2_synthesize import _build_calibration_section
+
+        text = _build_calibration_section(_sample_archives())
+        assert "锚点" in text
+        # 签 mean=78.0 -> S2 (78.0); 改 mean=77.7 -> R1 (78.0, |.3| smallest);
+        # 拒 mean=73.0 -> J2 (73.0)
+        assert "S2" in text
+        assert "R1" in text
+        assert "J2" in text
+
+    def test_anchor_closest_to_mean_wins(self):
+        from script_rubric.pipeline.pass2_synthesize import _select_anchor
+
+        archives = [
+            _make_archive("A", "改", 70.0),
+            _make_archive("B", "改", 78.0),
+            _make_archive("C", "改", 79.0),
+        ]
+        # mean = 75.67, closest = B (|78-75.67| = 2.33 < |79-75.67| = 3.33 < |70-75.67| = 5.67)
+        anchor = _select_anchor(archives, target_mean=75.67)
+        assert anchor.title == "B"
+
+    def test_anchor_tiebreak_by_title(self):
+        from script_rubric.pipeline.pass2_synthesize import _select_anchor
+
+        archives = [
+            _make_archive("Z", "改", 76.0),
+            _make_archive("A", "改", 76.0),
+        ]
+        # both equidistant from 76 -> A wins by title sort
+        anchor = _select_anchor(archives, target_mean=76.0)
+        assert anchor.title == "A"
