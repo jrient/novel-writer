@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import statistics
 from collections import defaultdict
 from datetime import datetime
 
@@ -67,6 +68,47 @@ async def synthesize_redflags(
 
     client = get_client()
     return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+
+
+def _build_calibration_section(archives: list[ScriptArchive]) -> str:
+    by_status: dict[str, list[ScriptArchive]] = defaultdict(list)
+    for a in archives:
+        by_status[a.status].append(a)
+
+    status_order = ["签", "改", "拒"]
+    rows = []
+    status_stats: dict[str, dict] = {}
+
+    for status in status_order:
+        group = by_status.get(status, [])
+        if not group:
+            continue
+        scores = [a.mean_score for a in group]
+        mean = round(sum(scores) / len(scores), 1)
+        if len(scores) >= 4:
+            quartiles = statistics.quantiles(scores, n=4)
+            p25, p75 = round(quartiles[0], 1), round(quartiles[2], 1)
+        else:
+            p25, p75 = round(min(scores), 1), round(max(scores), 1)
+
+        dim_avgs = []
+        for key in DIMENSION_KEYS:
+            ds = [a.dimensions[key].score for a in group if key in a.dimensions]
+            if ds:
+                dim_avgs.append(f"{DIMENSION_NAMES_ZH.get(key, key)} {round(sum(ds)/len(ds), 1)}")
+        dim_str = " / ".join(dim_avgs)
+
+        rows.append(f"| {status} | {len(group)} | {mean} | {p25} | {p75} | {dim_str} |")
+        status_stats[status] = {"mean": mean, "p25": p25, "p75": p75}
+
+    table = (
+        "### A. 状态-分数分布表\n\n"
+        "| 状态 | 样本数 | 均分 | P25 | P75 | 维度典型分布 |\n"
+        "|------|--------|------|-----|-----|--------------|\n"
+        + "\n".join(rows)
+    )
+
+    return table
 
 
 def _build_data_overview(archives: list[ScriptArchive]) -> str:
