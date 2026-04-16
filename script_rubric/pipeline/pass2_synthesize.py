@@ -237,6 +237,14 @@ async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tup
 
 ---
 
+## 第四部分：评分校准刻度
+
+> 本节由训练集统计确定性生成，为预测时的刻度参考。
+
+{_build_calibration_section(archives)}
+
+---
+
 ## 附录：数据概览
 
 {_build_data_overview(archives)}

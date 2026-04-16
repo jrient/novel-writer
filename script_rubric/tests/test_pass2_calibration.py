@@ -111,3 +111,33 @@ class TestAnchorSelection:
         # both equidistant from 76 -> A wins by title sort
         anchor = _select_anchor(archives, target_mean=76.0)
         assert anchor.title == "A"
+
+
+class TestHandbookIntegration:
+    def test_calibration_appears_as_part_four(self, tmp_path, monkeypatch):
+        import script_rubric.pipeline.pass2_synthesize as p2
+
+        monkeypatch.setattr(p2, "HANDBOOK_DIR", tmp_path)
+
+        async def fake_universal(archives):
+            return "通用规律占位"
+
+        async def fake_overlay(archives, genre):
+            return f"{genre} 占位"
+
+        async def fake_redflags(rejected, borderline):
+            return "地雷占位"
+
+        monkeypatch.setattr(p2, "synthesize_universal", fake_universal)
+        monkeypatch.setattr(p2, "synthesize_overlay", fake_overlay)
+        monkeypatch.setattr(p2, "synthesize_redflags", fake_redflags)
+
+        import asyncio
+        handbook, _ = asyncio.run(p2.synthesize_all(_sample_archives(), version=99))
+
+        assert "## 第四部分：评分校准刻度" in handbook
+        # Part 4 must come before appendix
+        assert handbook.index("## 第四部分：评分校准刻度") < handbook.index("## 附录")
+        # Calibration content must be present
+        assert "状态-分数分布表" in handbook
+        assert "锚点" in handbook
