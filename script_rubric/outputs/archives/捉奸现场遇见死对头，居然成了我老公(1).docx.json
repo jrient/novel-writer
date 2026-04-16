@@ -1,0 +1,105 @@
+{
+  "title": "捉奸现场遇见死对头，居然成了我老公(1).docx",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 77.2,
+  "score_range": [
+    75,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "设定挺好的，个人还挺喜欢这种欢喜冤家变情人的故事 —— 小冉",
+        "这个有意思 —— 贾酒",
+        "情节设定还不错 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "经典的欢喜冤家设定若切入点有趣（如捉奸现场偶遇），依然能有效吸引受众并获得市场认可。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "像第一集，其实他是一个很有意思的第一集 —— 小冉",
+        "闹剧开头，让男女主恰逢其会，随后应该紧跟着男女主的过往，做一种宿命感，会更勾人 —— 贾酒",
+        "第一集去捉奸开门直接是男主已经捉完奸出来了，比在外面先碰见再进去捉奸节奏快一点也有一点反套路 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局的巧合冲突需要快速切入核心事件，并通过反套路设计与补充人物羁绊来强化吸引力与宿命感。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "写的男主和女主都有点帮人社女主感觉没有那么聪明，然后这个男主感觉非常的咋咋唬唬 —— 小冉",
+        "第一集这男主不是欢喜冤家，纯纯欠打，稍微收一收？ —— Vicki",
+        "男主人设沉稳一些 —— 千北",
+        "希望男女主是成年人之间的对话 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "欢喜冤家设定中，男主不能过度降智或惹人厌（咋咋唬唬/欠打），需保持成年人的沉稳与魅力，女主也不应显得愚蠢。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集去捉奸开门直接是男主已经捉完奸出来了，比在外面先碰见再进去捉奸节奏快一点 —— Vicki",
+        "男女主拉扯涩气一点 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突的呈现应尽量前置以加快节奏，情感拉扯需要注重张力与氛围感。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "感觉作者文笔有点小白不够成熟 —— 小冉",
+        "台词修 —— 千北",
+        "台词可以稍微成熟一点。希望男女主是成年人之间的对话 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "现代情感剧的台词需符合成年人语境，避免小白感和幼稚化表达。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "男女主拉扯涩气一点 —— 千北",
+        "第一集去捉奸开门直接是男主已经捉完奸出来了...有一点反套路 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "情感向爽点依赖于男女主之间高质量的拉扯与性张力，以及反套路的情节反转。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "设定挺好的，个人还挺喜欢这种欢喜冤家变情人的故事 —— 小冉",
+        "有一点反套路 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在常见的欢喜冤家赛道中，需要通过反套路的情节编排（如捉奸反转）来建立差异化优势。"
+    }
+  },
+  "type_specific_notes": "作为女频情感向剧本，核心看点在于男女主之间的性张力（涩气）与宿命感。当前剧本在设定上抓住了受众痛点，但在执行上过于低幼化，缺乏成年人恋爱的拉扯感。",
+  "consensus_points": [
+    "核心设定（捉奸现场遇死对头/欢喜冤家）有趣且有吸引力。",
+    "作者文笔偏小白，台词不够成熟，缺乏成年人对话的质感。",
+    "男主人设存在严重问题，表现得过于咋呼、欠打，需要调整为更加沉稳的性格。"
+  ],
+  "disagreement_points": [
+    "责编之间无明显意见冲突，基本一致认为设定好但文笔/人设偏幼稚。仅在修改方向上各有侧重：贾酒侧重补充宿命感，Vicki侧重加快第一集节奏，千北侧重增加拉扯的涩气。"
+  ],
+  "red_flags": [
+    "文笔小白，台词幼稚",
+    "男主人设咋咋唬唬、纯纯欠打",
+    "女主人设显得不够聪明"
+  ],
+  "green_flags": [
+    "开局事件（捉奸现场）具备天然的戏剧冲突",
+    "欢喜冤家变情人的设定受众基础好，责编普遍表示“爱看”、“有意思”"
+  ]
+}

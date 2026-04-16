@@ -1,0 +1,86 @@
+{
+  "title": "解梦师之诡案追凶前10集4月14",
+  "status": "改",
+  "genre": "原创 / 男频",
+  "mean_score": 82.5,
+  "score_range": [
+    75,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "很新 —— 47",
+        "其他的感觉中规中矩 —— 山南"
+      ],
+      "evidence_from_text": [
+        "凭借催眠与入梦的绝技，在警花艾悠悠等人的辅助下，侦破一系列诡案"
+      ],
+      "extracted_rule": "“解梦+异国探案”的设定组合有一定新意，但具体案件和元素组合存在常规化倾向。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "紫龙先生临终前，嘱托小徒弟黄梁寻找玄梦天女，以击败蓝秋生，清理门户，维护正道。"
+      ],
+      "extracted_rule": "采用经典的“师门被灭、下山复仇”开局，冲突触发快但套路感较重。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "反派的逼格不够高啊，反派的形象不够吸引人，缺少角色魅力。 —— 山南"
+      ],
+      "evidence_from_text": [
+        "蓝秋生一身笔挺的复古黑色西装，黑色礼帽...微微上翘的山羊胡，为他添了几分邪魅。"
+      ],
+      "extracted_rule": "正面角色标签化（社恐男主+御姐警花），反派塑造单薄且缺乏魅力。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "个别意识流一点的场景会略显混乱，设计一点锚定物会更好。 —— 47"
+      ],
+      "evidence_from_text": [
+        "黄梁和艾悠悠小心翼翼地躲在草丛中，紧盯着章东升...黄梁一把拉住艾悠悠，双脚一蹬，两人瞬间腾空而起。"
+      ],
+      "extracted_rule": "现实与梦境交替推进，整体节奏紧凑，但梦境场景的逻辑和转折略显混乱。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "你脸怎么红了？动不动就脸红，你们华国人可真有意思！",
+        "笑个够吧！男人婆！"
+      ],
+      "extracted_rule": "台词具有较强的二次元和古早网文感，带有一定的小白感和幼稚感。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "黄梁气愤地走上前，将她嘴里的棒棒糖一把扔到地上，踩碎。然后伸手揉她的脸，强迫她做出笑的表情。"
+      ],
+      "extracted_rule": "男主利用催眠能力实现“降维打击”，提供了密集的即时爽感和打脸情节。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "感觉香水的作用可以改成“美梦成真”这种和主题紧扣的元素 —— 山南",
+        "做那种梦中人分不清梦境与现实的情节，去误导观众 —— 47"
+      ],
+      "evidence_from_text": [
+        "性格腼腆的解梦师黄梁为报师仇，来到与他格格不入的欲望之都的泰邦唐人街"
+      ],
+      "extracted_rule": "融合了“唐探”式的异国悬疑与“盗梦空间”式的奇幻设定，在男频赛道有明确的市场定位。"
+    }
+  }
+}

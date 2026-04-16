@@ -1,0 +1,107 @@
+{
+  "title": "成魔武双废的异世公主，全凭华国助我为王1-3",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 70.8,
+  "score_range": [
+    65,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "世界观搭建的也一般 —— 贾酒",
+        "在其他渠道看过，很诡异 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "安诺穿成魔法世界的一国公主……意外开启了直播系统……国家成榜一"
+      ],
+      "extracted_rule": "“西幻+直播上交国家”的缝合设定若缺乏扎实的世界观支撑，容易显得套路化且缺乏质感。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "也是进入情绪太慢 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "安诺ov（哭诉）：苍天啊大地啊，有比我安诺更倒霉的穿越者吗？"
+      ],
+      "extracted_rule": "生死危机的开局若被主角大量轻浮、脱线的内心OS冲淡，会导致观众无法代入紧张情绪，进入剧情慢。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "为什么感觉有点幼稚 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "安诺ov：哇！好帅！不愧是大骑士，火属性的斗气超强的。我要为菲尔哐哐哐撞大墙",
+        "安诺os（强做镇定）：完了完了，都是高手……早说得玄武门battle，我就不来啦！"
+      ],
+      "extracted_rule": "主角在生死关头过度使用古早网络用语吐槽和犯花痴，会严重削弱人设的智商与沉稳度，显得极度幼稚。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "也是进入情绪太慢 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "第一集 1-1 夜 外 密林外围",
+        "第二集 2-1 夜 外 城墙外的道路上",
+        "第三集 3-1 夜 外 城墙外的道路上"
+      ],
+      "extracted_rule": "前三集全部消耗在同一场追杀戏中，且主角仅作为旁观者开启系统，缺乏实质性的剧情推进与反转，导致节奏严重拖沓。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "为什么感觉有点幼稚 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "天啦噜，是敌人。",
+        "终于找到组织了，祖国大大，快救救我。"
+      ],
+      "extracted_rule": "在西幻背景中滥用“天啦噜”、“祖国大大”等古早网络流行语，会产生强烈的割裂感与出戏感。"
+    },
+    "payoff_satisfaction": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "插着一把写着【普通人】标签的安诺紧抓着胸口的项链，望着雨滴。",
+        "安诺偷摸地打字。安诺os：终于找到组织了，祖国大大，快救救我。"
+      ],
+      "extracted_rule": "前三集主角全程处于被动保护状态，金手指（系统）仅停留在展示弹幕和求救阶段，未能提供任何实质性的爽点兑现。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "在其他渠道看过，很诡异 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "系统ov：滴，魔法界直播系统已上线，请问宿主需要绑定吗？"
+      ],
+      "extracted_rule": "常规的“直播+上交国家”套路在网文市场已高度饱和，若无微创新极易被视为同质化作品甚至引发多投/抄袭争议。"
+    }
+  },
+  "type_specific_notes": "作为女频脑洞/西幻题材，本作试图用“直播上交国家”的网文经典套路降维打击短剧市场，但剧本呈现出强烈的“水字数”网文感。大量无意义的内心OS和弹幕互动挤占了短剧应有的视觉冲突与动作节奏，不符合短剧的视听逻辑。",
+  "consensus_points": [
+    "剧本整体呈现出幼稚感，主角行为逻辑与台词不成熟。",
+    "开局节奏拖沓，无法快速抓住观众情绪。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "疑似一稿多投或抄袭（责编指出在其他渠道看过）",
+    "主角内心戏（OS/OV）占比过大，严重拖慢影视化节奏",
+    "台词充斥过时的网络流行语，出戏感极强"
+  ],
+  "green_flags": [
+    "设定了明确的金手指（直播系统）和求救对象（华国），后续爽点逻辑清晰"
+  ]
+}

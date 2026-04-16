@@ -1,0 +1,113 @@
+{
+  "title": "改编AI真人剧《嫡女贵凰：重生毒妃狠绝色》（1）",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "非常常规好看的斗女强文 —— 小冉",
+        "我会希望稍微有一个点上面能有一点创新感 —— 小冉",
+        "平平无奇大女主 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "类型：重生、复仇、大女主、双强",
+        "叶慕兮被灌下毒酒，在烈火焚身的痛苦中含恨而死，死前立誓，若有来生，定要手刃仇人"
+      ],
+      "extracted_rule": "题材与设定高度套路化，缺乏差异化创新点。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "感觉前面没有后面好看 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "第1集 1-1 夜 外 皇宫焚天台...叶慕兮浑身血污，被铁链锁在石柱上，毒酒穿肠的剧痛让她浑身痉挛。"
+      ],
+      "extracted_rule": "开局采用常规的重生前惨死作为情绪钩子，有一定冲击力但缺乏新意。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "出现的人物太多了，导致人看得有点累 —— 小冉",
+        "平平无奇大女主 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "叶慕兮：女主...前世温柔贤淑、愚钝恋爱脑...重生后冷静腹黑、杀伐果断",
+        "南宫凛，男主，天生白发，表面冷漠阴鸷、杀伐果断"
+      ],
+      "extracted_rule": "人设标签化明显，出场人物过多导致刻画难以深入。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "前10集有三个副本，是否在前10集塞的内容有点太丰富了，出现的人物太多了，导致人看得有点累 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "第1-3集解决叶婉芙，第4-6集救弟弟查贪墨，第7集贵女宴，第8-10集桃花别院反杀"
+      ],
+      "extracted_rule": "冲突密度极高，副本推进过快，导致信息量过载和观众认知疲劳。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "叶婉柔：妹妹，你求了一辈子的凤冠霞帔，最终还是戴在了我头上。",
+        "叶慕兮：皇甫绝！我叶家倾尽全族助你登基，你竟如此狼心狗肺！"
+      ],
+      "extracted_rule": "台词符合古言女频常规风格，情绪外露直接但略显套路。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "绝对是不难看，非常常规好看的斗女强文 —— 小冉",
+        "好看 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "张夫人一脚踹开房门...只见叶婉芙和张公子衣衫不整地纠缠在一起",
+        "叶慕兮假装怯懦伸手去接，手一抖，将整杯茶水尽数泼在叶婉芙身上"
+      ],
+      "extracted_rule": "爽点密集且兑现迅速，打脸反杀情节直接有效。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "锦绣的2.0版本 —— 小冉",
+        "平平无奇大女主 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "改编AI真人剧《嫡女贵凰：重生毒妃狠绝色》"
+      ],
+      "extracted_rule": "具有明确的对标作品，但缺乏自身的差异化优势。"
+    }
+  },
+  "type_specific_notes": "作为女频改编剧，本作严格遵循了“重生+复仇+宅斗+双强”的经典网文套路，爽点密集，节奏极快，但创新度不足，人物脸谱化严重。",
+  "consensus_points": [
+    "剧本属于常规的套路化大女主爽文，缺乏创新点。",
+    "整体具备可看性，爽点合格，商业属性达标。"
+  ],
+  "disagreement_points": [
+    "无明显分歧，责编们对“好看但套路”的评价基本一致。"
+  ],
+  "red_flags": [
+    "前10集塞入过多副本和人物，导致观众认知负担重，容易看累。",
+    "设定和剧情高度套路化，缺乏创新亮点。",
+    "剧本细节存在Bug（如第10集偏房里写的是伙夫进去，跑出来却变成了张公子）。"
+  ],
+  "green_flags": [
+    "冲突密集，打脸反杀节奏快，爽点兑现及时。",
+    "具备成熟的女频爽文商业元素，受众定位精准。"
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "title": "《天降魔丸，纨绔爹爹被逼成栋梁！》",
+  "status": "签",
+  "genre": "原创 / 萌宝",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "天降小奶团，修改版 —— 47"
+      ],
+      "evidence_from_text": [
+        "天君：...最近人间的大渊出了号人物，比你还要淘气。",
+        "祁景曜：...他不务正业的名声，怕是都惊动上天了，所以老天派你来治他！"
+      ],
+      "extracted_rule": "萌宝降维打击纨绔爹爹，形成“魔法打败魔法”的反向带娃设定，在常规萌宝题材中做出了喜剧反差。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "祁景曜：老天爷，就赐朕个公主吧！",
+        "昭昭在所有人的注视下从天而降，直直向下砸去。祁琰看见一个小小的身影迎面砸来，瞬间清醒，下意识伸手去接。"
+      ],
+      "extracted_rule": "开局直奔主题，利用“皇帝求女”与“天降祥瑞精准砸中男主”完成宿命绑定，节奏极快且极具画面感。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "昭昭（双手抱住那几乎和她身子差不多大的酒坛...咕咚咕咚就喝了好几大口）",
+        "祁琰（低声自语）：啧……好像，有这么个闺女……也挺不赖。"
+      ],
+      "extracted_rule": "赋予萌宝“反差萌”属性（好赌、海量、武力值高），打破传统乖巧奶团刻板印象；男主在受虐中自然萌生父爱，人设生动讨喜。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "（字幕：三天三夜后）赌场内的所有人全都东倒西歪...唯有昭昭依然精神抖擞。",
+        "祁琰：八、皇、子、父、女、与、狗、不、得、入、内？！"
+      ],
+      "extracted_rule": "冲突场景转换快（天界-祭台-赌场-王府-大理寺），每个场景都有明确的“闯祸/打脸”小高潮，松紧交替得当。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "祁景曜：哈哈哈！好！好一个永乐！真是卤水点豆腐，一物降一物！",
+        "昭昭：爹爹，他身上的味道好难闻！比哮天……比隔壁大黄的屎还臭！"
+      ],
+      "extracted_rule": "台词口语化、喜剧化，善用夸张比喻和童言无忌制造笑点，符合短剧/轻喜剧调性。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "昭昭全神贯注，被这突然一撞，手中微弱的灵力顿时失控乱窜，祁昀只觉一股大力迎面而来，向后倒飞出去。",
+        "坐在轮椅上的沈公子，双手一撑轮椅扶手，竟然直接站了起来"
+      ],
+      "extracted_rule": "爽点密集且直给，利用萌宝的“降维打击”（仙力、运气）快速解决凡间难题，反派吃瘪迅速，绝不憋屈。"
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "title": "二嫁权宦",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 75.2,
+  "score_range": [
+    70,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "题材和剧情可以 —— 小冉",
+        "情节略老 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "题材合格但情节老套会降低设定的整体吸引力。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "第一集情绪调动感不够 —— 小冉",
+        "开头一个收尸，台词剧情略平淡 —— Vicki",
+        "开头太平 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局必须有强烈的情绪调动，仅有事件（如收尸）而无情绪张力无法留住观众。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "男女主前期对手戏太少了 —— Vicki",
+        "男主不够霸气 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "权臣/霸道男主的人设需要通过早期密集的对手戏和强势行为来确立。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "节奏偏慢 —— 小冉",
+        "比较平稳 —— 贾酒",
+        "男女主前期对手戏太少了 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "节奏平稳偏慢、前期缺乏男女主核心冲突会导致剧情沉闷。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "台词剧情略平淡 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "台词平淡会直接削弱剧情的张力和人物的宿命感。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "宿命纠缠，前面都没看到 —— Vicki",
+        "缺少宿命感 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "女频情感向作品必须尽早铺陈宿命感以满足观众的情感期待。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "情节略老 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "老套的情节在同类竞品中缺乏差异化优势。"
+    }
+  },
+  "type_specific_notes": "女频权臣题材高度依赖男女主之间的CP感和宿命感，前期对手戏不足、男主人设不够极致（不够霸气）是致命伤。",
+  "consensus_points": [
+    "开局太平淡，缺乏情绪调动（小冉、Vicki、千北）",
+    "男女主之间缺乏宿命感和早期互动（Vicki、千北）"
+  ],
+  "disagreement_points": [
+    "贾酒认为“比较平稳，调整起来不会特别费事”，而其他责编认为开局和人设存在较大问题（太平、缺乏宿命感），对修改难度的预判存在分歧。"
+  ],
+  "red_flags": [
+    "开局平淡无情绪调动",
+    "男主不够霸气",
+    "男女主前期对手戏过少",
+    "缺乏宿命感"
+  ],
+  "green_flags": [
+    "题材和剧情底子尚可"
+  ]
+}

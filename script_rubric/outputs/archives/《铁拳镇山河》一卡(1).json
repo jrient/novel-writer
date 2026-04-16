@@ -1,0 +1,101 @@
+{
+  "title": "《铁拳镇山河》一卡(1)",
+  "status": "改",
+  "genre": "原创 / 男频",
+  "mean_score": 76.7,
+  "score_range": [
+    72,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "题材过于传统 —— 贾酒",
+        "民国黑帮不是很喜欢pass —— 宇间",
+        "感觉跟民国关系不大 —— 安兔兔"
+      ],
+      "evidence_from_text": [
+        "民国时期，宋怀安本是十里洋场渊城，一家店铺的账房伙计...被隐居芦苇荡的世外高人霍万钧所救",
+        "青龙会背后是倭国黑龙会"
+      ],
+      "extracted_rule": "民国黑帮复仇与抗日题材过于传统套路，缺乏新意与市场吸引力。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "节奏感觉有点慢 —— 小冉",
+        "期待感弱了一些 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "第一集：【画面闪切：夜晚的宋家小院】...宋怀安胸口中弹",
+        "第二集：【字幕：铁山靠】...宋怀安赤着上身从芦苇丛中冲出"
+      ],
+      "extracted_rule": "开局采用传统的“灭门惨案+深山练功”模式，铺垫过长，导致主线剧情和情绪钩子进入较慢。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "我觉得可以适当把练功这些改的没那么2，可以考虑往邪不压正的感觉做 —— 帕克"
+      ],
+      "evidence_from_text": [
+        "陆云裳：32岁，女主。性格高冷，大女主范，外表冷艳，浑身散发着强烈的气场。",
+        "孟彪：40岁，青龙会创始人孟九爷独子...性格喜怒无常"
+      ],
+      "extracted_rule": "人设基本符合男频爽文的经典模版（隐忍男主、高冷大嫂、嚣张反派），但略显脸谱化。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "节奏感觉有点慢，太仿红果节奏写了 —— 小冉",
+        "就是觉得太四平八稳 —— 贾酒",
+        "最后一口气收掉三个帮派，不如让整部剧就是他收掉三个帮派的过程 —— 山南"
+      ],
+      "evidence_from_text": [
+        "第五集 场景：大厅（聚仙楼）",
+        "第十一集 场景：大厅（聚仙楼）"
+      ],
+      "extracted_rule": "剧情推进过于四平八稳，单场景（如聚仙楼宴会）占据极大篇幅（5-11集），导致整体节奏拖沓。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "我觉得可以适当把练功这些改的没那么2 —— 帕克"
+      ],
+      "evidence_from_text": [
+        "宋怀安（VO，语气冰冷）：渊城，十里洋场烟花地！",
+        "黑衣人1：点子扎手！先把陆云裳杀了！"
+      ],
+      "extracted_rule": "台词符合民国黑帮的江湖语境，但部分内心独白和练功桥段略带中二感。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "复仇爽点不够 —— 安兔兔",
+        "最后一口气收掉三个帮派，不如让整部剧就是他收掉三个帮派的过程，以三各不同的手段一个个干掉各个帮派，感觉这样更有意思 —— 山南"
+      ],
+      "evidence_from_text": [
+        "第十一集...宋怀安(上前一步): 这一场，还没完。(他转向陆云裳，目光沉稳)大嫂，振威堂的旗，不能倒！这一阵，请让我来！"
+      ],
+      "extracted_rule": "男主长期处于隐忍和旁观状态，爽点兑现严重后置，大目标缺乏阶段性的拆解与释放。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "太仿红果节奏写了 —— 小冉",
+        "题材过于传统 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "迭代《扫黑》热力值2300W 红果最高热度9216W 抖音播放10亿"
+      ],
+      "extracted_rule": "明确对标红果男频风格，但未能提炼出差异化元素，陷入了同质化的套路中。"
+    }
+  }
+}

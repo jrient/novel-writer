@@ -1,0 +1,88 @@
+{
+  "title": "飞升不如谈恋爱",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 73.0,
+  "score_range": [
+    70,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "动态漫出过一个男频老祖下山的爆款，这个完全是性转版，情节几乎都一样 —— 小冉",
+        "这个如果套个玄幻的壳子来讲男频战神文的套路，风险比较大 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "简单的性转或套壳无法掩盖情节的高度同质化，缺乏实质性创新。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "感觉有点吵 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局或整体氛围过于喧闹、缺乏有效的情绪引导会引起受众反感。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这个完全是性转版，情节几乎都一样 —— 小冉",
+        "男频战神文的套路 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "直接照搬男频爽文人设（如战神、老祖）到女频，容易显得扁平且套路化。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "感觉有点吵 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突的呈现需要张弛有度，一味追求激烈会导致观感“吵闹”而失去节奏感。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "感觉有点吵 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "台词与表达设计应避免过度喧哗或浮夸，以免给读者带来不适的阅读体验。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这个如果套个玄幻的壳子来讲男频战神文的套路，风险比较大 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频爽点（战神套路）直接平移至女频存在水土不服的风险，爽感兑现可能无法击中目标受众。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "动态漫出过一个男频老祖下山的爆款，这个完全是性转版，情节几乎都一样 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "仅靠性别转换无法形成有效的市场差异化，与已有爆款高度重复会被视为缺乏诚意的跟风。"
+    }
+  },
+  "type_specific_notes": "女频作品直接套用男频“战神/老祖下山”套路（仅做性转处理）风险极高，容易导致情节严重同质化，且男频的爽点逻辑在女频受众中容易产生水土不服或“吵闹”的负面观感。",
+  "consensus_points": [
+    "剧本严重依赖已有男频爆款套路，情节高度雷同，缺乏原创性和差异化。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "情节与已有爆款几乎一样，涉嫌严重同质化或融梗",
+    "生搬硬套男频战神文套路，受众定位错位",
+    "整体观感被评价为“吵”，缺乏高级感和节奏控制"
+  ],
+  "green_flags": []
+}

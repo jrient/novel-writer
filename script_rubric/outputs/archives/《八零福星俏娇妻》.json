@@ -1,0 +1,106 @@
+{
+  "title": "《八零福星俏娇妻》",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 79.5,
+  "score_range": [
+    75,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "穿越到年代文里成为炮灰女二后...利用年代信息差创业致富的同时，参加高考命运"
+      ],
+      "extracted_rule": "穿书、八零年代、炮灰女二逆袭属于女频常规套路，设定本身无明显创新，需依靠人设和爽点执行来弥补同质化。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "前两集感觉可以再压缩一下剧情 —— 千北",
+        "听到男主的名字，没有想到之前看过的小说，而是在看到顾昭一家四口的脸才想起来？ —— Vicki"
+      ],
+      "evidence_from_text": [
+        "第1集现代戏占了一半篇幅",
+        "叶清宁震惊地看着顾昭一家四口的脸。叶清宁：（OS）顾昭？！顾秀？！顾思思？！我穿书了！（第2集结尾）"
+      ],
+      "extracted_rule": "开局引入需迅速，现代戏前史过长或女主觉醒穿书的反射弧过长会拖慢入戏节奏，削弱钩子强度。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "女主是“学霸，商界女强人，冷静，自信，现实”但是刚穿过来的女主咋咋呼呼的 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "人物小传：冷静，自信，现实",
+        "叶清宁：救命！抓人贩子！有没有好心人能帮我报个警呀！日后一定重谢！这位大哥，求求你放我走吧（第2集）"
+      ],
+      "extracted_rule": "强人设女主在遭遇突发状况时的反应需符合其身份背景，避免为了制造冲突或推动剧情而出现降智、崩人设的割裂感。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "前两集感觉可以再压缩一下剧情 —— 千北"
+      ],
+      "evidence_from_text": [
+        "第4集因女儿爆发家庭冲突",
+        "第5集白莲花上门交锋",
+        "第8-9集暴打二流子"
+      ],
+      "extracted_rule": "整体冲突密度尚可，每集都有明确的对抗事件，但开篇进入核心主线的节奏需紧凑，避免无效拉扯。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "好看，挑不出毛病的好看，没有什么问题 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "怎么，你也怕我抢李卓然，害你的柔柔妹妹伤心？放心，我对垃圾回收不感兴趣！"
+      ],
+      "extracted_rule": "爽文台词需干脆利落，女主面对挑衅时的怼人台词能有效增强人物气场和观众代入感。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "好看，挑不出毛病的好看 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "叶清宁一记窝心脚踹在王兴生胸口...挥舞棒槌，冲着王兴生的胳膊腿一通抽打。（第9集）"
+      ],
+      "extracted_rule": "面对反派的恶劣挑衅（如造黄谣），女主采取直接、暴力的反击方式（物理+言语双重打击）能提供强烈的爽感反馈。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "原著：八零福星俏媳妇",
+        "全面落实包产到户，包干到户"
+      ],
+      "extracted_rule": "在高度同质化的八零穿书赛道中，若无特殊元素叠加，只能依靠女主“不服就干”的微创新来打出市场差异。"
+    }
+  },
+  "type_specific_notes": "作为年代穿书女频剧，受众核心诉求是看现代独立女性如何在落后年代‘降维打击’。因此，女主的现代思维优势必须尽早且稳定地展现，任何表现出软弱或迟钝的情节都会严重破坏爽感预期。",
+  "consensus_points": [
+    "责编对具体优缺点无明确共识，但整体评分均在75分及格线以上，认可其具备签约和改编的基础。"
+  ],
+  "disagreement_points": [
+    "小冉认为剧本非常成熟（“挑不出毛病”），而Vicki和千北认为开局存在明显的人设割裂和节奏拖沓问题。"
+  ],
+  "red_flags": [
+    "女主开局行为与‘冷静商界女强人’的人设严重不符，存在割裂感。",
+    "前两集进入主线较慢，女主确认穿书的反射弧过长。"
+  ],
+  "green_flags": [
+    "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+    "台词设计较为利落，如‘对垃圾回收不感兴趣’等金句能立住大女主气场。"
+  ]
+}

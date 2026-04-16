@@ -1,0 +1,86 @@
+{
+  "title": "萌宝8岁，下山被大佬爹地宠上天",
+  "status": "拒",
+  "genre": "原创 / 萌宝",
+  "mean_score": 72.2,
+  "score_range": [
+    70,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "几乎也是同质化的内容，创新点不多 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "萌宝题材极易陷入同质化，缺乏新设定的作品难以脱颖而出。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "第一集就只表现萌宝会算命么，卡点差点意思 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "第一集仅展示单一技能（如算命）不足以形成强力钩子，需配合强冲突卡点。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "我喜欢帅哥美女爹妈 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "父母的高颜值设定能提供基础吸引力，但需警惕沦为表面工具人。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "第一集就只表现萌宝会算命么，卡点差点意思 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "萌宝文开局不能仅铺陈技能，需快速切入核心冲突以提升节奏紧凑感。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "常规套路下需注意台词的自然度，避免强行降智。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "常规套路能提供基础爽感，但缺乏惊喜和爆发力。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "几乎也是同质化的内容，创新点不多 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "萌宝赛道高度饱和，没有明确差异化优势极易被淘汰。"
+    }
+  },
+  "type_specific_notes": "萌宝题材市场饱和度极高，同质化严重。单纯依靠“萌宝下山+算命+找首富爹地”的经典套路已无法满足当前市场需求，必须在开局钩子和核心设定上做出明显差异化。",
+  "consensus_points": [
+    "剧本内容同质化严重，缺乏创新点。",
+    "开局钩子和卡点设计不足，缺乏吸引力。"
+  ],
+  "disagreement_points": [
+    "部分责编（小冉）对高颜值父母的设定有好感，而其他责编更关注剧情的套路化（贾酒）和节奏问题（Vicki），也有责编（山南）因个人题材偏好直接排斥。"
+  ],
+  "red_flags": [
+    "内容高度同质化，缺乏创新。",
+    "第一集卡点弱，仅展示技能而缺乏强冲突钩子。"
+  ],
+  "green_flags": [
+    "父母角色设定（帅哥美女）具备一定的基础视觉/人设吸引力。"
+  ]
+}

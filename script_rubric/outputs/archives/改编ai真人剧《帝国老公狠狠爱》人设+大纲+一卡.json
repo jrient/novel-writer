@@ -1,0 +1,85 @@
+{
+  "title": "改编ai真人剧《帝国老公狠狠爱》人设+大纲+一卡",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 76.8,
+  "score_range": [
+    70,
+    82
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "女主去酒吧这个兼职感觉有点怪就是以现在市场来看的话 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "许意暖（OS）等顾东彻掌权，一定会处处排挤顾寒州的，我也不能坐以待毙了，必须找个兼职，以后能为顾寒州分担一些财务压力。"
+      ],
+      "extracted_rule": "古早女频套路在当前市场需谨慎，如“为总裁分担财务压力去酒吧兼职”的设定显得脱离现实且不合时宜。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "问题也是前几集，感觉没有后面那么精彩 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "许意暖（OS）：十八岁生日的第二天，许家因为缺钱，把我送上了顾寒州的床。传言他貌丑人恶，不喜女色，只敢以面具示人。"
+      ],
+      "extracted_rule": "经典替嫁开局能快速切入，但缺乏足够炸裂的新意，导致前几集吸引力不足。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "男主吃醋学长那里，因为觉得自己相貌丑陋去掉吧，毕竟是扮丑不是真的，觉得自己年纪大耽误小姑娘还说的过去 —— Vicki",
+        "年上男这个年龄差这种大叔感觉的喜欢的人还挺多的 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "顾寒州暗自吃醋，又觉得自己相貌丑陋、年纪偏大，担心许意暖不会选择自己"
+      ],
+      "extracted_rule": "扮猪吃虎的男主不应因伪装的身份而产生真实的自卑心理；年上大叔感是人设的加分项。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "矛盾冲突不太够 —— 千北"
+      ],
+      "evidence_from_text": [
+        "许莹莹（冷笑）你这个贱人还好意思问我！我刚和顾霖确定关系，你就勾引他"
+      ],
+      "extracted_rule": "仅靠配角单薄的挑衅难以支撑起足够的剧情张力，会导致整体冲突感偏弱。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "顾霖：（惊恐）三叔我错了！我真的错了！你不能为了一个外人杀了我啊！女人如衣服，不值当啊！"
+      ],
+      "extracted_rule": "反派台词过于脸谱化（如“女人如衣服”）会增加剧本的古早感。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "顾寒州狠狠地踹在顾霖的肚子上，揪着他的衣领，狠狠给了他一拳。",
+        "许意暖狠狠的给了许莹莹一巴掌。"
+      ],
+      "extracted_rule": "传统的“反派挑衅-主角物理打脸”模式能提供基础爽感，但缺乏惊喜。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "可以不用往前强剧情上面去写，可以考虑做强暧昧的那种女频擦边...我觉得会比现在剧情要更好看 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在传统女频赛道中，若剧情缺乏新意，可通过强化特定元素（如年上暧昧）来制造差异化卖点。"
+    }
+  }
+}

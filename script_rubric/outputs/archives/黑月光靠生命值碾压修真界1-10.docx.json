@@ -1,0 +1,96 @@
+{
+  "title": "黑月光靠生命值碾压修真界1-10.docx",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 71.7,
+  "score_range": [
+    70,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "一般开局略俗套，没办法抓住我 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "原来江策早已知晓了颜幻与系统的秘密，反攻系统，让仇恨值成倍的转化成颜幻源源不断的生命值，目的就是让她永远不死、无法离开的陪在自己的身边。"
+      ],
+      "extracted_rule": "穿书系统文开局容易陷入套路，需尽快展现核心反转设定（如男主觉醒反杀）以吸引读者。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一般开局略俗套，没办法抓住我 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "系统vo：你是书中恶女颜幻，骄纵狠毒，欺辱男主江策，跪舔男二凌霄，逼得男主入魔，最终被男主斩杀，想要活命回家，必须刷满男主百分百仇恨值！"
+      ],
+      "extracted_rule": "穿书执行恶毒任务的开局过于常见，缺乏足够强烈的初始情绪钩子。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "女主工具人成分很大，像是被剧情推着走 —— 千北"
+      ],
+      "evidence_from_text": [
+        "系统vo：警告，宿主未完成首次欺辱任务，将进入抹杀倒计时，10、9……",
+        "颜幻（面色煞白）os：对不住了，纸片人！"
+      ],
+      "extracted_rule": "强迫执行系统任务的主角容易丧失主观能动性，沦为剧情工具人。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "系统vo：警告警告，宿主偏离恶毒人设，请立刻纠正，否则扣除任务积分！"
+      ],
+      "extracted_rule": "依赖系统警告推进冲突会显得生硬，缺乏人物内在动机驱动的冲突。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "甲（嗤笑）：江策，你个连灵根都残缺的废物，也配待在名满天下的万剑宗吗！"
+      ],
+      "extracted_rule": "反派NPC的台词过于脸谱化会增加剧本的廉价感。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "颜幻os：我从小接受的教育告诉我要当一个善良的人，可我现在却为了一己私欲去伤害一个无辜的人。"
+      ],
+      "extracted_rule": "违背主角本心的任务设定会压抑爽感，导致前期阅读体验憋屈。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "江策（看着颜幻红肿的手指）：很疼吧？"
+      ],
+      "extracted_rule": "差异化设定（如男主反套路反应）若隐藏过深或推进过慢，无法在开局形成有效竞争力。"
+    }
+  },
+  "type_specific_notes": "在女频穿书系统文中，男主觉醒反杀系统的病娇设定是近期流行元素，但本作开局未能有效展现这一核心看点，反而陷入了传统的“被迫做恶毒女配”的憋屈套路中，导致开局流失读者。",
+  "consensus_points": [
+    "开局套路化，缺乏吸引力",
+    "女主缺乏主观能动性，被系统和剧情推着走"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "开局套路化严重",
+    "女主沦为系统工具人，缺乏主观能动性",
+    "反派NPC台词脸谱化"
+  ],
+  "green_flags": [
+    "大纲中男主反攻系统、仇恨值转生命值的病娇设定有一定新意"
+  ]
+}

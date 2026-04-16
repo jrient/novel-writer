@@ -1,0 +1,89 @@
+{
+  "title": "满级刺绣一卡",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 73.6,
+  "score_range": [
+    70,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "以刺绣为噱头的普通言情 —— 小冉",
+        "经典剧情加了个刺绣元素 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "仅在传统言情套路上叠加单一职业/技能元素（如刺绣）作为噱头，若无深度融合，难以构成有效创新。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "1-1里男主应该出现看到女主的绣工 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局需尽快让核心人物（男主）出场并见证女主的核心技能（金手指），以建立人物联系和期待感。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "常规言情套路下的人设通常缺乏突破，需警惕扁平化。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "1-1里男主应该出现看到女主的绣工 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "关键人物的出场节奏需紧凑，首集应尽快建立核心男女主交集。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "不错 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔无明显缺陷，但缺乏令人印象深刻的出彩之处。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "1-1里男主应该出现看到女主的绣工 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "女主的技能展示（金手指）需要有重量级角色（如男主）见证，才能形成有效的爽点反馈。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "我们有本小说好像也是刺绣的比这个好看 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "当题材与已有作品撞车且质量不如内部竞品时，差异化和市场竞争力极低。"
+    }
+  },
+  "type_specific_notes": "对于带有特定技能（如刺绣、医术等）的女频言情，技能不能仅仅是背景板或噱头，必须深度参与到男女主的互动、感情升温以及核心爽点的构建中（如男主被女主技能折服）。",
+  "consensus_points": [
+    "刺绣元素仅为噱头，本质依然是套路化的普通言情剧情。"
+  ],
+  "disagreement_points": [
+    "小刚和千北给出了较高的分数（75和78，小刚认为‘不错’），而小冉和山南给出了较低的分数（70），认为剧情过于老套且不如已有竞品。"
+  ],
+  "red_flags": [
+    "设定缝合生硬，刺绣元素未与剧情深度结合",
+    "开局男女主互动缺失，未能有效利用技能展示制造钩子",
+    "存在表现更好的同题材内部竞品"
+  ],
+  "green_flags": [
+    "尝试引入传统技艺（刺绣）作为切入点"
+  ]
+}

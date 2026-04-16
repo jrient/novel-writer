@@ -1,0 +1,111 @@
+{
+  "title": "改编AI真人剧《帝少的重生毒妻》人设大纲一卡",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 71.2,
+  "score_range": [
+    65,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "创新度不够 —— 千北"
+      ],
+      "evidence_from_text": [
+        "若熙睁眼醒来，发现自己重生到了简家不受宠的受气包养女简若兮身上，简若兮与宫铭轩联姻，走出简家...完成复仇"
+      ],
+      "extracted_rule": "女频重生复仇+契约婚姻属于高度饱和的套路，缺乏差异化设定。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "故事情节还行 —— 小冉",
+        "1-1还行 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "潘哲栋（笑）：对，只要你死了，这整个若家就都是我的了。",
+        "简若兮（双拳紧握）：潘哲栋，我回来了！"
+      ],
+      "extracted_rule": "开局直接切入生死背叛与重生，能快速建立仇恨目标，但属于常规操作。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "简淑念：22岁，简家大小姐，智商不高，嚣张跋扈",
+        "宫铭轩（男主）：前期高冷霸道，后期变身宠妻狂魔"
+      ],
+      "extracted_rule": "反派降智且脸谱化（如嚣张跋扈的无脑千金），男女主设定堆砌常规爽文标签，缺乏真实立体感。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "故事情节还行 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "第二集：简若兮一个旋转，脚稍稍往前一带，简淑念直接摔了一个狗吃屎。",
+        "第四集：简若兮与宫铭轩谈判契约婚姻",
+        "第十集：晚宴被下药危机与打脸宾客"
+      ],
+      "extracted_rule": "冲突密度高，每集都有明确的打脸或危机事件推进，符合短剧/爽文节奏。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "文笔不太行 —— 小冉",
+        "文笔台词不差 —— 千北"
+      ],
+      "evidence_from_text": [
+        "简淑念（冷笑）：哟！小贱人，恢复得挺快啊！",
+        "简若兮OS:我前世可是货真价实的跆拳道黑带，要不是这身子实在太弱，我非把你甩出门去。"
+      ],
+      "extracted_rule": "责编对文笔评价存在明显分歧，整体属于常规网文水平，台词直白且带有一定的古早狗血感。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "故事情节还行 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "简若兮（阴冷）：你好啊，哲栋……（第七集电话吓唬前任）",
+        "宫铭轩：保安，把她扔出去，在兰庭永久除名。（第十集男主解围）"
+      ],
+      "extracted_rule": "具备基础的“扮猪吃虎”和“借势打脸”爽点，但反派段位较低导致爽感深度有限。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "创新度不够 —— 千北"
+      ],
+      "evidence_from_text": [
+        "重生后带着满级商业头脑和身手，回来找潘哲栋和简家复仇。"
+      ],
+      "extracted_rule": "严重同质化，未能跳出“重生复仇+霸总契约婚姻”的传统古早女频框架。"
+    }
+  },
+  "type_specific_notes": "典型的古早女频重生复仇爽剧，极度依赖“打脸”和“契约婚姻”套路，反派脸谱化严重（恶毒继母、降智千金、渣男前任），属于市场上的大路货，缺乏新意。",
+  "consensus_points": [
+    "故事情节和开局节奏尚可，具备一定的可读性（小冉、Vicki均表示“还行”）",
+    "题材设定缺乏创新，套路陈旧"
+  ],
+  "disagreement_points": [
+    "文笔水平存在明显分歧：小冉认为“文笔不太行”，而千北认为“文笔台词不差”"
+  ],
+  "red_flags": [
+    "创新度严重不足，同质化严重",
+    "反派强行降智，人设单薄脸谱化"
+  ],
+  "green_flags": [
+    "开局迅速切入重生复仇主线，不拖泥带水",
+    "冲突事件密集，单集有明确的推进和打脸情节"
+  ]
+}

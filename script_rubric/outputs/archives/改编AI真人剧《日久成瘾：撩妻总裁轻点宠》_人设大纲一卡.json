@@ -1,0 +1,93 @@
+{
+  "title": "改编AI真人剧《日久成瘾：撩妻总裁轻点宠》 人设大纲一卡",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 77.0,
+  "score_range": [
+    70,
+    88
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "和《与恶魔有约》韩剧设定一样啊，但是奇幻言情，没有多少奇幻色彩，只套皮的霸总文 —— Vicki",
+        "好看与恶魔有约短剧版 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "席家是潜藏在人间的恶魔一族，席莫庭是恶魔使者，拥有超能力，寻找世间各种贪婪之人，愿意出卖灵魂和恶魔签订十年契约"
+      ],
+      "extracted_rule": "直接套用知名韩剧核心设定且仅停留在“套皮”层面，缺乏本土化或深度的奇幻元素构建，会被视为缺乏创新。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集有修改的空间，现在整体没有那么精彩 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "1-1 日 内 席莫庭办公室... 乔念双手搂住他脖子，吻了上去。",
+        "1-2 日 内 乔家休息室... 乔安：你们为什么要把乔念嫁给席先生？"
+      ],
+      "extracted_rule": "仅靠倒叙的亲密戏作为开局钩子，随后迅速切入常规的家庭逼婚戏码，不足以提供强烈的情绪刺激和悬念。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "男主给了女主支票，女主依然去兼职，这件事会让我觉得这个女主的人设比较古早，就是那种不畏金钱折腰的小白花，可以考虑变更一些女主的行动动机 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "发现旁边矮几上压着一张单据，定睛一看，居然是一张五百万的支票。",
+        "乔念穿着服务员制服，从包厢里出来，手里拿着空掉的托盘"
+      ],
+      "extracted_rule": "现代女频受众排斥“视金钱如粪土”的古早小白花人设，女主的行为动机必须符合当代女性的现实逻辑。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第四集又是传统的打嘴架戏份 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "乔建国甩了乔念一耳光。乔建国：孽障！你真是给我长脸... 乔安：你怎么跟我妈说话，有没有教养"
+      ],
+      "extracted_rule": "过多安排传统的家庭内部“打嘴架”和扇耳光戏份会拖慢整体节奏，显得冲突老套且缺乏实质性剧情推进。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "刘德海：你少装清纯了，开个价吧，今晚我把你包了！",
+        "乔安：乔念，不要以为你嫁了席先生就翅膀硬了，你跟你妈一样，迟早都会被男人抛弃"
+      ],
+      "extracted_rule": "反派台词过于脸谱化和古早网文风（如“开个价把你包了”），虽能传达恶意，但缺乏真实感和高级感。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "没有多少奇幻色彩，只套皮的霸总文 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "席莫庭打了个响指，却发现超能力失效。大石块砸向席莫庭的头，顿时血流如注。",
+        "席莫庭心领神会地握住，刹那间恢复法力，抬手一挥，攻进来的打手飞了出去。"
+      ],
+      "extracted_rule": "男主因设定限制频繁“失去法力”被反派暴打，虽为男女主肢体接触创造了条件，但一定程度上削弱了奇幻设定的爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "和《与恶魔有约》韩剧设定一样啊 —— Vicki",
+        "好看与恶魔有约短剧版 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "左手手腕内侧的印记竟然转移到了乔念手腕上... 席莫庭突然双眼变红，感受到超能力回复至身体。"
+      ],
+      "extracted_rule": "核心设定（恶魔、印记转移、牵手恢复法力）与已有爆款影视剧高度重合，缺乏自身的差异化护城河。"
+    }
+  }
+}

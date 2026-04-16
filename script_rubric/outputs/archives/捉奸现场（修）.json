@@ -1,0 +1,90 @@
+{
+  "title": "捉奸现场（修）",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 78.6,
+  "score_range": [
+    75,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "设定有说法...这设定很经典的换乘恋爱 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "经典换乘恋爱设定具备天然的话题度与修罗场属性，是女频赛道的有效钩子。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "标题带有强冲突暗示，但需确保前三集能迅速切入核心事件，避免铺垫过长。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "人设没有走得很极致 —— 小冉",
+        "这个男主改的又太平了。应该是《我的前半生》里面贺涵那种毒舌人设 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "女频剧本中男主人设忌讳平庸，需要有极致的性格标签（如毒舌、腹黑）来增强互动张力。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "节奏我不是很喜欢偏慢 —— 小冉",
+        "剧情还有待推敲...具体男女主怎么相爱相杀 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "强设定的剧情需要紧凑的节奏和高密度的相爱相杀冲突来推动，节奏偏慢会严重削弱设定优势。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "为啥男女主都要先念一遍对方的名字在开始说话 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "台词应避免机械重复的句式和不自然的习惯，需追求自然的生活化表达。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "换乘恋爱与捉奸题材的爽点在于极致的拉扯与反击，需避免节奏拖沓削弱爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "应该是《我的前半生》里面贺涵那种毒舌人设 —— Vicki",
+        "这设定很经典的换乘恋爱 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "明确对标经典作品或综艺模式时，需精准提炼其核心看点（如毒舌人设、修罗场）并落地到剧本中。"
+    }
+  },
+  "type_specific_notes": "作为女频情感/换乘恋爱题材，核心看点在于男女主的极致拉扯（相爱相杀）与人设魅力。当前剧本设定有看点，但人设过于平淡，缺乏张力，且台词细节存在瑕疵。",
+  "consensus_points": [
+    "人设不够极致，男主过于平淡缺乏魅力（小冉、Vicki）。",
+    "剧情和节奏需要优化，当前偏慢且细节待推敲（小冉、山南）。"
+  ],
+  "disagreement_points": [
+    "责编间无明显意见冲突，主要从不同维度（人设、台词、节奏、设定）指出了剧本的短板。"
+  ],
+  "red_flags": [
+    "男主人设太平，缺乏吸引力。",
+    "台词不自然（每次说话前先叫名字）。",
+    "整体节奏偏慢，未能发挥设定的冲突优势。"
+  ],
+  "green_flags": [
+    "带有“换乘恋爱”元素的设定具有市场潜力和话题度。"
+  ]
+}

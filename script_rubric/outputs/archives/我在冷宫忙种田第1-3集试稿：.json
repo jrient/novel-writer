@@ -1,0 +1,98 @@
+{
+  "title": "我在冷宫忙种田第1-3集试稿：",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 68.3,
+  "score_range": [
+    65,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "更是一般 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "人家穿越都是团宠千金，我倒好，老爹被诬陷造反，全家被屠，而我也从高高在上的皇后变冷宫弃妃",
+        "还好，金手指没少。有空间在，冷宫也能躺平养老！"
+      ],
+      "extracted_rule": "穿越+空间+冷宫+误认皇帝的元素组合过于古早套路，缺乏新意。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "以后别老爬屋顶偷看了，皇上那方面不行，没什么好看的。",
+        "好个胆大包天的女人！竟敢说朕不行，朕倒要看看你究竟是谁！"
+      ],
+      "extracted_rule": "依靠“误认身份”和“言语冒犯”制造的开局钩子较为常见，能建立初步悬念但略显刻意。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我这有绝版春宫图，比现场直播好看。只要十两银子，绝对超值。",
+        "这可是宝贝！有了它，我们夏天就能吃上冰镇西瓜了！"
+      ],
+      "extracted_rule": "角色行为动机高度依赖网文刻板标签（贪财、搞怪），缺乏内在深度与真实感。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "传令下去，昨日朕在黎霞宫被宫女冲撞，让所有宫女来御书房问话。",
+        "这可是宝贝！有了它，我们夏天就能吃上冰镇西瓜了！"
+      ],
+      "extracted_rule": "叙事节奏尚可，但冲突的建立和解决过于轻巧，缺乏实质性的张力。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "这就是皇帝？也太丑了吧？！视觉污染啊！",
+        "我这有绝版春宫图，比现场直播好看。"
+      ],
+      "extracted_rule": "古代言情中过度使用现代网络词汇（如“视觉污染”、“现场直播”）会严重破坏剧集沉浸感。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "半年来，多亏了这个空间，不然我和银霜早饿死了。"
+      ],
+      "extracted_rule": "依赖金手指（随身空间）带来的便利作为爽点，缺乏人物主动克服困难的成就感。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "更是一般 —— 小冉",
+        "这版比上面那个好一点 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "我在冷宫忙种田第1-3集试稿"
+      ],
+      "extracted_rule": "在高度饱和的“冷宫种田”赛道中，若无微创新，极易被判定为平庸之作。"
+    }
+  },
+  "type_specific_notes": "女频改编剧中，“空间种田”+“误惹腹黑皇帝”是极度成熟甚至古早的网文套路。在短剧化改编时，如果台词过于现代、桥段过于生硬（如屋顶卖春宫图），很容易显得降智和悬浮。",
+  "consensus_points": [
+    "剧本整体质量平庸，缺乏亮点，属于常规套路流水线作品。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "台词严重现代网络化，导致古装背景出戏",
+    "屋顶偶遇卖春宫图的桥段逻辑牵强、刻意制造工业糖精",
+    "金手指设定过于万能，导致主角缺乏生存压力"
+  ],
+  "green_flags": [
+    "场景切换快，单集事件目标明确（偷窥-卖图-发现硝石）"
+  ]
+}

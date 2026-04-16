@@ -1,0 +1,95 @@
+{
+  "title": "ai改编《我在冷宫忙种田》",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 69.3,
+  "score_range": [
+    68,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "常规 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越到东澜，成为被新皇寂无绝刚登基就打入冷宫的太子妃，靠着随身系统的物资和贩卖小黄书才得以存活。"
+      ],
+      "extracted_rule": "穿越冷宫+随身空间种田+卖春宫图属于女频古早常规套路，缺乏核心创新点。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我这里有绝版的春宫图，只要十两银子，保证比那个肥猪皇帝好看！"
+      ],
+      "extracted_rule": "以误会和喜剧元素（如错认皇帝推销春宫图）作为开局钩子能增加趣味性，但缺乏强烈的生存危机或核心悬念。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "白慕瑶：瑶妃，一品大将嫡女。城府颇深，阴险狠辣。",
+        "流芷兰：兰妃，流国公主。为人愚笨且嚣张跋扈。"
+      ],
+      "extracted_rule": "反派配角设定过于脸谱化（如直接标榜“愚笨且嚣张跋扈”），缺乏立体感与博弈张力。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝身形一闪，化作一道白光，进入随身空间",
+        "这···这是冰块？！娘娘，你是天神下凡吗！"
+      ],
+      "extracted_rule": "过度依赖金手指（随身空间、现代知识制冰）快速解决生活困境，会导致实质性冲突较弱，剧情偏向平淡日常。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "就结束了？认真的吗？就一分钟啊大哥···",
+        "这要不是冷宫，老娘都不愿意出去了！"
+      ],
+      "extracted_rule": "古言背景下使用大量现代网络用语（如“一分钟”、“老娘”、“大哥”）会产生严重的小白感和出戏感。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "殿内站满宫女，寂无绝手拿纸扇一边快速扇动...【切至】冷宫...陆云萝一边用扇子扇着冰桶传出的冷气"
+      ],
+      "extracted_rule": "通过主角与高位者（如皇帝受热 vs 女主享冰）的生活境遇对比，能有效制造反差爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "常规 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "靠着随身系统的物资和贩卖小黄书才得以存活"
+      ],
+      "extracted_rule": "随身空间、冷宫种田等元素的组合在女频市场已高度饱和，若无特殊反转则缺乏差异化竞争力。"
+    }
+  },
+  "type_specific_notes": "典型的女频冷宫种田爽文，高度依赖系统金手指和现代知识降维打击。但当前市场对该类古早套路的接受度在降低，且台词过于现代化破坏了古言的基本语境。",
+  "consensus_points": [
+    "剧本整体设定与桥段过于常规，缺乏亮点（基于责编评语与集体拒稿状态）"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "台词现代感过强，严重出戏",
+    "反派人设过于脸谱化，缺乏智商博弈",
+    "过度依赖随身空间金手指，削弱了主角的主观能动性"
+  ],
+  "green_flags": [
+    "利用平行剪辑制造男女主境遇反差，具备一定的喜剧效果"
+  ]
+}

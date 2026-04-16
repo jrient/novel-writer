@@ -1,0 +1,97 @@
+{
+  "title": "救命！我和霍将军共脑了（修）",
+  "status": "拒",
+  "genre": "原创",
+  "mean_score": 79.0,
+  "score_range": [
+    75,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "有点儿意思！ —— 宇间",
+        "还是设定挺好的 —— Vicki",
+        "设定有意思 —— 山南",
+        "设定挺有意思的 —— 安兔兔"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "跨时空“共脑”或意识互联设定具有较高的新奇感和市场吸引力。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集刚穿进来直接就在打仗，画面会更刺激一点吧。 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "奇幻穿越类开局需要强视觉刺激和高能事件（如直接切入战场）来迅速抓住观众眼球。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "加点女主教男主穿胸罩用卫生巾，男主教女主武功之类的养成可能好点 —— 安兔兔"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "古今互换/共脑类设定需要通过生活细节的碰撞（如现代物品与古代武功的教学）来丰满人设并增加趣味性。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "整体讲了个什么事，最后改变了什么，剧情走向不清晰，不吸引人。 —— 山南",
+        "现在剧本还是有点复杂 —— 安兔兔"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "核心主线必须清晰，避免设定新颖但剧情走向复杂散漫、缺乏明确目标。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一些小细节确实还需要斟酌，比如说，霍去病失去漠北打仗，大沙漠哪儿来的沼泽...《中国古代史》上面找汉代历史，无异于拿着世界地图找南京秦淮区，起码要是《汉书》《后汉书》吧 —— 宇间",
+        "而且文笔有些墨迹…看着不够润 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "涉及历史背景的剧本必须注重地理与常识细节的准确性，且文笔需精炼流畅避免拖沓。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "最后改变了什么，剧情走向不清晰，不吸引人。 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "带有历史意难平（如霍去病）的设定，最终需要落脚于明确的爽点或命运改变，否则缺乏情绪释放的满足感。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "框架比之前好，但是内容填充一般 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "差异化的好框架（共脑设定）需要扎实、清晰的内容填充来支撑，否则沦为空壳。"
+    }
+  },
+  "type_specific_notes": "对于涉及真实历史人物（如霍去病）的奇幻穿越题材，历史细节的考究（如漠北地形、史书名称）直接影响代入感；同时，此类题材的看点往往在于古今文化/生活习惯的碰撞反差，以及能否弥补历史遗憾。",
+  "consensus_points": [
+    "核心设定（与霍将军共脑）非常有意思，具备吸引力。",
+    "剧本的执行和内容填充存在明显短板，剧情走向不清晰，结构过于复杂。"
+  ],
+  "disagreement_points": [
+    "无明显意见冲突，责编们普遍呈现出“肯定设定+否定执行”的一致态度。"
+  ],
+  "red_flags": [
+    "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+    "文笔拖沓墨迹，不够流畅",
+    "主线剧情走向不清晰，缺乏明确的故事目标和结局改变",
+    "剧本内容过于复杂，缺乏重点"
+  ],
+  "green_flags": [
+    "极具创新性和趣味性的“共脑”设定框架"
+  ]
+}

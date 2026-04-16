@@ -1,0 +1,99 @@
+{
+  "title": "高考750分断绝关系，全家后悔 1-3",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 76.7,
+  "score_range": [
+    75,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "这竟然是女频文？！？！？！，我个人还挺喜欢学霸学神系列的 —— 小冉",
+        "这个还蛮新颖的 —— 帕克"
+      ],
+      "evidence_from_text": [
+        "林诺（os）：真的重生了！上一世我把保送名额让给林晨，毕业后被全家吸血十年",
+        "江芷宁（语气自然）：一起走吧，别感冒了。"
+      ],
+      "extracted_rule": "将男频常见的“断绝关系流”与女频学霸设定结合，能产生较强的题材反差与新颖感。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集，反派抢保送名额，第三集，反派自残博同情这个其实有点虚浮 —— 贾酒",
+        "爽文了 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "林东斌（不耐烦）：发什么呆？还有，保送名额的事，你跟学校说一声，让给林晨"
+      ],
+      "extracted_rule": "开局直入核心利益冲突（抢保送名额）能快速建立爽文期待，但反派行为过于刻板会削弱真实感。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "反派自残博同情这个其实有点虚浮 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "林晨突然抓起桌上的圆规，在自己胳膊上划了一道更深的口子，鲜血立刻渗了出来。",
+        "赵丽虹（尖叫着扑过来）：你个不孝女！我打死你！"
+      ],
+      "extracted_rule": "全员恶人的反派塑造如果缺乏合理动机，极易沦为强行推动剧情的纸片工具人。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "一定要每一集每一个场景都强调一下上一世***么.... —— Vicki"
+      ],
+      "evidence_from_text": [
+        "林诺（os）：又来了！上一世就是这样...",
+        "林诺（os）：滚？上一世我就是被他们逼得走投无路...",
+        "林诺（os）：一时糊涂？上一世你就是这样..."
+      ],
+      "extracted_rule": "冲突事件虽然密集，但过度穿插前世回忆的内心独白会严重拖慢当前时空的叙事节奏。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一定要每一集每一个场景都强调一下上一世***么.... —— Vicki"
+      ],
+      "evidence_from_text": [
+        "林诺（os）：上一世我临死前听到他们打电话...",
+        "林诺（os）：上一世我就是这样...",
+        "林诺（os）：上一世林晨欠的高利贷..."
+      ],
+      "extracted_rule": "滥用OS（内心独白）来交代背景和表达情绪，会显得文笔稚嫩且让观众产生听觉疲劳。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "爽文了 —— Vicki",
+        "反派自残博同情这个其实有点虚浮 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "林诺只觉得一阵天旋地转，眼前发黑，身体晃了晃，直直倒了下去。"
+      ],
+      "extracted_rule": "爽文在打脸高潮处（如自证清白后）让主角气晕倒下，会严重阻断情绪释放，导致爽感大打折扣。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "这竟然是女频文？！？！？！ —— 小冉",
+        "这个还蛮新颖的 —— 帕克"
+      ],
+      "evidence_from_text": [
+        "江芷宁（语气自然）：一起走吧，别感冒了。"
+      ],
+      "extracted_rule": "在女频赛道中引入硬核学霸打脸与女性互助（江芷宁）元素，能有效区别于传统的恋爱脑女频剧。"
+    }
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "version": "1",
+  "generated_at": "2026-04-16",
+  "sample_size": 23,
+  "universal_dimensions": {
+    "premise_innovation": {
+      "name_zh": "题材与设定创新度",
+      "avg_score": 5.2,
+      "avg_by_status": {
+        "签": 5.8,
+        "改": 7.7,
+        "拒": 3.8
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    },
+    "opening_hook": {
+      "name_zh": "开局与钩子",
+      "avg_score": 5.1,
+      "avg_by_status": {
+        "签": 5.5,
+        "改": 5.8,
+        "拒": 4.7
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    },
+    "character_depth": {
+      "name_zh": "人设立体度",
+      "avg_score": 4.8,
+      "avg_by_status": {
+        "签": 5.8,
+        "改": 4.8,
+        "拒": 4.5
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    },
+    "pacing_conflict": {
+      "name_zh": "节奏与冲突密度",
+      "avg_score": 5.4,
+      "avg_by_status": {
+        "签": 7.0,
+        "改": 6.0,
+        "拒": 4.6
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    },
+    "writing_dialogue": {
+      "name_zh": "文笔与台词",
+      "avg_score": 4.9,
+      "avg_by_status": {
+        "签": 6.2,
+        "改": 5.2,
+        "拒": 4.3
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    },
+    "payoff_satisfaction": {
+      "name_zh": "爽点兑现",
+      "avg_score": 5.8,
+      "avg_by_status": {
+        "签": 8.2,
+        "改": 6.3,
+        "拒": 4.8
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    },
+    "benchmark_differentiation": {
+      "name_zh": "对标与差异化",
+      "avg_score": 4.7,
+      "avg_by_status": {
+        "签": 5.8,
+        "改": 7.2,
+        "拒": 3.2
+      },
+      "red_flags_sample": [
+        "内容高度同质化，缺乏创新。",
+        "历史常识错误（漠北沙漠出现沼泽、用《中国古代史》查汉代细节）",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "剧情重复度高，套路化严重。",
+        "创新度严重不足，同质化严重"
+      ],
+      "green_flags_sample": [
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "爽点密集且直接，主角全程智商武力在线，绝不憋屈。",
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强"
+      ]
+    }
+  },
+  "type_overlays": {
+    "改编 / 女频": {
+      "premise_innovation": 4.1,
+      "opening_hook": 4.9,
+      "character_depth": 4.6,
+      "pacing_conflict": 6.0,
+      "writing_dialogue": 4.9,
+      "payoff_satisfaction": 6.2,
+      "benchmark_differentiation": 3.8
+    },
+    "原创 / 男频": {
+      "premise_innovation": 6.8,
+      "opening_hook": 6.4,
+      "character_depth": 4.8,
+      "pacing_conflict": 6.4,
+      "writing_dialogue": 5.6,
+      "payoff_satisfaction": 7.0,
+      "benchmark_differentiation": 6.8
+    },
+    "原创 / 女频": {
+      "premise_innovation": 5.8,
+      "opening_hook": 4.6,
+      "character_depth": 5.2,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 4.6,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 5.0
+    },
+    "原创 / 世情": {
+      "premise_innovation": 3.0,
+      "opening_hook": 5.0,
+      "character_depth": 3.0,
+      "pacing_conflict": 3.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 2.0
+    },
+    "原创 / 萌宝": {
+      "premise_innovation": 4.0,
+      "opening_hook": 4.7,
+      "character_depth": 4.7,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 4.7,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 3.7
+    },
+    "原创": {
+      "premise_innovation": 8.0,
+      "opening_hook": 5.0,
+      "character_depth": 6.0,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 4.0,
+      "benchmark_differentiation": 6.0
+    }
+  }
+}

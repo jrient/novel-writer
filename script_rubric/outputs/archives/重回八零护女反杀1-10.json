@@ -1,0 +1,104 @@
+{
+  "title": "重回八零护女反杀1-10",
+  "status": "拒",
+  "genre": "原创 / 世情",
+  "mean_score": 73.0,
+  "score_range": [
+    65,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "在其他渠道看过，很诡异 —— 小冉",
+        "重返82既视感，不太是我的类型 —— 山南"
+      ],
+      "evidence_from_text": [
+        "郑素琴（OS）：我没死？1984年……我重生到了被顶岗的这一天！"
+      ],
+      "extracted_rule": "年代重生复仇设定高度同质化，缺乏新意，容易与市面已有爆款撞车甚至引发版权争议。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "郑素琴满头白发，骨瘦如柴，倒在地上拼命拍打铁门。",
+        "郑素琴当着所有人的面，将申请书撕成两半。"
+      ],
+      "extracted_rule": "前世惨死接今生关键转折点的开局是极其有效的情绪起搏器，能迅速拉升观众期待。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "贾宝柱（得意）：你的房子票子，全是我老贾家的！赶紧下地狱去吧！",
+        "贾老太（拍腿）：哎哟我的老腰啊！没天理啦！杀人啦！恶毒寡妇打婆婆啦！"
+      ],
+      "extracted_rule": "反派全员降智且坏得毫无逻辑，纯粹为了给女主送人头而存在，人物极度扁平脸谱化。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "改一下卡点 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "贾建国（狂拍门）：小娼妇，敢把我大侄子赶出来？今天我就把你绑回村里卖给傻子当老婆！",
+        "外商（怒吼）：三天期限到了！交不出货，立刻赔偿十万违约金。"
+      ],
+      "extracted_rule": "单集冲突密度达标，但单集结尾的悬念设置（卡点）不够精准，需要优化以提升连看欲望。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "贾老太（瞪眼）：你个不下蛋的扫把星胡咧咧什么！",
+        "贾宝柱（得瑟）：妈，你就安心等死吧。岗位交给我，以后我勉强给你买口薄棺材！"
+      ],
+      "extracted_rule": "台词充斥大量刻板的辱骂词汇，缺乏生活质感，呈现出强烈的廉价感和套路感。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "赵科长（挥手）：少废话！抢劫两百元属于数额特别巨大！全给我铐起来送派出所！",
+        "外商（急切）：退什么货！这批我全要了，再追加三倍订单！现在就签合同！"
+      ],
+      "extracted_rule": "遵循“反派挑衅-女主反杀-反派受惩罚”的极速闭环，爽感反馈及时且力度足够。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "在其他渠道看过，很诡异 —— 小冉",
+        "重返82既视感，不太是我的类型 —— 山南"
+      ],
+      "evidence_from_text": [
+        "郑素琴（OS）：打工永远受制于人，我要自己当老板！"
+      ],
+      "extracted_rule": "赛道定位明确但毫无差异化，与已有年代女频爽文高度重复，极易被市场同类竞品淹没。"
+    }
+  },
+  "type_specific_notes": "典型的女频年代重生爽剧，核心卖点是手撕极品亲戚和发家致富。剧本深谙下沉市场爽点机制，但设定过于古早，缺乏微创新。",
+  "consensus_points": [
+    "题材缺乏新意，与其他作品高度撞车，存在既视感。"
+  ],
+  "disagreement_points": [
+    "责编对套路化爽文的包容度存在分歧：贾酒认为只需“改一下卡点”即可（给最高分78），而小冉和山南因题材既视感和同质化给了低分（65, 70）。"
+  ],
+  "red_flags": [
+    "涉嫌融梗或高度同质化（责编指出在其他渠道看过）",
+    "反派行为逻辑降智，纯粹为推动冲突而作恶",
+    "台词粗鄙，刻板印象严重"
+  ],
+  "green_flags": [
+    "开局进入主线极快，不拖泥带水",
+    "打脸反杀的爽点兑现非常密集，情绪价值给得到位"
+  ]
+}

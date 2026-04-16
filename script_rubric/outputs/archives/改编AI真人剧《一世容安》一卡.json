@@ -1,0 +1,99 @@
+{
+  "title": "改编AI真人剧《一世容安》一卡",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    75,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "核心主题：重生复仇 、 双强夺妻 、宅斗权谋、追妻火葬场"
+      ],
+      "extracted_rule": "经典的重生复仇与宅斗元素组合，虽不新奇但受众基本盘稳固。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "前面略显平淡 —— 小冉",
+        "第一集有点平 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "第1集主要是女主醒来发现重生，以及与继母、庶姐的表面寒暄，缺乏强烈的即时冲突。"
+      ],
+      "extracted_rule": "第一集必须有强烈的事件或情绪钩子，不能仅停留在背景交代和人物出场。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "男主在前10集的存在度有点太低了，当然这篇文特别讲剧情，不知道前10集能不能把男主在往里塞塞 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "第7集萧瓒才正式出场并与女主产生交集"
+      ],
+      "extracted_rule": "即使是主打剧情的女频剧，男主在前期的戏份和存在感也必须得到保证，避免沦为背景板。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "有几个问题事件之间的串联度其实可以更高，比如说之前是沈六公子，那后面为什么被杀死的不可以是他呢？ —— 小冉",
+        "在一些情节上的设计有一点点过于复杂 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "第3-4集解决沈六逼婚，第6-8集解决蒋南毁清白事件，两个事件的反派工具人相对独立。"
+      ],
+      "extracted_rule": "反派工具人应尽量合并以提高事件串联度，避免情节设计过于繁琐复杂。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "李容安OS：牛不喝水强按头，堂堂沈府，竟然也会强买强卖！"
+      ],
+      "extracted_rule": "台词符合古言宅斗常规水平，内心OS能有效传达主角情绪与吐槽。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "后面非常精彩，...整体还是好看的 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "第8集李云桐发疯，第9集镇国公发落蒋氏，女主成功为原主母亲报仇。"
+      ],
+      "extracted_rule": "密集的反杀与打脸情节（如连环解决庶妹、庶姐、继母）能提供极强的爽感，支撑起整体的精彩度。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "类型：重生、古代言情、宫斗宅斗"
+      ],
+      "extracted_rule": "在成熟的古言重生宅斗赛道中，需依靠紧凑的剧情和极致的人设来打出差异。"
+    }
+  },
+  "type_specific_notes": "女频重生宅斗剧，前期宅斗剧情容易挤占男主戏份，需注意男女主感情线的早期铺垫；同时宅斗手段需避免过于繁杂，保持快节奏打脸，精简反派工具人。",
+  "consensus_points": [
+    "开局/第一集过于平淡，缺乏吸引力。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "第一集平淡无爆点",
+    "男主前10集戏份过少，存在感低",
+    "部分情节设计复杂，事件串联度不够高"
+  ],
+  "green_flags": [
+    "后续剧情非常精彩，整体可看性强",
+    "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "title": "修改《被抢车位后，我亮出总裁身份》1-8集一卡(2)(3)",
+  "status": "拒",
+  "genre": "原创 / 世情",
+  "mean_score": 70.0,
+  "score_range": [
+    65,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "再看一遍就感觉有点无聊 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "占位车主马克真实身份是宏远集团董事长王建国的专职司机，他长期私用公车，并在外冒充高管、金融精英"
+      ],
+      "extracted_rule": "经典的“真总裁遇上假高管”装逼打脸套路，缺乏新意容易让读者感到无聊。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "一辆黑色保时捷卡宴横在充电车位上，充电枪被拔下扔在一边，秦风站在自己的国产电车旁"
+      ],
+      "extracted_rule": "抢车位作为开局能快速建立冲突，但属于常规操作，缺乏炸裂感。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "有女主不 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "莉莉（举手机拍摄，翻白眼）：开个破电车事儿真多，知道我们这车多少钱吗？停这是给你车位增光！"
+      ],
+      "extracted_rule": "反派脸谱化、降智嚣张，缺乏女主等重要角色互动会导致人物关系单薄。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "还是觉得事件矛盾冲突不够 —— 小冉",
+        "再看一遍就感觉有点无聊 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "周大海（如释重负，宣布）：超过三分之二的到场业主同意重新分配固定车位，从下周起，取消秦风先生的固定车位资格，参与轮换。散会！"
+      ],
+      "extracted_rule": "冲突如果只是反派单方面叫嚣，主角过度隐忍不反击，会导致矛盾冲突感不足、节奏拖沓。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "马克（阴阳怪气）：哟，说得挺冠冕堂皇，不就是占着资源不想撒手吗？为了一己私利，损害大多数邻居利益！还显得你挺正义的！可真会装！"
+      ],
+      "extracted_rule": "反派台词过于脸谱化和刻意拉仇恨，会增加剧本的廉价感。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "还是觉得事件矛盾冲突不够 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "王建国（接过话筒，目光严厉直视马克）：小马，你怎么在这儿？我让你下午送李总去机场，你开着我公司的车，来这里干什么？"
+      ],
+      "extracted_rule": "爽点如果铺垫过长且中间缺乏小高潮反击，会削弱最终打脸的爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "再看一遍就感觉有点无聊 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "修改《被抢车位后，我亮出总裁身份》1-8集一卡(2)(3)"
+      ],
+      "extracted_rule": "标题和设定高度套路化，缺乏与同类竞品的差异化元素。"
+    }
+  },
+  "type_specific_notes": "作为男频/世情打脸短剧，'扮猪吃虎'的套路需要更密集的反转和小爽点支撑，主角不能一味隐忍到最后才爆发，否则容易让观众失去耐心。",
+  "consensus_points": [
+    "剧本整体缺乏足够的矛盾冲突，情节推进显得无聊。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "反派降智且脸谱化",
+    "主角反击节奏过慢，导致前中期压抑",
+    "缺乏女主等关键角色调节节奏"
+  ],
+  "green_flags": [
+    "第8集打脸设计直接有效，真老板出场拆穿假高管具有一定戏剧性"
+  ]
+}

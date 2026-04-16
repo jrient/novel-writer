@@ -1,0 +1,100 @@
+{
+  "title": "原创ai仿真人剧《狐作菲为》人设大纲一卡",
+  "status": "拒",
+  "genre": "原创 / 男频",
+  "mean_score": 70.0,
+  "score_range": [
+    70,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这个开头的前世做好事儿这世享清福的设定是认真的么……你这完全违背了当代价值观啊 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "冥判：万事皆有因果，戴振元前世好事做尽，今生所得，不过他的福报而已。"
+      ],
+      "extracted_rule": "世界观设定不能为了强行制造不公而违背基本的现代朴素价值观。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这个开头的前世做好事儿这世享清福的设定是认真的么 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "第一集：戴振元粗暴地将林沉烟的衣服撕开...林沉烟实名举报...被污蔑...意外身亡"
+      ],
+      "extracted_rule": "开局虽然冲突密集，但如果底层逻辑和价值观崩塌，无法形成有效的吸引力。"
+    },
+    "character_depth": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "女主前面设计的还是老实本分做题家，一穿越就可以搔首弄姿的么？是不是有点儿太假了 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "林沉烟：23岁，小镇做题家，老实本分，标准的好学生",
+        "白羽菲：林沉烟重生后的狐妖之身。外表是神秘优雅、颠倒众生的顶级名媛"
+      ],
+      "extracted_rule": "人物性格的转变必须有合理的心理铺垫和学习过程，不能仅靠“换个身份/物种”就强行扭转技能点。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "第一集死亡，第二集重生，第四集接触戴晨，第六集接触戴振元"
+      ],
+      "extracted_rule": "事件推进节奏尚可，但缺乏内在逻辑支撑的冲突流于表面。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "像你这样的蝼蚁，我戴家动动手指就碾死了",
+        "给脸不要脸是吧？你知道我们肖总是谁吗？"
+      ],
+      "extracted_rule": "台词过于古早套路化，反派降智且脸谱化严重。"
+    },
+    "payoff_satisfaction": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "换个复仇方式行不行 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "她以全新身份白羽菲归来，周旋于戴振元与其儿子戴辰之间，让父子二人为她痴狂反目"
+      ],
+      "extracted_rule": "依靠出卖色相、雌竞或单纯的“勾引”来完成复仇的爽点模式，已不符合当下女性受众的审美与价值观。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这应该是一本女频 —— 47"
+      ],
+      "evidence_from_text": [
+        "类型：原创 / 男频",
+        "专门负责那些阳间难以厘清、关乎女性污名与枉死的冤案，使曾和她一样的“狐狸精”们沉冤得雪。"
+      ],
+      "extracted_rule": "剧本的受众定位必须准确，男女频标签错乱是致命的商业定位失误。"
+    }
+  },
+  "type_specific_notes": "该剧本被错误地标记为“男频”，实则为典型的大女主复仇题材（女频）。但在女频复仇赛道中，其采用的“化身狐妖靠美色勾引父子反目”的手段过于陈旧且存在道德瑕疵，无法引发当代女性观众的共鸣，反而容易引起反感。",
+  "consensus_points": [
+    "剧本的核心设定和复仇逻辑存在严重问题，无法被接受（宇间质疑价值观和人设，小刚否定复仇方式）。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "受众定位完全错误（女频文标男频）",
+    "价值观扭曲（反派作恶是因为前世有福报）",
+    "人设严重割裂（老实做题家秒变魅惑海王）",
+    "复仇手段落后（靠美色周旋于父子之间）"
+  ],
+  "green_flags": []
+}

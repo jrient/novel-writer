@@ -1,0 +1,24 @@
+{
+  "title": "《豪门夫人来自东北》一卡(1)",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 71.7,
+  "score_range": [
+    65,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "比较普通 —— 小冉",
+        "开篇看出来好多种元素，感觉有点分散 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "王玉芬OS（冷笑）:苏晚晚？豪门受气包？爹不疼娘不爱，老公是冰块，妹妹是绿茶？行，姐就爱玩这种天崩开局，这副本我接定了！！"
+      ],
+      "extracted_rule": "将多种常见网文元素（魂穿、豪门、绿茶、契约婚姻）简单堆砌，容易导致主线分散且缺乏真正的创新感。"
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "title": "《我在冷宫忙种田》一卡",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 70.0,
+  "score_range": [
+    70,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "常规 —— 小冉",
+        "常规，没有创新 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "穿越不易，冷妃卖艺",
+        "出宫后，我要好好利用我的空间，在这古代打下我的商业帝国！"
+      ],
+      "extracted_rule": "女频穿越冷宫+空间金手指的设定已高度市场饱和，缺乏差异化创新。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝（紧张小声）：小点声，皇上在洞房花夜呢，被发现就完蛋了！",
+        "陆云萝（笑容满面）：对了，我这里有绝版的春宫图！"
+      ],
+      "extracted_rule": "开局利用“错认身份”和“反差行为（卖春宫图）”制造喜剧冲突，虽能抓住注意力但套路感较重。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝（发疯）：我才是皇后、我才是皇后！你们这些狗奴才都给我跪下！",
+        "白慕瑶：本宫若想登上后位，这个女人我必须会会"
+      ],
+      "extracted_rule": "人物塑造停留在刻板印象，如贪财跳脱的穿越女主、冷面帝王及脸谱化的宫斗女配。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "曹公公：哎哟，陛下，您快去前面黎霞宫的正殿瞧瞧，两位娘娘快要打起来了",
+        "曹公公（惊呼）：陛下小心 △曹公公立马挡在寂无绝身前，污水泼了曹公公一身"
+      ],
+      "extracted_rule": "事件推进较快，每集均有小冲突（相遇、探访、装疯、女配上门），但冲突桥段陈旧。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝：我去，这就是皇上？这也太丑了，还好我早就被打入了冷宫，不然要跟这油腻男在一块...",
+        "陆云萝：唉，这古代洗澡还得烧水，要是有热水器就好了"
+      ],
+      "extracted_rule": "台词过度依赖现代词汇（油腻男、现场直播、热水器）制造笑点，略显生硬和小白。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝（得意）：哼，跟老娘斗，你还差了点道行！ △陆云萝随即变出一串葡萄，边吃边离开"
+      ],
+      "extracted_rule": "通过装疯卖傻成功规避麻烦并利用金手指享受生活，提供了一定的轻喜剧爽感，但缺乏强力度的打脸高潮。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "常规，没有创新 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "改编《我在冷宫忙种田》剧本"
+      ],
+      "extracted_rule": "在庞大的女频古言穿越赛道中，未能提供任何独特的差异化卖点，与同类作品高度重复。"
+    }
+  },
+  "type_specific_notes": "女频古言穿越轻喜剧对设定的新颖度要求极高，传统的“冷宫+空间+卖黄书+错认皇上”套路已无法满足当前观众的阈值，容易产生审美疲劳。",
+  "consensus_points": [
+    "剧本设定和剧情走向非常常规，缺乏创新点。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "设定严重同质化，缺乏市场竞争力",
+    "台词现代感过强，容易导致观众出戏",
+    "反派女配出场动机和台词过于脸谱化"
+  ],
+  "green_flags": [
+    "轻喜剧节奏尚可，单集内有明确的事件推进"
+  ]
+}

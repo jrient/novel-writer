@@ -1,0 +1,102 @@
+{
+  "title": "《我和魅魔大叔刷剧情的日子》一卡（初）(1)",
+  "status": "改",
+  "genre": "原创 / 男频",
+  "mean_score": 71.5,
+  "score_range": [
+    65,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "太小众了 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "系统（尖叫vo）：啊啊啊啊！不对！不对！资料上明明是魅魔姐姐！为什么是个男的？！完了完了！全完了！"
+      ],
+      "extracted_rule": "性转+反套路攻略（用兄弟情代替爱情）能带来新奇感，但容易陷入受众过窄的“小众”困境。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "系统（VO）：《霸道校草爱上我》世界林琅攻略失败，即可抹杀！",
+        "系统（VO）：规则不可违背。抹杀倒计时：3…"
+      ],
+      "extracted_rule": "生死危机叠加乌龙召唤（招错灵魂）是系统流快速建立核心冲突与悬念的有效手段。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "主角男的女的 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "林琅（一脸烦躁男声）：搞什么飞机？老子游戏还没打完呢，又穿了？",
+        "林琅习以为常的起身，无视了脑海里那个聒噪的碎碎念声音，非常霸气的八字走着（类似于啤酒肚中年男人的走法）"
+      ],
+      "extracted_rule": "性转设定的主角必须在开篇明确受众代入视角，否则会引发“主角到底是男是女”的严重认知障碍，导致读者无法代入。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "△（特写）闪过任务倒计时：0小时48分钟",
+        "△（特写）任务剩余时间，倒计时：10,9……"
+      ],
+      "extracted_rule": "利用系统倒计时和快速的“装逼打脸”事件交替，能有效维持剧情紧凑感和压迫感。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "林琅：什么鬼名字啊，一点都不man...（草莓软糖酱）这才是真男人该有的网名，嘤嘤嘤",
+        "系统vo（尖锐爆鸣声）：能不能干点正事，我们都快死了诶"
+      ],
+      "extracted_rule": "密集使用网络热梗（如“尖锐爆鸣声”、“真男人嘤嘤嘤”）能增强喜剧效果，但也容易产生廉价感和出戏感。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "蒋项（扣字）：公若不弃，吾愿拜为义父！",
+        "叶风（激动）：兄弟！相见恨晚啊！（使劲的握手）这么多年，从来没有一个人懂我心……只有你！"
+      ],
+      "extracted_rule": "将传统的“恋爱攻略”替换为“收小弟/拜义父”的降维打击，能产生错位搞笑的爽感，快速兑现期待。"
+    },
+    "benchmark_differentiation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "太小众了 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "系统（无法理解的颤抖）vo：我让你攻略男主，谁让你把他攻略成拜把子的兄弟，这真的对吗？"
+      ],
+      "extracted_rule": "强烈的反套路（把乙女攻略玩成硬核电竞和军迷结拜）能建立极高的差异化，但需警惕偏离主流受众基本盘。"
+    }
+  },
+  "type_specific_notes": "作为一部标为“男频”的作品，采用“男魂女身”去攻略其他男性的设定非常危险。它既不符合传统男频的审美（男主与其他男性产生过多羁绊），也难以吸引女频受众（充斥着男性视角的粗犷和游戏梗），导致定位尴尬。",
+  "consensus_points": [
+    "责编普遍对核心设定的市场接受度存疑，认为其存在严重的认知门槛（小众、性别认知模糊）。"
+  ],
+  "disagreement_points": [
+    "无明显意见冲突，但关注点不同：宇间关注市场定位（太小众），小刚关注基础人设（主角性别认知混乱）。"
+  ],
+  "red_flags": [
+    "主角性别认知混乱，导致责编发出“主角男的女的”的根本性疑问。",
+    "过度依赖特定游戏圈层的硬核知识（LOL操作、钢铁雄心4、子午谷奇谋），可能劝退非玩家受众。",
+    "受众定位极度模糊，男频标签下写反向乙女攻略，存在两头不讨好的风险。"
+  ],
+  "green_flags": [
+    "喜剧反差感营造得不错，大叔灵魂与美少女身体的错位带来了密集的笑点。",
+    "剧情推进极快，利用倒计时机制和快速打脸（游戏单挑、扇巴掌）保持了良好的节奏。"
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "title": "我佩戴笼罩世界的皇冠1-10",
+  "status": "拒",
+  "genre": "原创 / 男频",
+  "mean_score": 77.5,
+  "score_range": [
+    70,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "很新的东西，不太确定 —— 47",
+        "又是圣杯战争的套路...宗教元素太浓 —— 宇间",
+        "设定有点复杂了，而且有点仙王的影子，怪怪的 —— 安兔兔",
+        "感觉这个设定是坐3D国漫那桌的 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "异能浓缩于人类历史上的各个传世王冠之中，冠冕的佩戴者即可解锁统御之能。",
+        "主宰李星海佩戴的就是始皇帝嬴政当年的登基之冠"
+      ],
+      "extracted_rule": "将历史/宗教冠冕与异能结合有一定视觉新意，但极易陷入已有二次元作品（如Fate系列）的既视感，且存在宗教政治敏感风险。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "节奏老慢了，开局没有爆点 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "周青山：（嬉皮笑脸）那…这个当赠品总行了吧？看着就是个没人要的旧头箍。"
+      ],
+      "extracted_rule": "开局以平淡的日常讨价还价切入，缺乏强烈的外部危机或情绪钩子，无法迅速抓住受众。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "ai感有点儿浓吧？ —— 宇间",
+        "感觉这个设定是坐3D国漫那桌的 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "性格跳脱、活泼，是老师口中的“一惊一乍体质”、班级不稳定因素，经典坐在倒数第二排靠窗位。"
+      ],
+      "extracted_rule": "主角人设高度依赖二次元经典模板（如倒数第二排靠窗），标签化明显，缺乏深度的性格挖掘。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "节奏老慢了 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "第十集...高二三班和高二五班的篮球比赛正如火如荼进行。"
+      ],
+      "extracted_rule": "前期校园日常戏份（如考试作弊、打篮球）占比过大，严重拖慢了核心异能冲突的主线推进。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "ai感有点儿浓吧？ —— 宇间"
+      ],
+      "evidence_from_text": [
+        "周青山：你这不扯呢嘛，你要杀也杀我啊，你指着你女儿算怎么回事？"
+      ],
+      "extracted_rule": "台词偏向口语化和古早网文风，行文存在一定的AI生成痕迹或套路化表达。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "就爱看异能 —— 山南",
+        "节奏老慢了 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "剑身碰到王冠的那一刻，巨大的金色冲击波涌出，将伯恩震飞。金光触碰到科研员，立刻将他化为齑粉，伯恩飞撞到墙上，双臂尽断。"
+      ],
+      "extracted_rule": "爽点多依赖于顶级外挂（原初冠）的被动触发和保护，主角缺乏主动破局的爽感，且被日常戏稀释。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "又是圣杯战争的套路 —— 宇间",
+        "有点仙王的影子 —— 安兔兔",
+        "感觉这个设定是坐3D国漫那桌的 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "世界上最强大的冠冕持有者——“主宰”李星海，感受到了周青山的存在。令他震惊的是，周青山竟能完全免疫他的统御之力。"
+      ],
+      "extracted_rule": "具有明确的3D国漫/二次元受众定位，但核心设定与《Fate》系列、《仙王的日常生活》等作品相似度高，差异化优势不足。"
+    }
+  }
+}

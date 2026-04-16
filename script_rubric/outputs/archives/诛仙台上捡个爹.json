@@ -1,0 +1,102 @@
+{
+  "title": "诛仙台上捡个爹",
+  "status": "拒",
+  "genre": "原创 / 萌宝",
+  "mean_score": 79.7,
+  "score_range": [
+    78,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这种很土的萌宝文……重复度有点太高了 —— 小冉",
+        "又有马甲又有奶团子又有双强又有带球跑又有双向奔赴又有萌宝助攻 —— 贾酒",
+        "萌宝再区别于市面上的 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "元素堆砌虽能精准打中下沉市场，但若缺乏核心差异化设定，容易陷入同质化与套路化。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "男主出场有点晚，第五集才出来 —— Vicki",
+        "男主出场提前 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "短剧开局需快速切入核心人物关系，男主出场过晚（如第五集）会严重削弱前期的期待感与冲突。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "感觉人设可能做得没有那么吸引人 —— 小冉",
+        "这个女主性格我喜欢 —— Vicki",
+        "希望之后女主高光多一些 —— 小刚",
+        "主视角改为女主 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "萌宝文中女主的人设讨喜是加分项，但需保证其主视角地位及足够的高光时刻，避免沦为工具人。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "剧情有一点点无聊，重复度有点太高了 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧情推进若依赖重复套路，会导致中后期节奏拖沓、观感无聊。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "棉鞋的感情戏不错 —— 步步"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "细腻的感情戏描写能有效提升萌宝/言情向剧本的文本质感。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "又有马甲又有奶团子又有双强又有带球跑又有双向奔赴又有萌宝助攻，会好看！！！ —— 贾酒",
+        "希望之后女主高光多一些 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点不仅依赖萌宝助攻，更需要女主自身的强势反击与高光时刻来夯实。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "重复度有点太高了 —— 小冉",
+        "萌宝再区别于市面上的 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "萌宝赛道高度内卷，若萌宝形象与互动模式无法与市面竞品拉开差异，极易被市场淘汰。"
+    }
+  },
+  "type_specific_notes": "对于“萌宝”题材，叠加“带球跑、马甲、双强”等经典元素能保证基础受众盘（下沉市场接受度高），但核心痛点在于同质化严重。必须在萌宝的人设差异化、男女主互动的创新性上做文章。此外，萌宝文极易出现视角偏移，必须牢牢锚定女主的主视角地位，确保女主有独立的高光时刻，而非仅仅作为萌宝助攻的客体。",
+  "consensus_points": [
+    "男主出场节奏过慢，需要大幅提前（第五集出场不符合短剧节奏）。",
+    "剧本设定和萌宝形象同质化严重，需要做出与市面竞品的差异化。",
+    "需要强化女主的主视角地位和高光时刻。"
+  ],
+  "disagreement_points": [
+    "对整体可看性的评价存在分歧：贾酒、帕克、Vicki、小刚认为元素丰富、人设讨喜“蛮好看的”；而小冉认为剧情无聊、重复度高，“没有设定那么好看”。"
+  ],
+  "red_flags": [
+    "男主第五集才出场，开局核心人物关系建立太慢。",
+    "剧情重复度高，套路化严重。",
+    "萌宝人设缺乏吸引力和差异化。"
+  ],
+  "green_flags": [
+    "女主性格讨喜，具备吸引观众的潜力。",
+    "感情戏描写细腻到位。",
+    "集齐了下沉市场喜爱的热门元素（马甲、奶团子、双强、带球跑）。"
+  ]
+}

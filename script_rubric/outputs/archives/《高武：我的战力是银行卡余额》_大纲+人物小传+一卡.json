@@ -1,0 +1,106 @@
+{
+  "title": "《高武：我的战力是银行卡余额》",
+  "status": "拒",
+  "genre": "原创 / 男频",
+  "mean_score": 71.0,
+  "score_range": [
+    70,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "设定挺好 —— 47",
+        "设定新颖 —— 山南"
+      ],
+      "evidence_from_text": [
+        "个人银行卡余额可直接1:1兑换为战力值（1元=1战力）"
+      ],
+      "extracted_rule": "将抽象的战力与具象的金钱（银行卡余额）直接1:1挂钩，能产生直观且极具吸引力的脑洞爽感。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "开头真的太典了 —— 山南",
+        "写的挺老 —— 47"
+      ],
+      "evidence_from_text": [
+        "屏幕上浮现出一个刺眼的红色数字：88。全场先是一静，随即爆发出刺耳的大笑。",
+        "林文萱（冷漠）：呸！你是个什么东西，也配这么叫我！"
+      ],
+      "extracted_rule": "“测战力废柴+校花当众背叛+富二代踩脸”的开局模式在当前男频市场已严重老化，容易引发读者审美疲劳。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "写的挺老 —— 47"
+      ],
+      "evidence_from_text": [
+        "赵天昊（皱眉，脚踩着苏晓晨的胸口）：文萱也是你叫的？",
+        "林文萱（冷漠）：呸！你是个什么东西"
+      ],
+      "extracted_rule": "反派只会无脑嘲讽、女配极度势利虚荣的脸谱化塑造，会加重剧本的陈旧感和套路感。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "第2集觉醒系统，第4集杀狼蛛赚钱升级，第6集地下拳场秒杀狂屠，第9集擂台秒杀赵天昊"
+      ],
+      "extracted_rule": "爽文节奏需要保持“受辱-得金手指-搞钱-装逼打脸”的高频循环，事件推进速度尚可，但缺乏意料之外的转折。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "写的挺老。这个设定适合走轻喜，不适合情绪 —— 47"
+      ],
+      "evidence_from_text": [
+        "我不甘心，我苏晓晨对天发誓…再也不做谁的舔狗，我要变强！我要让所有嘲笑我/欺负我的人，匍匐在我脚下"
+      ],
+      "extracted_rule": "脑洞向、神豪向的设定应避免过于苦大仇深和古早网文的喊口号式台词，否则会产生严重的割裂感。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "苏晓晨的拳头精准地轰在狂屠的下颚... 狂屠两米高的巨大身躯猛地一僵... 直挺挺地向后倒去",
+        "拳力结结实实地轰在赵天昊的胸口... 整个人被直接轰飞出擂台"
+      ],
+      "extracted_rule": "战力数值化后，爽点的兑现必须紧跟数值的提升，做到“充钱即变强，变强即秒杀”的干脆利落。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "可以走幽默搞笑风，类似于地摊 —— 山南"
+      ],
+      "evidence_from_text": [
+        "苏晓晨os：弱者没有未来吗？我不甘心... 我要将今天所有的屈辱，百倍奉还！"
+      ],
+      "extracted_rule": "创新的设定如果套用最传统的废柴复仇流模板，会丧失其本应具备的差异化市场优势，错失轻喜剧赛道。"
+    }
+  },
+  "type_specific_notes": "在男频都市脑洞/神豪题材中，受众的审美已经从“三十年河东三十年河西”的憋屈复仇流，转向了更加轻松、幽默、甚至带点反套路乐子人属性的轻喜剧风格。本剧本设定极佳，但情绪底色过于沉重老旧。",
+  "consensus_points": [
+    "核心设定（余额=战力）非常新颖有趣。",
+    "开局剧情和人物塑造过于老套（太典了/写的挺老）。",
+    "该设定更适合走幽默搞笑/轻喜剧路线，而不是传统的苦大仇深情绪流。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "开局经典的“废柴测试+女友背叛”三连，极易导致观众在第一集流失。",
+    "主角台词过于中二和苦大仇深，与“充钱变强”的戏谑设定不匹配。",
+    "反派降智严重，纯粹为了嘲讽而嘲讽的工具人。"
+  ],
+  "green_flags": [
+    "核心金手指设定直观且具有极强的商业延展性（赚钱=升级）。",
+    "打斗爽点给得比较直接，没有拖泥带水的越级苦战，符合短剧秒杀的爽感需求。"
+  ]
+}

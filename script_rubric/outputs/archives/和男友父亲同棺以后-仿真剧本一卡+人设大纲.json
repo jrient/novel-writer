@@ -1,0 +1,110 @@
+{
+  "title": "和男友父亲同棺以后-仿真剧本一卡+人设大纲",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 73.3,
+  "score_range": [
+    70,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "片名挺唬人的，内容一般了 —— 贾酒",
+        "我的评价是不如鬼饺，但也还行 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "秦严以林知夏生辰八字能帮父亲超度为由，要求她和父亲遗体躺进一口棺材七天",
+        "最后揭示真相：苏婉青失手杀了最好的室友兼闺蜜林知夏，最后有了精神病"
+      ],
+      "extracted_rule": "猎奇向设定（如与尸体同棺）能提供初期噱头，但若内核套路化则难以维持新鲜感。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "前期有意思 —— 山南",
+        "片名挺唬人的 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "秦严扶着林知夏跨入棺材，棺材内部铺着黄色绸缎，秦父遗体躺在左侧。",
+        "特写手机屏幕：微信好友申请，头像是秦严父亲的黑白遗照。"
+      ],
+      "extracted_rule": "强设定的恐怖悬疑题材在开局容易通过视觉和心理刺激建立有效钩子。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "内容一般了 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "我男朋友肯为我花钱，代表他爱我，能有什么企图？",
+        "而且我好不容易有嫁入豪门的机会，我不想放弃！"
+      ],
+      "extracted_rule": "为了制造恐怖冲突而强行降智配角（如极度固执的恋爱脑），会削弱人物的真实感与立体度。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "结局拉完了 —— 山南"
+      ],
+      "evidence_from_text": [
+        "苏婉青！你就是见不得我好！我告诉你，你少管我！",
+        "林知夏（冷笑）：为什么？还不是为了让我相信你的鬼话和秦严分手！嫉妒真是让人面目全非！"
+      ],
+      "extracted_rule": "悬疑恐怖剧本若过度依赖“主角劝阻-配角作死”的单一循环，会导致中段节奏拖沓。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我真是瞎了眼了，才会跟你们这种人做朋友，自己找不到富二代男朋友就千方百计逼我分手"
+      ],
+      "extracted_rule": "女频悬疑中，室友撕逼的台词容易陷入脸谱化的“嫉妒/雌竞”套路。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "结局拉完了 —— 山南"
+      ],
+      "evidence_from_text": [
+        "以上是苏婉青在精神病院讲给病友们的亲身经历。最后揭示真相：苏婉青失手杀了最好的室友兼闺蜜林知夏，最后有了精神病"
+      ],
+      "extracted_rule": "“一切都是精神病人的幻想”这种底牌若铺垫不足，极易破坏观众的爽点期待，导致烂尾感。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "我的评价是不如鬼饺 —— 小冉",
+        "真没抄小冉答案，下午还和47说不如鬼饺 —— 千北"
+      ],
+      "evidence_from_text": [
+        "题材：女频伪灵异悬疑"
+      ],
+      "extracted_rule": "在已有成熟竞品（如《鬼饺》）的赛道中，若无明显长板，容易被比下去。"
+    }
+  },
+  "type_specific_notes": "女频伪灵异悬疑题材，依赖中式恐怖民俗（同棺、鬼阴线）制造噱头，但“精神病/幻觉”的底牌在短剧中属于高风险操作，容易让观众觉得被欺骗。",
+  "consensus_points": [
+    "剧本整体质量不如同类竞品《鬼饺》",
+    "剧本存在高开低走的问题，前期设定有噱头但后续及结局乏力"
+  ],
+  "disagreement_points": [
+    "对剧本整体可接受度的微小分歧：小冉认为“但也还行”，而Vicki明确表示“不是我喜欢的类型”，山南则对结局极其不满。"
+  ],
+  "red_flags": [
+    "结局采用“精神病人的幻想”作为终极反转，严重破坏前期建立的恐怖悬疑契约，导致烂尾感。",
+    "配角（林知夏）为了推动剧情强行降智、恋爱脑，引发室友无意义的反复争吵，消耗观众耐心。"
+  ],
+  "green_flags": [
+    "片名和核心设定（和男友父亲同棺）具有较强的猎奇吸引力和点击冲动。",
+    "前期的视觉恐怖元素（长蛆、鬼阴线、遗照睁眼）设计得比较密集，能快速抓住眼球。"
+  ]
+}

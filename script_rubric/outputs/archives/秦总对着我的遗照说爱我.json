@@ -1,0 +1,108 @@
+{
+  "title": "秦总对着我的遗照说爱我",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 70.0,
+  "score_range": [
+    65,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "江澜（vo）：我叫江澜，是一本小说里的恶毒女配。",
+        "按照您的要求，二十三天后为您提供一场完美的假死服务。"
+      ],
+      "extracted_rule": "恶毒女配觉醒+死遁是女频高度饱和的常规套路，缺乏新意与差异化元素。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "前三集太平了 —— 千北",
+        "剧情和台词都太平淡了 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "江澜：假死的尸体和我像吗？会有人怀疑吗？",
+        "江澜（OS）：有别的路了。只有“江澜”彻底消失，我才能真正活下去"
+      ],
+      "extracted_rule": "开局缺乏强情绪和事件钩子，平铺直叙的交代设定容易导致观众流失。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "林妙可（扯了扯秦逾明、委屈）：逾明哥，都是我不好，是我惹江澜姐生气了她才泼我汤的...",
+        "秦逾明：江澜，你简直不可理喻！"
+      ],
+      "extracted_rule": "角色脸谱化严重，绿茶女配与降智男主的组合过于古早，缺乏深层次的行为动机。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "有点乱 —— 贾酒",
+        "前三集太平了 —— 千北",
+        "剧情和台词都太平淡了 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "闪回 2-2 日 外 校园小路",
+        "闪出 2-3 日 内 会客室",
+        "闪出 4-3 夜 内 江澜车内"
+      ],
+      "extracted_rule": "频繁的闪回打乱了现实时间线的叙事节奏，且现实线冲突密度不足，导致整体既平淡又混乱。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这本主要是文笔小白 —— 小冉",
+        "剧情和台词都太平淡了 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "秦逾明：江澜，你简直不可理喻！之前妙可一直跟我说你在各种针对她，原来是真的！",
+        "林妙安（抱臂，抬着下巴）：江澜？怎么，白天在餐厅没闹够，晚上还想来我家楼下堵我？"
+      ],
+      "extracted_rule": "台词古早且套路化，缺乏生活感和张力，文笔显稚嫩。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "旁白：经警方确定，坠楼案死者确定是江家大小姐，死因初步推断是自杀",
+        "他握着手机的手剧烈地颤抖起来，手机从他无力的指间滑落，“啪”地一声摔在大理石地板上"
+      ],
+      "extracted_rule": "死遁带来的虐男主爽点在结尾有一定兑现，但前期铺垫过长且憋屈，削弱了最终的爆发力。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "系统（VO）：警告，江澜作为恶毒女配，既定命运是为男女主让路。"
+      ],
+      "extracted_rule": "高度同质化的女配觉醒死遁文，在系统设定和追妻火葬场赛道中无明显差异化优势。"
+    }
+  },
+  "type_specific_notes": "作为女频死遁文，核心看点在于“女主决绝离开”与“男主追悔莫及”的反差。本作虽然完成了这一结构，但前期女主的“舔狗”行为和男主的冷漠刻画过于刻板，且系统设定的加入略显生硬，没有为剧情增加紧迫感，反而沦为强行推动剧情的工具。",
+  "consensus_points": [
+    "剧情和台词过于平淡，缺乏起伏和吸引力",
+    "剧本整体文笔和叙事结构存在明显缺陷"
+  ],
+  "disagreement_points": [
+    "责编们对具体缺陷的侧重点不同：小冉侧重文笔小白，贾酒侧重结构混乱，Vicki和千北侧重节奏平淡，但整体均给出负面评价，无实质性分歧。"
+  ],
+  "red_flags": [
+    "文笔小白，台词古早出戏",
+    "频繁使用闪回/闪出，导致叙事结构碎片化",
+    "前三集缺乏有效的情绪钩子和事件冲突"
+  ],
+  "green_flags": [
+    "第10集的死遁高潮和男主得知死讯的反应基本符合该类型受众的期待，完成了追妻火葬场的前置条件。"
+  ]
+}

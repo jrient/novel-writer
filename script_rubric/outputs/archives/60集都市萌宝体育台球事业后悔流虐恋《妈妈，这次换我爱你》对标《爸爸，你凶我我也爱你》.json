@@ -1,0 +1,104 @@
+{
+  "title": "60集都市萌宝体育台球事业后悔流虐恋《妈妈，这次换我爱你》对标《爸爸，你凶我我也爱你》",
+  "status": "拒",
+  "genre": "原创 / 萌宝",
+  "mean_score": 74.2,
+  "score_range": [
+    65,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "风格有点像麦芽的本，还可以啊 —— 小冉",
+        "解说漫吧？ —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "剧本元素：都市，萌宝，体育台球事业，后悔流虐恋等元素"
+      ],
+      "extracted_rule": "萌宝虐恋结合体育竞技元素有一定微创新，但整体框架仍偏向常规套路。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "宋老夫人：林深，签了这份断情书。带着孩子从这里消失，我立马安排最好的医生给宋晴做手术。",
+        "林深（抱着襁褓流下眼泪）：念念，我们离开，妈妈才能活下来。"
+      ],
+      "extracted_rule": "经典的绝症逼迫+误会分离+车祸致残开局，能快速建立虐心情绪，但略显古早。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "台球腿残疾又不影响，为啥就要靠收废品为生了 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "七岁的林念推着坐轮椅的林深在小巷里走着，林念停下，一手拿着编织袋，一手捡起地上的瓶子。"
+      ],
+      "extracted_rule": "角色设定的职业属性与身体残疾之间的逻辑关联需严谨，否则会导致人设降智和行为不合理。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "张芸芸（扇路人1耳光）：死乡巴佬，我教训小叫花子，关你们什么事！",
+        "张芸芸（扇路人2耳光）：你的眼睛不好使，要不要我帮你捐了啊！",
+        "张芸芸（扇路人3耳光）：垃圾就该待在垃圾桶了，没钱治什么病！"
+      ],
+      "extracted_rule": "反派无脑刁难的冲突虽然能拉仇恨，但持续多集（第8-10集）重复单一的扇耳光和辱骂，会显得极度拖沓且刻意。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "就是这个台球知识好浅薄 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "林深全神贯注的和对手打台球，球无虚发，每次必中。",
+        "张芸芸：在江城，我张芸芸就是王法！你们这些平民，连跟我说话的资格都没有！"
+      ],
+      "extracted_rule": "涉及专业领域（如台球）需做足功课避免露怯，反派台词切忌过于脸谱化和中二出戏。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "突然，宋晴出现抓住了砸下来的花瓶，手腕处有着和念念一样的月牙胎记。"
+      ],
+      "extracted_rule": "虐主铺垫过长，爽点兑现稍显滞后，需加快打脸反派的节奏。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "风格有点像麦芽的本，还可以啊 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "对标《爸爸，你凶我我也爱你》"
+      ],
+      "extracted_rule": "具备明确的对标作品和平台风格特征，但差异化仅停留在台球元素的生硬叠加。"
+    }
+  },
+  "type_specific_notes": "萌宝虐恋剧需要极致的“惨”，但惨的来源必须符合基本逻辑，不能为了虐而强行降智（如腿残疾就完全丧失谋生能力去捡废品）。同时，叠加职业元素时必须符合该职业的基本常识。",
+  "consensus_points": [
+    "剧本存在明显的逻辑硬伤和专业知识匮乏（台球知识浅薄，且腿残疾不影响打台球却沦落到靠女儿捡废品）。"
+  ],
+  "disagreement_points": [
+    "对整体风格的接受度存在分歧：小冉认为“风格像麦芽的本，还可以”，而山南直接给出负面评价“打咩”，Vicki也对核心逻辑提出严重质疑。"
+  ],
+  "red_flags": [
+    "核心设定存在逻辑硬伤，职业属性与残疾设定冲突。",
+    "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+    "冲突推进拖沓，连续三集在医院走廊上演反派单方面辱骂扇耳光戏码。"
+  ],
+  "green_flags": [
+    "情绪铺垫基本到位，萌宝护父的虐心点能抓住部分下沉市场受众。",
+    "有明确的对标平台风格（麦芽风）。"
+  ]
+}

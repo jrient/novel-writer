@@ -1,0 +1,106 @@
+{
+  "title": "AI仿真人剧+我在冷宫忙种田+梦珂",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 68.0,
+  "score_range": [
+    65,
+    77
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "一般 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "现代女陆云萝穿越成被打入冷宫的废后，开局被断供，却意外激活随身空间。",
+        "核心看点包括：冷宫废后、随身空间、现代知识（借贷记账法/炸药）、高产粮食革命、经商致富"
+      ],
+      "extracted_rule": "元素堆砌较多，但多为女频常规套路（冷宫+空间+马甲），缺乏真正的核心创新点。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "逆水寒那版第一集挺好的 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "3秒内，她激活随身空间——规则立现：空间能种田、能储物！5秒内，她的主线明确：靠空间活下去，并搞钱跑路！",
+        "陆云萝（OS，语速极快）：我靠！我不是在实验室里研究新型解毒配方吗？怎么一睁眼就到了这鬼地方？"
+      ],
+      "extracted_rule": "开局节奏快，迅速激活金手指并建立短期目标，但当前版本的钩子可能不如前作或对比版本惊艳。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "缺陷: 贪财、好色（尤其喜欢看美男）、嘴上不饶人",
+        "瑶妃（咬牙切齿，声音尖利）：冰？！她一个被打入冷宫的废人，凭什么过得比我还要滋润？！本宫要的是她生不如死"
+      ],
+      "extracted_rule": "人设偏向扁平和标签化，反派动机单一且降智，主要为衬托女主的爽点服务。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "第1集：开局暴击！冷宫废后靠空间逆天改命",
+        "第3集：冷面侍卫竟是金主？泼脏水反被清水打脸！",
+        "第4集：草莓收人心，冰块震全场！"
+      ],
+      "extracted_rule": "微短剧节奏紧凑，单集内包含明确的冲突与反转，打脸与奖励机制交替执行得当。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一般 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "陆云萝（OS,内心狂喜）：二百两！这金主爸爸也太豪横了！",
+        "陆云萝（冷笑）：柳叶是吧？回去告诉你的主子，别以为断了我的粮就能饿死我。"
+      ],
+      "extracted_rule": "台词偏向现代网络用语，虽符合穿越设定，但略显小白，古装语境下容易出戏。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "那股清流并未消失，反而在她周身环绕，形成一个小型的、清澈见底的水幕。",
+        "程公公捧着冰碗，态度一百八十度大转弯，脸上堆满了谄媚的笑。"
+      ],
+      "extracted_rule": "爽点兑现速度快，利用空间金手指进行降维打击（如反弹脏水、制冰）的效果直观且密集。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一般 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "本剧是一部1分钟一集，共80集的「高密度爽点女频穿越剧」。"
+      ],
+      "extracted_rule": "赛道定位明确，但与同类冷宫种田文高度同质化，缺乏独特的市场记忆点。"
+    }
+  },
+  "type_specific_notes": "作为女频穿越种田微短剧，金手指（随身空间）的视觉化呈现（如凭空变物、水幕反弹、制冰）在AI制作中有一定优势，能提供直观的视觉爽感，但剧情套路化严重，缺乏情感深度。",
+  "consensus_points": [
+    "剧本整体表现平庸，未能引起责编的强烈兴趣（均分68，多位责编无评语或评价一般）。"
+  ],
+  "disagreement_points": [
+    "无明显分歧，多数责编保持沉默或给出及格线左右的分数。"
+  ],
+  "red_flags": [
+    "反派行为逻辑单一降智，纯粹为了送人头而存在。",
+    "台词过于现代网络化（如“金主爸爸”、“我靠”），导致古装剧氛围割裂。",
+    "整体设定和剧情走向陈旧套路，缺乏新意。"
+  ],
+  "green_flags": [
+    "单集节奏快，冲突明确，不拖泥带水。",
+    "金手指设定适合短剧的视觉爽点呈现，打脸反馈即时。"
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "title": "凤栖东厂",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 79.7,
+  "score_range": [
+    75,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "题材还可以 —— 小冉",
+        "设定挺好的，第一次见女主扮公公 —— Vicki",
+        "题材不错 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在女频赛道中，采用罕见的性别/身份伪装（如女主扮太监）能迅速打破题材同质化，带来强烈的新鲜感。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "第一集写的很一般，闪回太多了，解释说明的大于情节 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局切忌使用大量闪回和解释性旁白，必须以高密度的情节和即时冲突来抓住观众。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "这本好在人设，虽然想写好很难，但是想象空间巨大 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "极具反差感和禁忌感的人设能为剧本提供巨大的戏剧张力和想象空间。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "解释说明的大于情节 —— 小冉",
+        "好看的权谋很难写……皇帝主动让位我是真的绷不住 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "权谋题材的冲突解决必须遵循严密的权力逻辑，避免为了推进剧情而出现降智或过于理想化的情节（如皇帝主动让位）。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "好看，看哭了 —— 小刚",
+        "后续发展就要看作者功力了 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "能够引发强烈情感共鸣的文笔是加分项，但权谋题材对作者的综合笔力（尤其是逻辑构建）要求极高。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "好看，看哭了 —— 小刚",
+        "皇帝主动让位我是真的绷不住 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "情绪价值的兑现（如虐点/泪点）能提升观感，但核心剧情逻辑的崩塌会严重削弱整体的满足感。"
+    },
+    "benchmark_differentiation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "第一次见女主扮公公 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在成熟的古言/权谋赛道中，寻找未被充分挖掘的特殊身份标签是建立差异化优势的有效手段。"
+    }
+  },
+  "type_specific_notes": "作为女频权谋题材，本作通过“女主扮太监”的猎奇设定成功吸引了责编的注意力，具备极强的先天优势。但权谋剧的核心在于智斗与逻辑，剧本在情节推演（如皇帝让位）和叙事节奏（开局闪回过多）上暴露出作者笔力不足的问题，需要重点强化逻辑链条。",
+  "consensus_points": [
+    "题材和设定非常新颖，女主扮公公的人设极具吸引力和想象空间（4位责编明确提及赞赏）。"
+  ],
+  "disagreement_points": [
+    "对剧本整体感染力的评价存在分歧：有责编被深深打动（“看哭了”），而另一些责编则因剧情逻辑硬伤（“皇帝主动让位”）和开局叙事手法（“闪回太多”）而产生强烈的出戏感。"
+  ],
+  "red_flags": [
+    "第一集叙事节奏拖沓，解释性内容多于实质情节，闪回滥用。",
+    "权谋逻辑存在严重硬伤（如皇帝主动让位），导致剧情失真、观众出戏。"
+  ],
+  "green_flags": [
+    "女主女扮男装成为太监的设定极具差异化和新鲜感。",
+    "人设张力足，具备较强的情感爆发潜力，能提供极高的情绪价值。"
+  ]
+}

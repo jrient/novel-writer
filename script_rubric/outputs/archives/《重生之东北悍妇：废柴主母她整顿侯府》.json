@@ -1,0 +1,83 @@
+{
+  "title": "《重生之东北悍妇：废柴主母她整顿侯府》",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 78.4,
+  "score_range": [
+    68,
+    83
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "挺常规的穿越宅斗，关于东北悍妇这一点，本南方人沉默不语，北方人发言！ —— 小冉",
+        "想象空间大！ —— 贾酒",
+        "看开头就知道应该挺有意思 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "哎妈呀，我当谁呢，大半夜不搂着男人睡觉，跑这嘎达来，一个姨娘，跟我这儿装啥大尾巴狼呢？搁我们那屯子，小老婆这么跟大老婆说话，早大耳刮子抽了，知道不？"
+      ],
+      "extracted_rule": "在常规宅斗框架中加入强地域特征（如东北方言与性格）能形成有效的微创新，但容易引发受众审美两极分化。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "看开头就知道应该挺有意思 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "苏晚晴？永昌侯夫人？被小老婆骑头上，被男人当钱包，被婆婆当出气筒，连亲儿子都不认自己，这天崩开局，还是个地狱难度的副本！"
+      ],
+      "extracted_rule": "穿越后迅速认清地狱开局并立刻展开反击，不拖泥带水，能有效抓住观众注意力。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "女主一定要特别漂亮，然后说话东北味，就是那种残念系美少女 —— 宇间",
+        "这是农村泼妇纯吵架的剧么 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "我教育我儿子，关你屁事？你有那闲工夫，多想想怎么还我嫁妆钱是正经！"
+      ],
+      "extracted_rule": "悍妇人设爽感强，但若缺乏反差包装（如高颜值）或对手过于脸谱化，容易显得像泼妇骂街，丧失高级感。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "先把这八年，你们沈家吃我、喝我、用我的，连本带利，一分不少地还回来！咱当场算！",
+        "从今天起，侯府所有的供给，除了每月定例的米面粮油，额外的，一概全停！"
+      ],
+      "extracted_rule": "经济封锁、抓把柄、娘家施压等多管齐下，能保持高密度的宅斗冲突与极快的推进节奏。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "作者文笔是不错啊~能写出话里有话的感觉在短剧作者里面不多哦 —— 宇间",
+        "清宫戏的味道太浓，可以再往架空写一写，少用点主子啊奴婢啊之类的称呼 —— 宇间",
+        "这是农村泼妇纯吵架的剧么 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "老太太，您这算盘珠子，都快崩到我脸上了，好事？您要真觉得是天大的好事，怎么不让二姑去？"
+      ],
+      "extracted_rule": "台词接地气且有锋芒能提升爽感，但需注意用词的时代感，避免过度粗鄙化或串戏。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "爱看 —— 千北",
+        "蛮好 —— 帕克"
+      ],
+      "evidence_from_text": [
+        "你养你的外室，她当她的管家姨娘，我教我的儿子，侯府外头的光鲜，我帮你维持，内里你们爱怎么烂怎么烂，怎么样，这笔买卖，划算吧？"
+      ],
+      "extracted_rule": "女主掌握经济命脉并实施降维打击，是宅斗题材中屡试不爽且能迅速兑现的爽点机制。"
+    }
+  }
+}
