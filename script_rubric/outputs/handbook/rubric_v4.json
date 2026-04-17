@@ -1,0 +1,224 @@
+{
+  "version": "4",
+  "generated_at": "2026-04-17",
+  "sample_size": 36,
+  "universal_dimensions": {
+    "premise_innovation": {
+      "name_zh": "题材与设定创新度",
+      "avg_score": 5.1,
+      "avg_by_status": {
+        "拒": 4.0,
+        "改": 7.2,
+        "签": 5.8
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "opening_hook": {
+      "name_zh": "开局与钩子",
+      "avg_score": 5.2,
+      "avg_by_status": {
+        "拒": 4.8,
+        "改": 5.8,
+        "签": 5.8
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "character_depth": {
+      "name_zh": "人设立体度",
+      "avg_score": 4.7,
+      "avg_by_status": {
+        "拒": 4.3,
+        "改": 4.8,
+        "签": 6.2
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "pacing_conflict": {
+      "name_zh": "节奏与冲突密度",
+      "avg_score": 5.4,
+      "avg_by_status": {
+        "拒": 4.8,
+        "改": 5.8,
+        "签": 6.7
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "writing_dialogue": {
+      "name_zh": "文笔与台词",
+      "avg_score": 4.9,
+      "avg_by_status": {
+        "拒": 4.3,
+        "改": 5.2,
+        "签": 6.2
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "payoff_satisfaction": {
+      "name_zh": "爽点兑现",
+      "avg_score": 5.7,
+      "avg_by_status": {
+        "拒": 5.1,
+        "改": 5.8,
+        "签": 7.8
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "benchmark_differentiation": {
+      "name_zh": "对标与差异化",
+      "avg_score": 4.6,
+      "avg_by_status": {
+        "拒": 3.3,
+        "改": 6.8,
+        "签": 5.8
+      },
+      "red_flags_sample": [
+        "台词现代感过强，严重出戏",
+        "生搬硬套男频战神文套路，受众定位错位",
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "反派降智且脸谱化",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "节奏极快，前10集完成了多次战斗、升级与地图转换。",
+        "后续剧情非常精彩，整体可看性强",
+        "设定新颖，巧妙融合海王PUA与民俗诡异。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    }
+  },
+  "type_overlays": {
+    "原创 / 萌宝": {
+      "premise_innovation": 5.0,
+      "opening_hook": 5.5,
+      "character_depth": 5.5,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 5.2,
+      "payoff_satisfaction": 5.8,
+      "benchmark_differentiation": 3.7
+    },
+    "改编 / 女频": {
+      "premise_innovation": 4.5,
+      "opening_hook": 5.0,
+      "character_depth": 4.6,
+      "pacing_conflict": 5.7,
+      "writing_dialogue": 4.6,
+      "payoff_satisfaction": 6.1,
+      "benchmark_differentiation": 4.2
+    },
+    "原创 / 男频": {
+      "premise_innovation": 5.8,
+      "opening_hook": 5.5,
+      "character_depth": 4.5,
+      "pacing_conflict": 5.6,
+      "writing_dialogue": 5.4,
+      "payoff_satisfaction": 5.9,
+      "benchmark_differentiation": 5.5
+    },
+    "原创 / 女频": {
+      "premise_innovation": 5.6,
+      "opening_hook": 5.0,
+      "character_depth": 4.9,
+      "pacing_conflict": 5.1,
+      "writing_dialogue": 4.8,
+      "payoff_satisfaction": 5.2,
+      "benchmark_differentiation": 5.1
+    },
+    "原创 / 世情": {
+      "premise_innovation": 3.0,
+      "opening_hook": 6.0,
+      "character_depth": 3.5,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 6.5,
+      "benchmark_differentiation": 2.0
+    },
+    "原创": {
+      "premise_innovation": 8.0,
+      "opening_hook": 5.0,
+      "character_depth": 6.0,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 4.0,
+      "benchmark_differentiation": 6.0
+    }
+  }
+}
