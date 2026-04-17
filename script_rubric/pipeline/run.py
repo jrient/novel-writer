@@ -133,8 +133,20 @@ async def cmd_pass2_only(args):
     version = args.version or 1
     logger.info(f"=== Pass 2 Only -> v{version} ===")
 
-    archives = load_all_archives()
-    logger.info(f"Loaded {len(archives)} existing archives")
+    records = parse_xlsx(XLSX_PATH)
+    match_texts(records, DRAMA_DIR)
+    train, test = split_holdout(records, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
+    train_titles = {r.title for r in train}
+    logger.info(f"Holdout split: train={len(train)}, test={len(test)}")
+
+    all_archives = load_all_archives()
+    archives = [a for a in all_archives if a.title in train_titles]
+    skipped = len(all_archives) - len(archives)
+    logger.info(
+        f"Loaded {len(all_archives)} archives, using {len(archives)} (training only); "
+        f"skipped {skipped} (test or unknown)"
+    )
+
     await synthesize_all(archives, version=version)
     logger.info("Done")
 

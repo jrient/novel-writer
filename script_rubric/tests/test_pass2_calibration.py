@@ -141,3 +141,39 @@ class TestHandbookIntegration:
         # Calibration content must be present
         assert "状态-分数分布表" in handbook
         assert "锚点" in handbook
+
+
+class TestCmdPass2Filter:
+    def test_pass2_filters_to_training_set(self, monkeypatch):
+        import script_rubric.pipeline.run as run
+
+        from script_rubric.models import ScriptRecord, Review
+        records = [
+            ScriptRecord(
+                title=f"T{i}", source_type="x", genre="y",
+                submitter="z", status="改",
+                reviews=[Review(reviewer="a", score=75)],
+            )
+            for i in range(5)
+        ]
+
+        archives = [_make_archive(f"T{i}", "改", 75.0) for i in range(5)]
+
+        captured = {}
+
+        async def fake_synth(passed_archives, version):
+            captured["titles"] = [a.title for a in passed_archives]
+            return "handbook", {}
+
+        monkeypatch.setattr(run, "parse_xlsx", lambda _: records)
+        monkeypatch.setattr(run, "match_texts", lambda *a, **kw: None)
+        monkeypatch.setattr(run, "load_all_archives", lambda: archives)
+        monkeypatch.setattr(run, "synthesize_all", fake_synth)
+
+        import asyncio
+        from argparse import Namespace
+        asyncio.run(run.cmd_pass2_only(Namespace(version=4)))
+
+        # split_holdout(seed=42, ratio=0.2) on 5 改-records: n_test = max(1, round(1.0)) = 1
+        assert len(captured["titles"]) == 4
+        assert len(set(captured["titles"])) == 4
