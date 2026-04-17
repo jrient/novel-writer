@@ -22,6 +22,7 @@ from app.routers import (
     outline_router,
     ai_router,
     ai_config_router,
+    ai_batch_router,
     export_router,
     reference_router,
     search_router,
@@ -117,6 +118,7 @@ app.include_router(worldbuilding_router)
 app.include_router(outline_router)
 app.include_router(ai_router)
 app.include_router(ai_config_router)
+app.include_router(ai_batch_router)
 app.include_router(export_router)
 app.include_router(reference_router)
 app.include_router(search_router)
