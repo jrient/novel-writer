@@ -118,7 +118,7 @@ async def predict_one(
 
     client = get_client()
     try:
-        raw = await call_llm(client, system_prompt, user_prompt, max_retries=2)
+        raw = await call_llm(client, system_prompt, user_prompt, max_retries=2, temperature=0.0)
         data = extract_json(raw)
         return PredictResult.model_validate(data)
     except Exception as e:

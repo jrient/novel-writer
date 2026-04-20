@@ -1,0 +1,88 @@
+{
+  "title": "AI仿真人短剧《穷鬼的助学金》大纲人设三集",
+  "status": "改",
+  "genre": "改编 / 世情",
+  "mean_score": 73.2,
+  "score_range": [
+    70,
+    76
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "比较常规 —— 宇间",
+        "这个剧情即使感太强了，总感觉在哪看过 —— 小刚",
+        "故事有点老套 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "题材老套、缺乏差异化的常规设定极易让观众产生既视感，难以在同类作品中脱颖而出。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏创新的剧情往往难以在开局提供强有力的吸引力和新鲜感。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "常规校园霸凌题材中，人设容易陷入刻板印象，需要增加多维度的性格反差。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "我个人不太爱看完全只有校园霸凌的剧… —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突维度过于单一（如纯校园霸凌）会导致剧情单薄，缺乏张力和节奏变化。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "基础表达需达到及格线，但老套的故事框架往往限制了台词的出彩空间。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "抖音有剧情号做过差不多的剧情，比这个精彩一点点 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点设计和执行如果不如短视频竞品，会直接削弱观众的满足感和追剧动力。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "抖音有剧情号做过差不多的剧情 —— 小冉",
+        "这个剧情即使感太强了，总感觉在哪看过 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "必须与已有竞品（如抖音热门剧情号）拉开显著差异，否则会被视为低配替代品。"
+    }
+  },
+  "type_specific_notes": "校园霸凌与助学金题材在短视频平台（如抖音剧情号）已有大量成熟且高流量的对标作品。若作为短剧开发，必须在剧情丰富度、反转力度或爽点机制上超越现有短视频，否则极易产生既视感和老套感。",
+  "consensus_points": [
+    "剧情老套，缺乏创新",
+    "既视感强，与其他已有作品（尤其是短视频剧情号）高度雷同"
+  ],
+  "disagreement_points": [
+    "对于题材的接受度略有分歧：山南认为‘有点意思’，而宇间明确表示‘不太爱看完全只有校园霸凌的剧’。"
+  ],
+  "red_flags": [
+    "故事老套，既视感太强",
+    "剧情元素单一（仅有校园霸凌）",
+    "已有同类竞品且竞品表现更好"
+  ],
+  "green_flags": [
+    "题材具有一定的现实痛点基础（校园霸凌/助学金争议）"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "title": "《棺边低语》一卡",
+  "status": "签",
+  "genre": "原创 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    75,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "遗言的这个设定视觉表现能力不是很强，我的建议是可以看到“物件的记忆” —— 山南"
+      ],
+      "evidence_from_text": [
+        "红盖头浮现字：穿嫁衣者，会被灌毒酒，与少爷合葬。"
+      ],
+      "extracted_rule": "悬疑设定的金手指需要考虑影视化的视觉表现力，纯文字提示不如画面回溯有张力。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "好看的，开局很炸裂 —— 小冉",
+        "悬疑题材如果扣子埋得不够深（需要思考），我看起来就一般 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "林玥浑身赤裸，发丝凌乱，眼神涣散的躺在床上",
+        "林砚再次睁眼，已经被绑好换好婚服躺在床上。"
+      ],
+      "extracted_rule": "强情节的生死危机（如配冥婚）能有效拉升开局炸裂感，但悬疑扣子需要有深度。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "林砚（恐惧）：是他们！他们逼我喝的！他们不知道这酒是给死人喝的，活人喝了要折寿三代，克死夫家！"
+      ],
+      "extracted_rule": "女主在绝境中利用反派的封建迷信心理进行反击，能体现机智不降智。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "剧情上没啥毛病 —— 山南",
+        "好看的，开局很炸裂 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "周守义（阴狠）：跟我儿子配冥婚了，做我周家媳妇不会亏待你的。",
+        "就听，猛的，棺材狠狠地震了一下。"
+      ],
+      "extracted_rule": "悬疑剧需要保持高频的危机事件（如逼婚、纸人、棺材异动）来推动节奏。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陈烬（冷声）：不该问的别问"
+      ],
+      "extracted_rule": "悬疑剧台词应避免过于套路化的装酷表达，需增加真实感。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "林砚顺势瘫倒在地，用祈求的目光看向周老夫人。林砚（卑微）：要不然…我们用清水替代？"
+      ],
+      "extracted_rule": "绝境逃生中的智斗反杀是悬疑女频的重要爽点来源。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "悬疑题材如果扣子埋得不够深（需要思考），我看起来就一般 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "民国年间，女大学生林砚为寻找失踪半年的姐姐林玥，孤身来到诡异的无边村"
+      ],
+      "extracted_rule": "民国中式恐怖元素（冥婚、纸人）结合金手指探案，需在悬疑深度上做出差异化。"
+    }
+  },
+  "type_specific_notes": "女频中式恐怖悬疑（民国、冥婚、纸人）非常依赖氛围感和女主的智斗，金手指的设定需要兼顾解谜的逻辑性和影视化的视觉冲击力。",
+  "consensus_points": [
+    "剧情整体节奏紧凑，开局冲突表现不错，没有明显硬伤。"
+  ],
+  "disagreement_points": [
+    "小冉认为开局炸裂好看，但宇间认为悬疑扣子埋得不够深，显得一般。"
+  ],
+  "red_flags": [
+    "金手指“看见遗言”的视觉表现力较弱，可能沦为单纯的文字提示工具。",
+    "悬疑感可能流于表面，缺乏需要深度思考的扣子。"
+  ],
+  "green_flags": [
+    "开局冲突强烈，直接切入冥婚生死危机，抓人眼球。",
+    "女主智商在线，能灵活利用反派的封建迷信弱点自救。"
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "title": "霸道婆婆归来，独宠儿媳",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 77.5,
+  "score_range": [
+    75,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "切入点比较新 —— 小冉",
+        "婆婆护儿媳这个点也有点意思 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "反常规的婆媳关系（婆婆护儿媳）能为传统题材提供新鲜感。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "开局没有直给，只把事情讲完，没有拉动情绪 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局需要直给并迅速拉动情绪，不能仅平铺直叙交代背景。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "婆婆写丢了，完全工具人了 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "核心设定人物（如霸道婆婆）必须保持存在感和立体度，不能在剧情推进中沦为工具人。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这个其实写的很工整 —— 贾酒",
+        "爱看吵架 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "结构工整是基础，但女频家庭剧需要足够密集的冲突（如吵架）来维持节奏和看点。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "台词需要加强 —— 小冉",
+        "作者台词的煽动性和指向性都一般 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "短剧台词需要强烈的煽动性和明确的指向性，以有效调动观众情绪。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "我以为是个爽文 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "标题带有“霸道”、“独宠”等字眼时，必须在正文中兑现相应的爽点预期，不能写得过于平淡。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "切入点比较新 —— 小冉",
+        "婆婆护儿媳这个点也有点意思 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在传统婆媳赛道中反其道而行之，具有一定的差异化优势。"
+    }
+  },
+  "type_specific_notes": "在女频家庭/婆媳题材中，反向操作（婆婆宠儿媳）是一个很好的吸睛设定，但这种设定极度依赖台词的情绪煽动和密集的冲突（如婆媳联手对外吵架）来支撑爽感。如果核心人物沦为工具人且台词平淡，设定的优势将荡然无存。",
+  "consensus_points": [
+    "设定有新意，婆婆护儿媳的切入点不错。",
+    "台词功底偏弱，缺乏情绪煽动性和指向性。"
+  ],
+  "disagreement_points": [
+    "对于整体观感的侧重点不同：贾酒认为剧本‘写得很工整’，而Vicki则因为爽感不足表示‘我以为是个爽文’，千北则指出核心人物写丢了。"
+  ],
+  "red_flags": [
+    "开局平铺直叙，未能拉动情绪。",
+    "台词缺乏煽动性和指向性。",
+    "核心卖点人物（婆婆）沦为工具人。",
+    "未能兑现标题带来的爽文预期。"
+  ],
+  "green_flags": [
+    "切入点新颖，反常规婆媳设定有吸引力。",
+    "整体结构写得比较工整。"
+  ]
+}

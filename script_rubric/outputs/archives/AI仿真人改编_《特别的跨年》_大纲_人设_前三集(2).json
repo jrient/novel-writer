@@ -1,0 +1,88 @@
+{
+  "title": "AI仿真人改编_《特别的跨年》_大纲_人设_前三集(2)",
+  "status": "拒",
+  "genre": "改编 / 世情",
+  "mean_score": 66.7,
+  "score_range": [
+    65,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "不喜欢全员恶人，不看好 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "全员恶人的设定如果缺乏足够的行为逻辑或魅力，容易引起受众反感。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "像解说剧 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局切忌过度依赖旁白或说明性文字，应通过具体事件和冲突抓人。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "不喜欢全员恶人，不看好 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "极端人设（如全员恶人）需要深度的挖掘，否则容易沦为不讨喜的标签。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "剧情不太行 —— 小刚",
+        "像解说剧 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏实质性戏剧冲突，仅靠解说推进会导致节奏平淡、剧情干瘪。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "像解说剧 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧本写作应遵循“展现而非告知（Show, don't tell）”的原则，避免解说式文风。"
+    },
+    "payoff_satisfaction": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "剧情不太行 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧情基础薄弱无法构建起有效的期待与爽点兑现。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "不看好 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "整体质量未达标，缺乏在市场中立足的核心竞争力。"
+    }
+  },
+  "type_specific_notes": "作为世情剧，观众通常期待看到复杂但能共情的人际关系与社会百态。本作采用“全员恶人”设定且表现手法“像解说剧”，严重破坏了世情剧所需的真实感和代入感。",
+  "consensus_points": [
+    "剧本整体表现手法存在严重问题，缺乏戏剧展现力（像解说剧）。",
+    "剧情基础薄弱，整体不被看好。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "剧本呈现出“解说剧”的特质，缺乏视听语言和动作描写。",
+    "全员恶人设定处理不当，导致责编产生排斥情绪。",
+    "剧情整体被评价为“不太行”。"
+  ],
+  "green_flags": []
+}

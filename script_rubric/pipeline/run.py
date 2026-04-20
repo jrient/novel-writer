@@ -31,24 +31,35 @@ logger = logging.getLogger("run")
 async def cmd_full(args):
     logger.info("=== Full Run ===")
 
-    logger.info("Step 1: Parsing xlsx...")
-    records = parse_xlsx(XLSX_PATH)
-    logger.info(f"  Parsed {len(records)} valid records")
+    logger.info("Step 1: Parsing xlsx (with scored expansion)...")
+    all_records = parse_xlsx(XLSX_PATH, include_scored=True)
+    confirmed = [r for r in all_records if r.status_source == "confirmed"]
+    scored_only = [r for r in all_records if r.status_source == "score_inferred"]
+    logger.info(
+        f"  Parsed {len(all_records)} records "
+        f"(confirmed={len(confirmed)}, score_inferred={len(scored_only)})"
+    )
 
     logger.info("Step 2: Matching text files...")
-    match_result = match_texts(records, DRAMA_DIR)
+    match_result = match_texts(all_records, DRAMA_DIR)
     logger.info(f"  Matched {match_result.matched}/{match_result.total} texts")
     PARSED_DIR.mkdir(parents=True, exist_ok=True)
     (PARSED_DIR / "match_report.txt").write_text(match_result.to_report(), encoding="utf-8")
-    save_parsed(records, PARSED_DIR / "scripts.json")
+    save_parsed(all_records, PARSED_DIR / "scripts.json")
 
-    logger.info("Step 3: Splitting holdout set...")
-    train, test = split_holdout(records, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
-    logger.info(f"  Train: {len(train)}, Test: {len(test)}")
+    logger.info("Step 3: Splitting holdout set (confirmed only)...")
+    train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
+    train = train_confirmed + scored_only
+    logger.info(
+        f"  Train: {len(train)} (confirmed={len(train_confirmed)}, "
+        f"score_inferred={len(scored_only)}), Test: {len(test)}"
+    )
 
+    confirmed_train_titles = {r.title for r in train_confirmed}
     split_info = {
         "train_titles": [r.title for r in train],
         "test_titles": [r.title for r in test],
+        "score_inferred_titles": [r.title for r in scored_only],
     }
     (PARSED_DIR / "holdout_split.json").write_text(
         json.dumps(split_info, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -60,7 +71,7 @@ async def cmd_full(args):
 
     version = args.version or 1
     logger.info(f"Step 5: Pass 2 synthesis -> handbook v{version}...")
-    await synthesize_all(archives, version=version)
+    await synthesize_all(archives, version=version, confirmed_titles=confirmed_train_titles)
     logger.info("  Handbook and rubric generated")
 
     logger.info(f"Step 6: Backtesting on {len(test)} holdout scripts...")
@@ -86,9 +97,10 @@ async def cmd_full(args):
 async def cmd_incremental(args):
     logger.info("=== Incremental Run ===")
 
-    records = parse_xlsx(XLSX_PATH)
+    records = parse_xlsx(XLSX_PATH, include_scored=True)
+    confirmed = [r for r in records if r.status_source == "confirmed"]
     match_texts(records, DRAMA_DIR)
-    logger.info(f"Total records: {len(records)}")
+    logger.info(f"Total records: {len(records)} (confirmed={len(confirmed)})")
 
     existing_archives = load_all_archives()
     existing_titles = {a.title for a in existing_archives}
@@ -103,13 +115,14 @@ async def cmd_incremental(args):
     logger.info(f"Extracted {len(new_archives)} new archives")
 
     all_archives = existing_archives + new_archives
+    confirmed_titles = {r.title for r in confirmed}
     if args.version:
         version = args.version
     else:
         existing_handbooks = list(HANDBOOK_DIR.glob("handbook_v*.md")) if HANDBOOK_DIR.exists() else []
         version = len(existing_handbooks) + 1
     logger.info(f"Re-synthesizing handbook v{version} with {len(all_archives)} total archives...")
-    await synthesize_all(all_archives, version=version)
+    await synthesize_all(all_archives, version=version, confirmed_titles=confirmed_titles)
 
     logger.info("=== Incremental run complete ===")
 
@@ -133,21 +146,28 @@ async def cmd_pass2_only(args):
     version = args.version or 1
     logger.info(f"=== Pass 2 Only -> v{version} ===")
 
-    records = parse_xlsx(XLSX_PATH)
-    match_texts(records, DRAMA_DIR)
-    train, test = split_holdout(records, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
-    train_titles = {r.title for r in train}
-    logger.info(f"Holdout split: train={len(train)}, test={len(test)}")
+    all_records = parse_xlsx(XLSX_PATH, include_scored=True)
+    confirmed = [r for r in all_records if r.status_source == "confirmed"]
+    scored_only = [r for r in all_records if r.status_source == "score_inferred"]
+    match_texts(all_records, DRAMA_DIR)
+
+    train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
+    confirmed_train_titles = {r.title for r in train_confirmed}
+    all_train_titles = confirmed_train_titles | {r.title for r in scored_only}
+    logger.info(
+        f"Holdout split: train_confirmed={len(train_confirmed)}, "
+        f"score_inferred={len(scored_only)}, test={len(test)}"
+    )
 
     all_archives = load_all_archives()
-    archives = [a for a in all_archives if a.title in train_titles]
+    archives = [a for a in all_archives if a.title in all_train_titles]
     skipped = len(all_archives) - len(archives)
     logger.info(
         f"Loaded {len(all_archives)} archives, using {len(archives)} (training only); "
         f"skipped {skipped} (test or unknown)"
     )
 
-    await synthesize_all(archives, version=version)
+    await synthesize_all(archives, version=version, confirmed_titles=confirmed_train_titles)
     logger.info("Done")
 
 

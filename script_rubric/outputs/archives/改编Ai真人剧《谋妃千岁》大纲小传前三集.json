@@ -1,0 +1,110 @@
+{
+  "title": "改编Ai真人剧《谋妃千岁》大纲小传前三集",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 82.5,
+  "score_range": [
+    80,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "感觉还不错的权谋 —— 山南"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越成冷宫废后，靠着在冷宫种田一步步站稳脚跟，不爱宫斗爱种田盼着早日暴富"
+      ],
+      "extracted_rule": "冷宫种田+掉马属于女频经典常规设定，需靠人设互动打出差异。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "可以更刺激点 —— 小冉",
+        "这个第二集比第一集精彩啊 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "陆云萝一身白衣，腰上挂着玉佩，闭眼躺在土坑里，两个太监一人一铲子往上面填土"
+      ],
+      "extracted_rule": "诈尸开局能快速建立生死冲突，但若迅速转入平淡日常，会削弱整体刺激感。"
+    },
+    "character_depth": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "男女主人设鲜明是我喜欢的类型 —— 小冉",
+        "不降智... 阳光开朗金毛，配阴湿大猫，能磕 —— 山南"
+      ],
+      "evidence_from_text": [
+        "她最爱搞钱和事业，一心种田暴富",
+        "如果刚刚我没听错，你只是个妃子...我可以给你20个大逼兜"
+      ],
+      "extracted_rule": "拒绝内耗、武力值高且专注搞钱的女主，搭配反差萌男主，极易产生强烈的CP化学反应。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "这个第二集比第一集精彩啊 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "第二集白慕瑶找茬，女主直接反击：谁家的哈巴狗！敢动我的人，嫌命长了吗？"
+      ],
+      "extracted_rule": "冲突应尽早爆发，女频爽剧中“反派上门挑衅被光速打脸”是拉升节奏的有效手段。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "中上品质 —— 山南"
+      ],
+      "evidence_from_text": [
+        "我可以给你20个大逼兜，想试试吗？",
+        "夺少？一坛一千两？"
+      ],
+      "extracted_rule": "穿越剧中使用现代网络热词能增强喜剧效果和网感，但需注意整体语境的融合。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "好看，感觉还不错的权谋，不降智 —— 山南"
+      ],
+      "evidence_from_text": [
+        "银霜在一旁左右开弓扇巴掌，白慕瑶如释重负。",
+        "好家伙，我大概有十壶，那就是，一万两！发财了发财了！"
+      ],
+      "extracted_rule": "爽点需做到“当场报仇”与“利益实质性获得”（如暴富）双管齐下，绝不拖泥带水。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "阳光开朗金毛，配阴湿大猫，能磕 —— 山南"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越成冷宫废后，靠着在冷宫种田一步步站稳脚跟"
+      ],
+      "extracted_rule": "在同质化严重的冷宫种田赛道中，鲜明且具反差感的CP人设是最大的差异化竞争力。"
+    }
+  },
+  "type_specific_notes": "作为女频穿越种田剧，本作精准抓住了“搞钱事业批”和“反黑莲花打脸”两大核心爽点，辅以微喜剧的台词风格，非常契合下沉市场和年轻受众的解压需求。",
+  "consensus_points": [
+    "男女主人设鲜明立体，CP互动有张力，非常好磕。",
+    "整体品质中上，剧情不降智，具备较强的可看性。"
+  ],
+  "disagreement_points": [
+    "对于开局的刺激程度，小冉认为“可以更刺激点”，而Vicki也侧面印证第一集不如第二集精彩，但山南对整体权谋和剧情表示高度认可。"
+  ],
+  "red_flags": [
+    "第一集开局的生死危机解除过快，后续转入日常稍显平淡，缺乏持续的强悬念钩子。"
+  ],
+  "green_flags": [
+    "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+    "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+    "爽点兑现极快（第三集立刻实现暴富目标）。"
+  ]
+}

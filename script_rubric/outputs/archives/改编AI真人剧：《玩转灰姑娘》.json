@@ -1,0 +1,96 @@
+{
+  "title": "改编AI真人剧：《玩转灰姑娘》",
+  "status": "拒",
+  "genre": "改编 / 女频",
+  "mean_score": 64.2,
+  "score_range": [
+    62,
+    65
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "人口买卖这个主题可以么？ —— 小刚"
+      ],
+      "evidence_from_text": [
+        "核心主题：重生复仇 、 双强夺妻 、宅斗权谋、追妻火葬场"
+      ],
+      "extracted_rule": "题材设定套路化，且引入的敏感元素（人口买卖）存在过审风险"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "李容安OS：紫苏？（打量四周）我这是……重生了？"
+      ],
+      "extracted_rule": "开局采用常规的重生醒来模式，钩子中规中矩"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "女主重生的意义是啥捏，没有任何作用 —— 山南"
+      ],
+      "evidence_from_text": [
+        "李容安OS：不要怕他！你现在是镇国公府三小姐！"
+      ],
+      "extracted_rule": "女主缺乏主观能动性，重生的信息差优势未得到有效体现"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "突然，几道黑影疾速闪过，黑衣人悄无声息逼近，抬手就将三人悉数打昏"
+      ],
+      "extracted_rule": "事件密度尚可，但部分冲突的发生显得突兀和随机"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "李容安OS：牛不喝水强按头，堂堂沈府，竟然也会强买强卖！"
+      ],
+      "extracted_rule": "台词偏向直白现代，带有一定的小白感"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "所以人贩子纯随机抓人，这一世女主运气好没被抓呗 —— 山南"
+      ],
+      "evidence_from_text": [
+        "魏青持剑对着被制服的黑衣人。魏青：说，何人指使你们掳走县主？"
+      ],
+      "extracted_rule": "危机解除过度依赖运气和天降男主，削弱了女主复仇的爽感"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一般 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "类型：重生、古代言情、宫斗宅斗"
+      ],
+      "extracted_rule": "高度同质化的古言重生宅斗，缺乏核心差异化竞争力"
+    }
+  },
+  "type_specific_notes": "作为女频重生宅斗剧，本剧试图加入黑衣人掳人（人口买卖）等外部危机来推动男女主交集，但处理得过于生硬，导致女主的智斗人设被削弱。",
+  "consensus_points": [
+    "剧本中涉及的黑衣人掳人/人口买卖情节缺乏逻辑，且存在题材敏感风险",
+    "女主的重生设定未能有效赋能角色，行动依赖运气"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "人口买卖主题可能触碰审查红线",
+    "女主化解危机靠运气和男主救场，违背'清醒搞事业'的人设定位"
+  ],
+  "green_flags": [
+    "宅斗部分的冲突节奏较快，单集内有明确的对抗事件"
+  ]
+}

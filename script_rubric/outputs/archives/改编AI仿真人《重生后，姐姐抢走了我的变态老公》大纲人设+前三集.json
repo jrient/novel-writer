@@ -1,0 +1,85 @@
+{
+  "title": "改编AI仿真人《重生后，姐姐抢走了我的变态老公》大纲人设+前三集",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 70.8,
+  "score_range": [
+    68,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "老设定了 —— Vicki",
+        "既视感好强，总觉得在哪看过 —— 小刚",
+        "和上一本差不多 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "设定老套、同质化严重的题材极易让读者产生疲劳和既视感，难以脱颖而出。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "因为欠钱也不至于拉着同归于尽吧，搞个女主临死反扑一起噶了还好点 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "重生前的死亡事件作为核心钩子，其触发逻辑和人物动机必须经得起推敲。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "她姐像神经病，嫉妒妹妹找个机会弄死也行，因为欠钱也不至于拉着同归于尽吧 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "反派角色的行为动机必须符合常理，不能为了强行推动剧情而表现得像毫无逻辑的“神经病”。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "在老套的框架下，冲突的编排若无新意，整体节奏感也会大打折扣。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏具体评价，需通过正文进一步检验文笔与台词的成熟度。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "搞个女主临死反扑一起噶了还好点 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "即使是前世受屈的情节，女主也应展现出一定的反抗精神，过于被动会削弱整体爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "和上一本差不多，上一本好看点 —— 小冉",
+        "既视感好强，总觉得在哪看过 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏差异化的作品在与同类竞品对比时极易处于下风，甚至被视为劣质替代品。"
+    }
+  },
+  "type_specific_notes": "女频重生换嫁/抢老公题材目前市场高度饱和，如果仅仅是套用模板而没有在人物动机、反击方式上做出微创新，很难吸引阅片量大的受众。",
+  "consensus_points": [
+    "设定过于老套，缺乏创新，既视感强"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "设定同质化严重，缺乏核心竞争力",
+    "反派（姐姐）行为逻辑不通，动机牵强",
+    "女主前世死亡情节设计憋屈，缺乏反抗感"
+  ],
+  "green_flags": []
+}

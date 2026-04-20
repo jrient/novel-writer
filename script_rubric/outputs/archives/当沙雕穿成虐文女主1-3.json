@@ -1,0 +1,97 @@
+{
+  "title": "当沙雕穿成虐文女主1-3",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 77.0,
+  "score_range": [
+    73,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "梗还行，但是没有串联起来，剧情有些老 —— 贾酒",
+        "抽象，有意思 —— 小刚",
+        "挺癫的，但是用的几个梗有点烂 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "沙雕穿书设定自带趣味性，但极度依赖梗的新鲜度，老梗会严重削弱设定优势。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "看女主发癫有点尬 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "沙雕文开局需要自然的情绪代入，纯靠强行发癫容易引发观众的尴尬感。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "人设也不是很突出 —— 贾酒",
+        "陆那一家子也是反射弧巨长，像演员 —— 山南",
+        "我建议把系统具象化成一个中性风格的女人，和女主唱双簧，一捧一逗，组CP，看点往这个上面移 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "沙雕人设不能仅停留在表面发癫，配角也不能沦为反应迟钝的工具人，需要建立有趣的互动关系（如双簧CP）来丰满人物。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "梗还行，但是没有串联起来 —— 贾酒",
+        "舍弃原书的那些看似有趣实则没啥推进作用的情节 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "搞笑桥段必须服务于主线推进，不能为了玩梗而堆砌无意义的情节，牺牲剧情连贯性。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "看女主发癫有点尬 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "沙雕台词的尺度把握很关键，过火或生硬的玩梗容易产生出戏和尴尬感。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "不错！这个版本好红果啊 —— 小冉",
+        "抽象，有意思 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "沙雕文的爽感来源于反差和解构，部分受众能从中获得乐趣，但受众接受度差异较大。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "不错！这个版本好红果啊 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "符合特定平台（如红果）的下沉调性是优势，但需在同类沙雕文中打出差异化机制。"
+    }
+  },
+  "type_specific_notes": "女频沙雕穿书文极度依赖“梗”的质量和密度的编排，若只有碎片化的搞笑而无主线串联，容易显得尴尬且缺乏推进力。建议引入系统拟人化等互动机制增强看点。",
+  "consensus_points": [
+    "剧情中使用的梗比较老旧或烂，且缺乏有效的串联。"
+  ],
+  "disagreement_points": [
+    "对“发癫/抽象”风格的接受度存在明显分歧：小刚认为“抽象，有意思”，小冉觉得“不错”，而山南认为“看女主发癫有点尬”。"
+  ],
+  "red_flags": [
+    "剧情老套，梗没有串联起来",
+    "配角（陆家）反应迟钝，像工具人演员",
+    "存在看似有趣实则对剧情无推进作用的无效情节"
+  ],
+  "green_flags": [
+    "风格契合特定平台（红果）调性",
+    "抽象风格对部分受众有吸引力"
+  ]
+}

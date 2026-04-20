@@ -1,0 +1,84 @@
+{
+  "title": "赛车1-3",
+  "status": "签",
+  "genre": "原创 / 男频",
+  "mean_score": 80.0,
+  "score_range": [
+    75,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "瘸腿的人怎么开车，赛车都是手动档，两只脚都要踩的，可以把这个设定删了吗 —— 山南",
+        "剪刹车线也太low —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "设定需符合基本物理常识与职业逻辑，反派作恶手段应避免古早低级套路。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集，改成男主雨夜出租车追男反豪车，逼停，强要参赛机会 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局需要强烈的视觉张力与动作冲突（如雨夜飙车逼停）来迅速抓住受众眼球。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "瘸腿的人怎么开车……可以把这个设定删了吗 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "主角的生理设定不能与核心主线（赛车）产生无法弥合的逻辑冲突。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集，改成男主雨夜出租车追男反豪车，逼停，强要参赛机会 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突设计应更加直接激烈，开篇即切入核心矛盾。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "暂无明显反馈，推测处于及格水平。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "剪刹车线也太low —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "反派的打压手段需有一定格调，过于老套的危机设计会削弱主角化解危机时的爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "暂无明显反馈。"
+    }
+  },
+  "type_specific_notes": "男频赛车题材对专业常识（如手动挡双脚操作）有硬性逻辑要求；同时，动作场面（如飙车、逼停）是核心看点，需在开篇重点展示。",
+  "consensus_points": [
+    "剧本存在明显的设定瑕疵和开局张力不足，需要进行针对性修改（如修改主角生理设定、优化开局事件）。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "主角“瘸腿”设定与赛车题材存在严重逻辑冲突。",
+    "反派“剪刹车线”的桥段过于老套低级。"
+  ],
+  "green_flags": [
+    "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。"
+  ]
+}

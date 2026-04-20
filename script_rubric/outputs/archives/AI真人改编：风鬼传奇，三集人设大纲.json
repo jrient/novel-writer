@@ -1,0 +1,87 @@
+{
+  "title": "AI真人改编：风鬼传奇，三集人设大纲",
+  "status": "改",
+  "genre": "改编 / 男频",
+  "mean_score": 76.0,
+  "score_range": [
+    70,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "这个蛮适合做一个黑暗武侠的，法宝可以不酷炫以适用为主，做成影之刃那种朋克武侠的感觉 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "黑暗武侠结合朋克元素的差异化设定具有较高的视觉和风格新鲜度。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "虽无具体开局评价，但整体分数处于中游，暗示开局具备一定吸引力但未达惊艳。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "亦正亦邪的男主，有意思，可以整部剧都是这个设定 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "打破传统伟光正形象，塑造亦正亦邪的复杂人设是提升男频剧质感的关键。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "看他的权谋和悬疑写的咋样，上限可以蛮高的 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "权谋与悬疑的交织决定了节奏的上限，目前处于观望状态。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "相比较来说，上本好看 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔表现可能较作者前作有所下滑，或未能完全发挥出应有水平。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "男频改编需关注法宝运用与权谋反转带来的爽感兑现。"
+    },
+    "benchmark_differentiation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "做成影之刃那种朋克武侠的感觉 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "通过“黑暗武侠”和“朋克”标签，在传统男频武侠赛道中形成了明显的风格差异。"
+    }
+  },
+  "type_specific_notes": "男频改编作品，重点在于如何将“黑暗武侠”的视觉风格与“权谋悬疑”的内在逻辑统一，避免流于表面。法宝的设定需去华丽化，强调实用性以符合整体调性。",
+  "consensus_points": [
+    "该剧本具有较高的风格化潜力（黑暗武侠/朋克感）",
+    "男主的人设（亦正亦邪）是核心亮点"
+  ],
+  "disagreement_points": [
+    "小冉认为质量不如作者前作，而山南和宇间对其风格和上限持更积极的期待。"
+  ],
+  "red_flags": [
+    "作者状态波动（小冉反馈不如上本）",
+    "权谋与悬疑的落地能力尚待验证"
+  ],
+  "green_flags": [
+    "差异化的视觉风格定位（影之刃风格）",
+    "人设符合当代审美（非传统英雄）"
+  ]
+}

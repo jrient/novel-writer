@@ -23,7 +23,10 @@ def _build_user_prompt(record: ScriptRecord) -> str:
     parts.append("## 元数据")
     parts.append(f"标题: {record.title}")
     parts.append(f"类型: {record.source_type} / {record.genre}")
-    parts.append(f"状态: {record.status}")
+    if record.status_source == "score_inferred":
+        parts.append(f"状态: 未确认（评分推断：{record.status}）")
+    else:
+        parts.append(f"状态: {record.status}")
     parts.append(f"提交人: {record.submitter}")
     parts.append(f"均分: {record.mean_score}")
     parts.append(f"分数区间: {record.score_range}")
@@ -66,7 +69,7 @@ def _validate_archive(archive: ScriptArchive, record: ScriptRecord) -> list[str]
             dim = archive.dimensions[key]
             if not dim.evidence_from_reviews and record.reviews:
                 issues.append(f"No review evidence for {key}")
-    if archive.status != record.status:
+    if record.status_source == "confirmed" and archive.status != record.status:
         issues.append(f"Status mismatch: archive={archive.status}, record={record.status}")
     return issues
 

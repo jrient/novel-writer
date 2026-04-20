@@ -1,0 +1,109 @@
+{
+  "title": "ai仿真人 我走后，他们的橙子喂了猪1-10",
+  "status": "改",
+  "genre": "原创 / 世情",
+  "mean_score": 75.8,
+  "score_range": [
+    75,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "比较常规，没啥亮点，也没啥缺点 —— 宇间",
+        "比较经典的世情题材，不会翻车，但也很难出彩 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "前世，许乐乐因深信闺蜜林了了是为救自己而重伤昏迷...意外重生，许乐乐回到了林了了狮子大开口、要她支付200万婚庆费用的当天。"
+      ],
+      "extracted_rule": "经典重生复仇世情题材，设定稳妥但缺乏新意和差异化亮点。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "前三不错 —— 小冉",
+        "前三集那几番真不错 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "许乐乐OS：我重生了，重生到林了了让我为她支付200w婚庆费用的那一天。",
+        "许乐乐：对不起啊，了了。这钱，我不能替你付。"
+      ],
+      "extracted_rule": "开局直接切入重生打脸的高潮事件，前三集冲突集中、反击爽快，能有效抓住读者。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "不是很喜欢这个男主性格，而且反派有点无脑 —— 山南",
+        "得再加一个可看的点，比如男主的性格碎碎念啊 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "林了了（气急败坏）：你！",
+        "林了了气急跳脚，将手伸向许乐乐，作势要扇她。"
+      ],
+      "extracted_rule": "反派降智且脸谱化，男主性格缺乏讨喜的记忆点，整体人设偏单薄。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "前三不错，后面报应来的有点快 —— 小冉",
+        "前三集那几番真不错，后面一般了 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "许乐乐：倒下的位置，和石头飞来的方向，角度根本对不上。林了了是看准了石头轨迹，自己撞上去的。"
+      ],
+      "extracted_rule": "前期节奏紧凑冲突好看，但中后期节奏失衡，反派报应过快导致后续乏力。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "林了了（得意）：土包子，今天也算姐姐带你见世面了！",
+        "林了了：许乐乐，你忘恩负义——！"
+      ],
+      "extracted_rule": "台词符合短剧夸张直白的风格，但略显套路和小白，缺乏深度。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "后面报应来的有点快 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "靳宸：这只鳄鱼皮，记我账上，送到许小姐府上。至于林小姐看上的包……就不必了，我送不出手。"
+      ],
+      "extracted_rule": "打脸爽点给得直接迅速，但反派溃败过快可能削弱长线的爽感期待。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "比较常规，没啥亮点，也没啥缺点 —— 宇间",
+        "比较经典的世情题材，不会翻车，但也很难出彩 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "属于高度同质化的重生复仇手撕闺蜜赛道，缺乏独特的市场定位和差异化元素。"
+    }
+  },
+  "type_specific_notes": "世情复仇题材极度依赖反派的段位和拉扯感，反派降智和过快下线会严重缩短剧集的生命力，需要引入更大的阴谋或利益集团来维持中后期的张力。",
+  "consensus_points": [
+    "前三集开局节奏和冲突做得不错",
+    "整体题材设定过于常规，缺乏出彩的创新点",
+    "中后期剧情略显平淡，反派报应过快"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "反派降智无脑",
+    "男主性格不讨喜",
+    "后续剧情乏力，报应过快"
+  ],
+  "green_flags": [
+    "前三集钩子和打脸节奏好",
+    "题材经典稳妥，下限有保证"
+  ]
+}

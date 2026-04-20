@@ -5,36 +5,65 @@ from pathlib import Path
 
 import openpyxl
 
-from script_rubric.config import XLSX_COLUMNS, REVIEWERS
+from script_rubric.config import (
+    XLSX_COLUMNS, REVIEWERS, MIN_SCORES_FOR_INCLUSION, SCORE_TIER_THRESHOLDS,
+)
 from script_rubric.models import Review, ScriptRecord
 
 
-def parse_xlsx(path: Path) -> list[ScriptRecord]:
+def _infer_status_from_scores(reviews: list[Review]) -> str | None:
+    """根据评分均值推断状态分层。返回 None 表示评分不足。"""
+    scores = [r.score for r in reviews if r.score is not None]
+    if len(scores) < MIN_SCORES_FOR_INCLUSION:
+        return None
+    mean = sum(scores) / len(scores)
+    if mean >= SCORE_TIER_THRESHOLDS["签"]:
+        return "签"
+    elif mean >= SCORE_TIER_THRESHOLDS["改"]:
+        return "改"
+    else:
+        return "拒"
+
+
+def parse_xlsx(path: Path, include_scored: bool = False) -> list[ScriptRecord]:
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb.worksheets[0]
 
     records: list[ScriptRecord] = []
     for row in ws.iter_rows(min_row=2, values_only=True):
-        status = _clean_str(row[XLSX_COLUMNS["status"]])
-        if not status or status not in ("签", "改", "拒"):
-            continue
-
-        reviews = _extract_reviews(row)
-        if not any(r.score is not None for r in reviews):
-            continue
-
         title = _clean_str(row[XLSX_COLUMNS["title"]]) or ""
         if not title.strip():
             continue
 
-        records.append(ScriptRecord(
-            title=title.strip(),
-            source_type=_clean_str(row[XLSX_COLUMNS["source_type"]]) or "",
-            genre=_clean_str(row[XLSX_COLUMNS["genre"]]) or "",
-            submitter=_clean_str(row[XLSX_COLUMNS["submitter"]]) or "",
-            status=status,
-            reviews=[r for r in reviews if r.score is not None or r.comment],
-        ))
+        status = _clean_str(row[XLSX_COLUMNS["status"]])
+        reviews = _extract_reviews(row)
+        active_reviews = [r for r in reviews if r.score is not None or r.comment]
+
+        if status and status in ("签", "改", "拒"):
+            if not any(r.score is not None for r in reviews):
+                continue
+            records.append(ScriptRecord(
+                title=title.strip(),
+                source_type=_clean_str(row[XLSX_COLUMNS["source_type"]]) or "",
+                genre=_clean_str(row[XLSX_COLUMNS["genre"]]) or "",
+                submitter=_clean_str(row[XLSX_COLUMNS["submitter"]]) or "",
+                status=status,
+                status_source="confirmed",
+                reviews=active_reviews,
+            ))
+        elif include_scored:
+            inferred = _infer_status_from_scores(reviews)
+            if inferred is None:
+                continue
+            records.append(ScriptRecord(
+                title=title.strip(),
+                source_type=_clean_str(row[XLSX_COLUMNS["source_type"]]) or "",
+                genre=_clean_str(row[XLSX_COLUMNS["genre"]]) or "",
+                submitter=_clean_str(row[XLSX_COLUMNS["submitter"]]) or "",
+                status=inferred,
+                status_source="score_inferred",
+                reviews=active_reviews,
+            ))
 
     return records
 

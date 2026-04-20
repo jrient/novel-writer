@@ -1,0 +1,94 @@
+{
+  "title": "恶邻",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 73.2,
+  "score_range": [
+    65,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "缝合得不好，逻辑、人物的动机都很牵强，不如只抓一个元素，猛冲 —— 贾酒",
+        "女主精神病复仇者一点我不大感冒 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "多元素融合需主次分明，避免设定堆砌导致四不像。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "只是避开电动车就要送房子嘛？ —— 小冉",
+        "而且这个开头确实有点儿牵强 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局的核心事件必须符合基本常理，不能为了强行制造冲突而牺牲逻辑。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "人物的动机都很牵强 —— 贾酒",
+        "我更愿意女主就是个正常人失踪然后摸爬滚打回来复仇，甚至我 可以接受这一切就是女主做的 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "主角动机必须扎实，特殊人设（如精神病）若无助于核心爽点反而会削弱角色的主动性与代入感。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "如果能做到故事翻转确实挺有推理悬疑的感觉的 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "悬疑翻转的潜力需要建立在严谨的逻辑链条之上。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "暂无明显优缺点提及，表现平庸。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "你没得精神病的设定正常人龙王归来复仇就挺好的 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "复仇爽剧需要主角具备清晰的心智和主动性，以最大化复仇的爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "作为悬疑剧不够严谨，作为世情又太过复杂，作为女频又没有感情线 —— 山南",
+        "不如只抓一个元素，猛冲 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "跨类型作品必须有清晰的市场定位，不能在每个赛道都存在明显短板。"
+    }
+  },
+  "type_specific_notes": "作为女频剧本，缺乏感情线且悬疑逻辑不严谨，导致受众定位非常尴尬，难以满足特定圈层观众的期待。",
+  "consensus_points": [
+    "故事整体逻辑和人物动机非常牵强",
+    "开头设定（避开电动车送房子）不合理",
+    "元素缝合不佳，类型定位模糊（悬疑不严谨，女频无感情线）"
+  ],
+  "disagreement_points": [
+    "对故事底子的看法存在分歧：小冉和宇间认为故事梗概有翻转潜力，而贾酒和Vicki则认为缝合不好或完全不感冒。"
+  ],
+  "red_flags": [
+    "开局送房子的设定严重违背常理",
+    "人物动机立不住，精神病设定赶客",
+    "四不像定位：悬疑不严谨、世情太复杂、女频无感情线"
+  ],
+  "green_flags": [
+    "故事梗概具备一定的推理悬疑感和翻转潜力"
+  ]
+}

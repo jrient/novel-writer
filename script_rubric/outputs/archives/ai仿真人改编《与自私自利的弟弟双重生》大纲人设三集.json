@@ -1,0 +1,84 @@
+{
+  "title": "ai仿真人改编《与自私自利的弟弟双重生》大纲人设三集",
+  "status": "改",
+  "genre": "改编 / 世情",
+  "mean_score": 77.0,
+  "score_range": [
+    75,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这个可以常见套路了，解说剧看过很多 —— 小冉",
+        "既视感好强，总觉得在哪看过 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "双重生设定市场饱和度高，极易产生既视感，需引入新元素破局。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "开局需快速且清晰地交代重生机制，避免读者产生逻辑困惑。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "双重生设定下，双方的信息差和动机是塑造人物立体度的关键。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这个还可以，但是看大纲有点绕， —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "双重生时间线和逻辑需清晰直白，避免大纲叙述过于复杂绕晕读者。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "基础表达需清晰，支撑复杂设定的落地。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "有一个疑问，弟弟怎么穿越的，如果弟弟在男主后面穿越，咋能不知道后来发生了什么，弟弟如果在男主之前穿越，弟弟也没死怎么穿的…… —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "重生文的爽点依赖于清晰的逻辑闭环，逻辑漏洞会严重削弱爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这个可以常见套路了，解说剧看过很多 —— 小冉",
+        "既视感好强，总觉得在哪看过 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在成熟赛道中缺乏差异化元素，容易与已有作品高度重复。"
+    }
+  },
+  "type_specific_notes": "双重生世情剧对逻辑严密性要求较高，尤其是双方重生的时间节点、触发条件和信息差机制，这是推动剧情和制造冲突的核心基石。",
+  "consensus_points": [
+    "题材套路化严重，既视感强，缺乏新意。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "双重生逻辑存在明显漏洞（弟弟穿越机制不明）",
+    "大纲叙述绕，不够清晰直白",
+    "套路陈旧，既视感过强"
+  ],
+  "green_flags": [
+    "核心设定具备一定的基础趣味性"
+  ]
+}

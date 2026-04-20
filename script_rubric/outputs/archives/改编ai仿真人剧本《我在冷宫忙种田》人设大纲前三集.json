@@ -1,0 +1,98 @@
+{
+  "title": "改编ai仿真人剧本《我在冷宫忙种田》人设大纲前三集",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 71.8,
+  "score_range": [
+    70,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "就是……感觉……即使感很强 —— 山南"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越成冷宫废后，靠着在冷宫种田一步步站稳脚跟...意外与陛下寂无绝相遇，为调查身份，寂无绝假扮侍卫与其共处"
+      ],
+      "extracted_rule": "设定高度套路化，冷宫种田+皇帝微服掉马属于女频常见老梗，缺乏新意。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "开头这丫鬟还挺淡定的 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "两太监对着银霜嘲讽时，背后陆云萝直挺挺的站起，风吹起衣摆影子，投射在太监面前的地上，银霜表情震惊。"
+      ],
+      "extracted_rule": "穿越诈尸开局能快速交代背景并制造惊吓点，但桥段老旧且配角反应略显失真。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "外表盛世白莲花，实则心机深沉，自私自利，仗着背靠太后，屡次将陆云萝置于死地"
+      ],
+      "extracted_rule": "角色脸谱化严重，反派设定为标准的“盛世白莲花”，行为逻辑单一，缺乏立体感。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝：银霜，上，20个，一个都不能少！"
+      ],
+      "extracted_rule": "冲突触发快，前三集迅速涵盖了生死危机、男女主初遇、反派挑衅与打脸，节奏较为紧凑。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我可以给你20个大逼兜，想试试吗？",
+        "夺少？一坛一千两？"
+      ],
+      "extracted_rule": "古装背景下滥用现代网络热梗，导致严重的语境割裂和出戏感。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "银霜在一旁左右开弓扇巴掌，白慕瑶如释重负。"
+      ],
+      "extracted_rule": "具备基础的打脸爽感，但反派吃瘪过程过于轻易（如嬷嬷代为受过），缺乏势均力敌的博弈感。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "就是……感觉……即使感很强 —— 山南"
+      ],
+      "evidence_from_text": [
+        "类型：种田，大女主，家国大义。"
+      ],
+      "extracted_rule": "市场定位明确但同质化严重，缺乏与同类冷宫种田文的差异化壁垒。"
+    }
+  },
+  "type_specific_notes": "作为女频种田爽文，剧本试图通过引入现代网络流行语（如“大逼兜”、“夺少”）来增加喜剧色彩和网感，但在古装宫廷背景下显得水土不服。反派的降智行为（如妃子直接带人冲冷宫被轻易反杀）削弱了宫斗的合理性。",
+  "consensus_points": [
+    "剧本整体套路化严重，既视感强，缺乏让人眼前一亮的创新点。"
+  ],
+  "disagreement_points": [
+    "小冉认为该版本“比上一版本好”，认可其修改态度或局部优化，但其他责编依然认为内容老套，整体评分偏低。"
+  ],
+  "red_flags": [
+    "题材与设定高度同质化，缺乏核心竞争力。",
+    "台词过于现代网络化，破坏古装剧本的基本语境。",
+    "反派行为逻辑降智，为了制造打脸爽点而牺牲了合理性。"
+  ],
+  "green_flags": [
+    "节奏较快，前三集迅速铺开了穿越、遇男主、打脸反派、搞钱等多个网文经典桥段，不拖沓。",
+    "作者具备一定的修改配合度，版本有迭代进步。"
+  ]
+}

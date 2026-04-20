@@ -1,0 +1,95 @@
+{
+  "title": "欲望恶魔岛-IP改编",
+  "status": "改",
+  "genre": "改编 / 男频",
+  "mean_score": 78.8,
+  "score_range": [
+    75,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "耳目一新的设定，孤岛求生，给到一个夯 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "孤岛求生题材若具备独特设定，能在初期迅速吸引眼球。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "卡点做得不好 —— 小冉",
+        "给到一个夯 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "好的开局设定必须配合精准的情绪卡点，否则无法留存观众。"
+    },
+    "character_depth": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "人物有记忆点 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在求生群像中，赋予角色鲜明的记忆点是立住人物的关键。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "卡点做得不好 —— 小冉",
+        "后续剧情我看小说可能需要大改或者革新，不然有些平淡 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "长线剧情不能仅靠初期设定支撑，必须有持续升级的冲突避免中后期平淡。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "文笔一般 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔平庸会削弱设定的表现力。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "鲨鱼搏斗和野蛮人搏斗……反而就很没看点，我更愿意看贝爷那种【吃虫子】【喝尿】学点儿真正的求生技能，什么生火啊搭帐篷找水源什么 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "求生题材的爽点在于硬核真实的生存技能展示，而非夸张悬浮的战斗。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "耳目一新的设定，孤岛求生 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在男频赛道中，孤岛求生具备一定的差异化优势。"
+    }
+  },
+  "type_specific_notes": "男频孤岛求生题材的受众更倾向于硬核、真实的求生技能展示（如贝爷式求生），而非夸张的怪兽/野蛮人搏斗；同时，此类题材的落地制作难度（特效/场景）是必须前置考虑的风险因素。",
+  "consensus_points": [
+    "剧本节奏和卡点存在问题，后续剧情偏平淡，需要较大程度的改编。"
+  ],
+  "disagreement_points": [
+    "对于看点的期待存在差异：山南认可大设定的冲击力，而宇间认为具体的夸张搏斗情节缺乏看点，更倾向于写实求生。"
+  ],
+  "red_flags": [
+    "文笔一般",
+    "卡点做得不好",
+    "后续剧情平淡",
+    "夸张搏斗缺乏真实求生看点",
+    "制作难度会很大"
+  ],
+  "green_flags": [
+    "设定耳目一新",
+    "人物有记忆点"
+  ]
+}

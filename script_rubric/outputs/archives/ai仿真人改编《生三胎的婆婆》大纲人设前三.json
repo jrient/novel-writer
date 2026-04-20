@@ -1,0 +1,85 @@
+{
+  "title": "ai仿真人改编《生三胎的婆婆》大纲人设前三",
+  "status": "改",
+  "genre": "改编 / 世情",
+  "mean_score": 70.0,
+  "score_range": [
+    70,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "如果婆婆生三胎不在最前面就是个很普通的世情 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "世情剧依赖核心奇观设定（如高龄产子）来打破常规婆媳剧的套路感。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "看了半天没看到婆婆怀孕，在后面的话不看好 —— 山南",
+        "如果婆婆生三胎不在最前面就是个很普通的世情 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "核心卖点（High Concept）必须在前三集甚至第一集前置，否则无法留住观众。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "婆媳关系……危 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "世情剧的人设往往围绕极端的婆媳矛盾展开，存在同质化风险。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "看了半天没看到婆婆怀孕 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "节奏推进过慢，导致核心冲突点迟迟未爆发。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "基于均分推断，文笔处于及格线水平，无明显硬伤但缺乏亮点。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点兑现依赖于核心设定的展开，目前因节奏问题导致爽感延迟。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "如果婆婆生三胎不在最前面就是个很普通的世情 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在传统婆媳赛道中，需通过极端社会议题（如高龄生育）实现差异化。"
+    }
+  },
+  "type_specific_notes": "世情改编剧极其依赖“奇观化”的家庭矛盾，本作的卖点在于“婆婆生三胎”带来的伦理冲击和生活重组。",
+  "consensus_points": [
+    "核心卖点（婆婆怀孕/生三胎）出现太晚，导致开局吸引力不足。",
+    "如果剥离核心设定，剧本呈现出平庸的世情剧倾向。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "节奏拖沓，前三集未能进入核心主题。",
+    "婆媳关系设定可能过于常规，缺乏新鲜感。"
+  ],
+  "green_flags": [
+    "标题具有较强的社会话题性和点击欲望（婆婆生三胎）。"
+  ]
+}

@@ -119,7 +119,7 @@ class TestHandbookIntegration:
 
         monkeypatch.setattr(p2, "HANDBOOK_DIR", tmp_path)
 
-        async def fake_universal(archives):
+        async def fake_universal(archives, confirmed_titles=None):
             return "通用规律占位"
 
         async def fake_overlay(archives, genre):
@@ -161,11 +161,11 @@ class TestCmdPass2Filter:
 
         captured = {}
 
-        async def fake_synth(passed_archives, version):
+        async def fake_synth(passed_archives, version, confirmed_titles=None):
             captured["titles"] = [a.title for a in passed_archives]
             return "handbook", {}
 
-        monkeypatch.setattr(run, "parse_xlsx", lambda _: records)
+        monkeypatch.setattr(run, "parse_xlsx", lambda *a, **kw: records)
         monkeypatch.setattr(run, "match_texts", lambda *a, **kw: None)
         monkeypatch.setattr(run, "load_all_archives", lambda: archives)
         monkeypatch.setattr(run, "synthesize_all", fake_synth)

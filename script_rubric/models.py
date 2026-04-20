@@ -17,6 +17,7 @@ class ScriptRecord(BaseModel):
     genre: str
     submitter: str
     status: str
+    status_source: str = "confirmed"  # "confirmed" | "score_inferred"
     reviews: list[Review] = []
     text_content: str | None = None
     text_file: str | None = None

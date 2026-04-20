@@ -1,0 +1,113 @@
+{
+  "title": "重生之小三疯了我笑了（正文：我在冷宫忙种田）",
+  "status": "改",
+  "genre": "女频/种田/大女主/穿越",
+  "mean_score": 75.3,
+  "score_range": [
+    73,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "剧情虽然老套，但是很清晰 —— 小刚",
+        "可以再来点微创新 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越成冷宫废后，靠着在冷宫种田一步步站稳脚跟",
+        "利用现代技术解决饥荒、建材手工、出口外贸"
+      ],
+      "extracted_rule": "种田流在女频虽是成熟套路，但需通过具体的“技术差”或“降维打击”来实现微创新。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "停炸裂的开头，我觉得不错 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "陆云萝一身白衣，腰上挂着玉佩，闭眼躺在土坑里，两个太监一人一铲子往上面填土"
+      ],
+      "extracted_rule": "“死而复生”的视觉冲击力配合“活埋”的极端困境能快速抓取观众注意力。"
+    },
+    "character_depth": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "必须想看后面女主怎么复仇的 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "性格头脑灵活，清醒务实，穿越而来她最爱搞钱和事业",
+        "陆云萝一脚踹倒嬷嬷：谁家的哈巴狗！敢动我的人，嫌命长了吗？"
+      ],
+      "extracted_rule": "大女主需具备极强的行动力和反击意识，拒绝圣母心是当代女频的核心审美。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "主题明确 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "第一集：死里逃生+偶遇男主；第二集：正面硬刚反派妃子；第三集：利用信息差搞钱，男主设局寻人"
+      ],
+      "extracted_rule": "节奏需保持“一集一小爽，三集一大钩”，通过身份错位（掉马期待感）维持张力。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陛下那方面真的不行",
+        "我可以给你20个大逼兜，想试试吗？",
+        "老娘又是太监小路子啦"
+      ],
+      "extracted_rule": "台词风格偏向现代化、网感化，虽符合短剧受众，但部分表达（如“大逼兜”）略显小白。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "复仇可以再狠一点 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "陆云萝一脚踹倒嬷嬷",
+        "银霜巴掌即将挥下",
+        "一壶一千两……发财了发财了！"
+      ],
+      "extracted_rule": "爽点兑现不仅在于武力反击，更在于经济地位的迅速翻盘和对权力的无视。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "剧情虽然老套 —— 小刚"
+      ],
+      "evidence_from_text": [
+        "冷宫种田、穿越废后、皇帝假扮侍卫"
+      ],
+      "extracted_rule": "在高度同质化的冷宫赛道中，需强化“种田技术”的具体细节以区别于纯宫斗剧。"
+    }
+  },
+  "type_specific_notes": "作为AI真人剧改编，视觉呈现上需注意“冷宫种田”的画面美感与“现代技术”在古代环境下的反差感。女频短剧受众对“搞钱”和“虐渣”的诉求极高，本剧抓住了核心点。",
+  "consensus_points": [
+    "开篇冲突感强，抓人眼球",
+    "主题清晰，属于成熟的爽剧套路",
+    "女主性格讨喜，符合大女主审美"
+  ],
+  "disagreement_points": [
+    "对于“复仇”的力度，责编宇间认为可以更狠，而其他责编侧重于整体节奏和创新的平衡"
+  ],
+  "red_flags": [
+    "剧本标题与正文内容（冷宫种田）存在偏差，需统一",
+    "部分台词过于现代化，可能导致部分观众出戏",
+    "反派降智明显，嬷嬷和妃子的挑衅套路较为陈旧"
+  ],
+  "green_flags": [
+    "开场“活埋”戏份极具短剧爆点潜力",
+    "身份错位（皇帝被误认为侍卫/太监）的钩子埋得较好",
+    "种田+搞钱的动力线明确，受众基数大"
+  ]
+}

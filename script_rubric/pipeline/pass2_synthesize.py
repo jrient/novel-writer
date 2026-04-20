@@ -15,7 +15,10 @@ from script_rubric.pipeline.llm_client import get_client, call_llm
 logger = logging.getLogger(__name__)
 
 
-def _summarize_archive(archive: ScriptArchive) -> str:
+def _summarize_archive(
+    archive: ScriptArchive,
+    confirmed_titles: set[str] | None = None,
+) -> str:
     dim_scores = ", ".join(
         f"{DIMENSION_NAMES_ZH.get(k, k)}{archive.dimensions[k].score}"
         for k in DIMENSION_KEYS
@@ -23,8 +26,10 @@ def _summarize_archive(archive: ScriptArchive) -> str:
     )
     consensus = "; ".join(archive.consensus_points[:3]) if archive.consensus_points else "无"
     disagreement = "; ".join(archive.disagreement_points[:2]) if archive.disagreement_points else "无"
+    is_inferred = confirmed_titles is not None and archive.title not in confirmed_titles
+    status_label = f"{archive.status}（评分推断）" if is_inferred else archive.status
     return (
-        f"### {archive.title} | {archive.genre} | {archive.status} | 均分 {archive.mean_score}\n"
+        f"### {archive.title} | {archive.genre} | {status_label} | 均分 {archive.mean_score}\n"
         f"维度分: {dim_scores}\n"
         f"共识: {consensus}\n"
         f"分歧: {disagreement}\n"
@@ -35,10 +40,18 @@ def _full_archive_text(archive: ScriptArchive) -> str:
     return json.dumps(archive.model_dump(), ensure_ascii=False, indent=1)
 
 
-async def synthesize_universal(archives: list[ScriptArchive]) -> str:
+async def synthesize_universal(
+    archives: list[ScriptArchive],
+    confirmed_titles: set[str] | None = None,
+) -> str:
     system_prompt = (PROMPT_DIR / "pass2_universal.md").read_text(encoding="utf-8")
-    summaries = "\n".join(_summarize_archive(a) for a in archives)
-    user_prompt = f"## 档案摘要（{len(archives)} 部）\n\n{summaries}"
+    summaries = "\n".join(
+        _summarize_archive(a, confirmed_titles) for a in archives
+    )
+    confirmed_count = len([a for a in archives if confirmed_titles is None or a.title in confirmed_titles])
+    inferred_count = len(archives) - confirmed_count
+    header = f"## 档案摘要（共 {len(archives)} 部，确认状态 {confirmed_count} 部，评分推断 {inferred_count} 部）"
+    user_prompt = f"{header}\n\n> 注意：标记为\"评分推断\"的剧本状态未经编辑确认，仅基于评分区间推断，分析时权重应低于确认状态的剧本。\n\n{summaries}"
 
     client = get_client()
     return await call_llm(client, system_prompt, user_prompt, max_retries=2)
@@ -184,11 +197,15 @@ def _build_data_overview(archives: list[ScriptArchive]) -> str:
     return "\n".join(lines)
 
 
-async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tuple[str, dict]:
+async def synthesize_all(
+    archives: list[ScriptArchive],
+    version: int = 1,
+    confirmed_titles: set[str] | None = None,
+) -> tuple[str, dict]:
     logger.info(f"Pass 2: synthesizing handbook v{version} from {len(archives)} archives")
 
     logger.info("Batch A: universal rules")
-    universal = await synthesize_universal(archives)
+    universal = await synthesize_universal(archives, confirmed_titles=confirmed_titles)
 
     by_genre: dict[str, list[ScriptArchive]] = defaultdict(list)
     for a in archives:
@@ -204,9 +221,14 @@ async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tup
             logger.warning(f"Skipping overlay for {genre}: only {len(group)} scripts")
             overlays[genre] = f"*{genre}类型仅有 {len(group)} 部样本，数据不足，暂不生成专项规律。*"
 
-    rejected = [a for a in archives if a.status == "拒"]
-    borderline = [a for a in archives if a.status == "改"]
-    logger.info(f"Batch C: red flags ({len(rejected)} rejected, {len(borderline)} borderline)")
+    # Red flags: only use confirmed-status archives to avoid noise from inferred labels
+    if confirmed_titles is not None:
+        redflags_pool = [a for a in archives if a.title in confirmed_titles]
+    else:
+        redflags_pool = archives
+    rejected = [a for a in redflags_pool if a.status == "拒"]
+    borderline = [a for a in redflags_pool if a.status == "改"]
+    logger.info(f"Batch C: red flags ({len(rejected)} rejected, {len(borderline)} borderline, confirmed only)")
     redflags = await synthesize_redflags(rejected, borderline)
 
     now = datetime.now().strftime("%Y-%m-%d")
@@ -229,6 +251,16 @@ async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tup
     for genre, text in overlays.items():
         handbook += f"### {genre}\n\n{text}\n\n"
 
+    # 校准节仅用确认状态的档案
+    if confirmed_titles is not None:
+        confirmed_archives = [a for a in archives if a.title in confirmed_titles]
+        logger.info(
+            f"Calibration: using {len(confirmed_archives)} confirmed archives "
+            f"(out of {len(archives)} total)"
+        )
+    else:
+        confirmed_archives = archives
+
     handbook += f"""---
 
 ## 第三部分：地雷清单
@@ -239,9 +271,9 @@ async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tup
 
 ## 第四部分：评分校准刻度
 
-> 本节由训练集统计确定性生成，为预测时的刻度参考。
+> 本节由训练集统计确定性生成（仅使用编辑确认状态的 {len(confirmed_archives)} 部剧本），为预测时的刻度参考。
 
-{_build_calibration_section(archives)}
+{_build_calibration_section(confirmed_archives)}
 
 ---
 
@@ -250,7 +282,7 @@ async def synthesize_all(archives: list[ScriptArchive], version: int = 1) -> tup
 {_build_data_overview(archives)}
 """
 
-    rubric = _build_rubric(archives, version, now)
+    rubric = _build_rubric(confirmed_archives, version, now)
 
     HANDBOOK_DIR.mkdir(parents=True, exist_ok=True)
     handbook_path = HANDBOOK_DIR / f"handbook_v{version}.md"

@@ -1,0 +1,114 @@
+{
+  "title": "《棺边低语》前三集",
+  "status": "签",
+  "genre": "原创 / 男频",
+  "mean_score": 81.0,
+  "score_range": [
+    80,
+    85
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "冥婚 + 丧葬物件显遗言的异能设定很新 —— 帕克",
+        "设定挺好的，没怎么见过这类的 —— 安兔兔"
+      ],
+      "evidence_from_text": [
+        "林砚意外发现自己能看见丧葬物件上死者的遗言"
+      ],
+      "extracted_rule": "民国悬疑结合特殊异能（丧葬物件显遗言）能有效提升设定的新颖度。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "第一集有看头 —— 小冉",
+        "现在这个情节有点捞了 —— 小刚",
+        "开头有点送人头的感觉 —— 安兔兔"
+      ],
+      "evidence_from_text": [
+        "村民丙和乙悄无身息地跟在林砚身后一把打晕了林砚。"
+      ],
+      "extracted_rule": "开局主角被动陷入危机容易产生“送人头”的观感，削弱主角的主动性。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "目前女主的能力和故事的主线期待关联度是不够的 —— 47",
+        "我更想看女主拎着斧子挨家挨户全砍了，爽 —— 宇间"
+      ],
+      "evidence_from_text": [
+        "林砚（绝望 低喃）：怎么办…"
+      ],
+      "extracted_rule": "悬疑惊悚剧本中，主角需要展现更强的主动性和反击能力，过于被动会降低人设魅力。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "整体格调和氛围很到位，情节有意思 —— 山南"
+      ],
+      "evidence_from_text": [
+        "周老夫人：喝了这杯合卺酒，就算礼成了。",
+        "两个一人高的红纸人，贴着惨白的脸，黑墨画的眼睛，正缓缓朝着柴房移动"
+      ],
+      "extracted_rule": "冥婚、毒酒、纸人等民俗恐怖元素能有效保持情节的紧凑和冲突密度。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "整体格调和氛围很到位 —— 山南"
+      ],
+      "evidence_from_text": [
+        "周守义（阴狠）：跟我儿子配冥婚了，做我周家媳妇不会亏待你的。"
+      ],
+      "extracted_rule": "民国悬疑剧本的台词需要符合时代背景，避免过于套路化的反派发言。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "我更想看女主拎着斧子挨家挨户全砍了，爽 —— 宇间",
+        "看见遗言这个能力有点太讷了 —— 山南"
+      ],
+      "evidence_from_text": [
+        "林砚（恐惧）：是他们！他们逼我喝的！他们不知道这酒是给死人喝的"
+      ],
+      "extracted_rule": "仅靠智取和装神弄鬼化解危机，在爽感上不如直接的武力或强力异能反击。"
+    },
+    "benchmark_differentiation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "可以参考往规则怪谈的方向做 —— 47",
+        "某种规则怪谈？ —— 宇间"
+      ],
+      "evidence_from_text": [
+        "红盖头浮现字：穿嫁衣者，会被灌毒酒，与少爷合葬。",
+        "喜轿扶手浮现字：别碰桌上任何东西。"
+      ],
+      "extracted_rule": "将“规则怪谈”元素融入民国丧葬民俗中，能形成强烈的市场差异化。"
+    }
+  },
+  "type_specific_notes": "民国悬疑惊悚题材中，民俗恐怖（冥婚、纸人）结合现代网文流行的“规则怪谈”或“金手指（异能）”是很好的创新点，但需注意主角金手指的获取逻辑和使用限制，避免机械降神。",
+  "consensus_points": [
+    "女主异能的设定和获取方式需要优化，建议加限制或改为天生自带。",
+    "剧本的民俗悬疑设定新颖，氛围感好。"
+  ],
+  "disagreement_points": [
+    "关于异能设定的好坏：帕克认为“丧葬物件显遗言的异能设定很新”，而山南认为“看见遗言这个能力有点太讷了”。",
+    "关于开局情节的评价：小冉认为“第一集有看头”，而小刚认为“现在这个情节有点捞了”，安兔兔认为“开头有点送人头”。"
+  ],
+  "red_flags": [
+    "女主开局过于被动（被敲晕拐卖），有“送人头”嫌疑。",
+    "异能获取缺乏铺垫，显得突兀。"
+  ],
+  "green_flags": [
+    "冥婚+丧葬物件显遗言的设定组合新颖。",
+    "规则怪谈元素的巧妙融入，氛围感拉满。"
+  ]
+}

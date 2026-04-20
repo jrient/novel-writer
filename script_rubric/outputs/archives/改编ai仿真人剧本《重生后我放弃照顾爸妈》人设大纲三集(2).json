@@ -1,0 +1,80 @@
+{
+  "title": "改编ai仿真人剧本《重生后我放弃照顾爸妈》人设大纲三集(2)",
+  "status": "拒",
+  "genre": "改编 / 世情",
+  "mean_score": 65.0,
+  "score_range": [
+    60,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "有点道德沦丧了 —— 小冉",
+        "不正确价值观 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "题材设定触碰伦理底线，价值观导向存在严重问题"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "开局表现平庸，未引起责编特别关注"
+    },
+    "character_depth": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "他弟是超雄吗，感觉里面人物都有点极端 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "人物塑造过于极端脸谱化，缺乏行为逻辑与立体度"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突节奏未在评语中体现出明显优劣"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔与台词表现中规中矩"
+    },
+    "payoff_satisfaction": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "有点道德沦丧了 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点构建建立在违背伦理的基础上，容易引起观众反感"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "市场定位与差异化不明显"
+    }
+  },
+  "type_specific_notes": "作为世情/家庭类剧本，过度追求冲突导致价值观扭曲和人物极端化是该赛道的常见雷区。注：提供的剧本正文（《我在冷宫忙种田》）与标题及责编评语（《重生后我放弃照顾爸妈》）完全不匹配，故正文证据留空。",
+  "consensus_points": [
+    "剧本存在严重的价值观不正确问题，道德导向负面",
+    "人物设定过于极端（如超雄弟弟）"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "价值观扭曲，道德沦丧",
+    "全员人物性格极端，缺乏正常逻辑",
+    "提交的正文与标题/评语完全错乱"
+  ],
+  "green_flags": []
+}

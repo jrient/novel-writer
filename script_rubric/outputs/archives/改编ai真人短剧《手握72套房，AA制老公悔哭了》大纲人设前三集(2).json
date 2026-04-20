@@ -1,0 +1,93 @@
+{
+  "title": "改编ai真人短剧《手握72套房，AA制老公悔哭了》大纲人设前三集(2)",
+  "status": "改",
+  "genre": "改编 / 世情",
+  "mean_score": 72.5,
+  "score_range": [
+    70,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "平白无故财产继承的让我有点嫉妒了哦！我也想一觉起来变成包租公啊！ —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "天降巨富的设定自带天然爽感和吸引力，但属于常规女频爽文套路。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "前面不如改成回忆，三集了还没离婚，感觉节奏有点慢 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局核心冲突（如离婚）必须快速落地，前三集未进入主线会严重流失观众。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "得是个大女主吧 —— 宇间",
+        "女主前夫一家有点太无脑了 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "反派角色不能过度降智无脑，否则会削弱大女主的对抗张力和人物立体度。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "三集了还没离婚，感觉节奏有点慢 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "短剧节奏需紧凑，重大转折事件不宜铺垫过长。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "所以为什么要升级小区，这个小区她买下来了么 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧情逻辑和人物行为动机需要交代清晰，避免让观众产生基础疑问。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "平白无故财产继承的让我有点嫉妒了哦 —— 宇间",
+        "三集了还没离婚 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "虽然设定有爽感基础，但迟迟不离婚会导致打脸爽点无法及时兑现。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这个还有点期待 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "题材具备一定的下沉市场吸引力，但需在同类“暴富打脸”赛道中提升执行力。"
+    }
+  },
+  "type_specific_notes": "世情/打脸类短剧极度依赖情绪释放的速度，前三集必须完成“受气-爆发-反转”的初步闭环，拖延离婚是此类题材的大忌。",
+  "consensus_points": [
+    "剧情推进节奏过慢，前三集未完成核心转折（离婚）",
+    "部分剧情逻辑和人物设定存在瑕疵（反派无脑、行为动机不明）"
+  ],
+  "disagreement_points": [
+    "整体期待度存在温差：小冉表示“有点期待”，而其他责编更多聚焦于逻辑漏洞和节奏拖沓问题。"
+  ],
+  "red_flags": [
+    "三集未离婚（节奏严重拖沓）",
+    "前夫一家太无脑（反派脸谱化/降智）",
+    "升级小区动机不明（逻辑缺失）"
+  ],
+  "green_flags": [
+    "手握72套房的暴富设定能有效挑动观众爽点和嫉妒心"
+  ]
+}
