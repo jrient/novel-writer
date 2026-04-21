@@ -31,7 +31,8 @@ EXPLANATORY_PROMPTS = {
 - 根据对话历史判断哪些槽位已有足够信息，跳过已回答的
 - 对下一个未完成的槽位提出一个自然、具体的问题
 - 如果用户的回答同时覆盖了多个槽位，直接跳到下一个未覆盖的
-- 不要提及"槽位"这个词，像正常对话一样提问""",
+- 不要提及"槽位"这个词，像正常对话一样提问
+- 你必须严格输出 JSON 格式，不输出任何其他内容""",
         "user": """当前会话历史：
 {history}
 
@@ -39,7 +40,14 @@ EXPLANATORY_PROMPTS = {
 标题：{title}
 创意概念：{concept}
 
-请根据已有信息，对下一个未完成的槽位提出问题。直接输出问题，不要加任何前缀或解释：""",
+{handbook_context}
+
+请根据已有信息，对下一个未完成的槽位提出关键性问题，并提供 3-5 个供用户选择的选项。
+关键性问题是指：能够直接影响剧本质量评估维度的问题，如开局钩子是否强、人设是否有反差、冲突密度是否足够、爽点链路是否清晰等。
+选项应当是该问题的常见回答或有启发性的建议，帮助用户快速做出选择。用户也可以不选择选项而自由输入。
+
+严格按以下 JSON 格式输出，不要输出任何其他内容：
+{{"question": "你的问题", "options": ["选项1", "选项2", "选项3"]}}""",
     },
     "outline": {
         "system": "你是一位专业的解说漫剧本策划师，擅长将零散信息整合为结构清晰的剧本大纲。你必须严格输出 JSON 格式，不输出任何其他内容。",
@@ -136,7 +144,8 @@ DYNAMIC_PROMPTS = {
 - 根据对话历史判断哪些槽位已有足够信息，跳过已回答的
 - 对下一个未完成的槽位提出一个自然、具体的问题
 - 如果用户的回答同时覆盖了多个槽位，直接跳到下一个未覆盖的
-- 不要提及"槽位"这个词，像正常对话一样提问""",
+- 不要提及"槽位"这个词，像正常对话一样提问
+- 你必须严格输出 JSON 格式，不输出任何其他内容""",
         "user": """当前会话历史：
 {history}
 
@@ -144,7 +153,14 @@ DYNAMIC_PROMPTS = {
 标题：{title}
 创意概念：{concept}
 
-请根据已有信息，对下一个未完成的槽位提出问题。直接输出问题，不要加任何前缀或解释：""",
+{handbook_context}
+
+请根据已有信息，对下一个未完成的槽位提出关键性问题，并提供 3-5 个供用户选择的选项。
+关键性问题是指：能够直接影响剧本质量评估维度的问题，如开局钩子是否强、人设是否有反差、冲突密度是否足够、爽点链路是否清晰等。请参考上面提供的质量标准来提问。
+选项应当是该问题的常见回答或有启发性的建议，帮助用户快速做出选择。用户也可以不选择选项而自由输入。
+
+严格按以下 JSON 格式输出，不要输出任何其他内容：
+{{"question": "你的问题", "options": ["选项1", "选项2", "选项3"]}}""",
     },
     "outline": {
         "system": "你是一位专业的动态漫剧本策划师，擅长将创意构思转化为结构严谨的长篇剧本大纲。你必须严格输出 JSON 格式，不输出任何其他内容。",
@@ -493,17 +509,27 @@ class ScriptAIService:
         title: str,
         concept: Optional[str],
         history: List[Dict[str, Any]],
+        genre: str = "",
+        handbook_context: str = "",
     ) -> AsyncGenerator[str, None]:
         """生成下一个 AI 问题（SSE 流式）"""
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["question"]
-        prompt = prompt_entry["user"].format(
+
+        user_prompt = prompt_entry["user"].format(
             title=title,
             concept=concept or "（未提供）",
             history=_build_history_text(history),
+            handbook_context=handbook_context or "【暂无专项知识】请基于通用创作质量标准和已提供的创意概念进行提问。",
         )
+
         system_prompt = self._get_system_prompt("question", script_type)
-        messages = self._build_messages(prompt, system_prompt)
+
+        # Inject handbook knowledge into system prompt
+        if handbook_context:
+            system_prompt = (system_prompt or "") + f"\n\n{handbook_context}"
+
+        messages = self._build_messages(user_prompt, system_prompt)
         async for chunk in self._stream(messages):
             yield chunk
 

@@ -42,6 +42,7 @@
             v-if="!pageLoading"
             :project-id="projectId"
             :session="dramaStore.session"
+            :concept="dramaStore.currentProject?.concept"
             @outline-ready="handleOutlineReady"
             @questions-complete="handleQuestionsComplete"
             @question-answered="(count: number) => questionCount = count"

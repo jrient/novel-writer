@@ -98,6 +98,7 @@ import { ElMessage } from 'element-plus'
 import { Promotion } from '@element-plus/icons-vue'
 import {
   streamSessionAnswer,
+  streamSessionInit,
   getOrCreateSession,
 } from '@/api/drama'
 import type { ScriptSession } from '@/api/drama'
@@ -111,6 +112,7 @@ interface ChatMessage {
 const props = defineProps<{
   projectId: number
   session: ScriptSession | null
+  concept?: string
 }>()
 
 const emit = defineEmits<{
@@ -181,15 +183,16 @@ async function sendMessage() {
   isStreaming.value = true
   streamingText.value = ''
 
+  let accumulatedText = ''
   abortController = streamSessionAnswer(
     props.projectId,
     text,
     (chunk) => {
-      streamingText.value += chunk
-      scrollToBottom()
+      accumulatedText += chunk
+      // Don't show raw JSON in streaming bubble — just show loading dots
     },
-    async (fullResponse) => {
-      const finalText = (fullResponse as string) || streamingText.value
+    async () => {
+      const finalText = accumulatedText
       streamingText.value = ''
       isStreaming.value = false
 
@@ -242,13 +245,56 @@ onMounted(async () => {
         if (questionCount.value >= MAX_QUESTIONS) {
           emit('questions-complete')
         }
+      } else if (props.concept?.trim()) {
+        // Fresh session with concept — show concept as first user message,
+        // then let AI generate first question based on it
+        messages.value.push({ role: 'user', content: props.concept.trim() })
+        await scrollToBottom()
+        let initAccumulated = ''
+        abortController = streamSessionAnswer(
+          props.projectId,
+          props.concept.trim(),
+          (chunk) => {
+            initAccumulated += chunk
+          },
+          async () => {
+            isStreaming.value = false
+            questionCount.value++
+            emit('question-answered', questionCount.value)
+            if (initAccumulated && !initAccumulated.includes('"done":true') && initAccumulated !== '__done__') {
+              addAiMessage(initAccumulated)
+              await scrollToBottom()
+            }
+          },
+          (error) => {
+            isStreaming.value = false
+            ElMessage.error('初始化会话失败：' + error)
+          },
+        )
+        await scrollToBottom()
+        return
       } else {
-        // Trigger first question by sending empty init
-        // Show a welcome message
-        addAiMessage(JSON.stringify({
-          question: '你好！我将通过几个问题帮你完善剧本创意。我们开始吧，请先介绍一下你的故事主线是什么？',
-          options: [],
-        }))
+        // Fresh session without concept — use init endpoint
+        let initAccumulated = ''
+        abortController = streamSessionInit(
+          props.projectId,
+          (chunk) => {
+            initAccumulated += chunk
+          },
+          async () => {
+            isStreaming.value = false
+            if (initAccumulated) {
+              addAiMessage(initAccumulated)
+              await scrollToBottom()
+            }
+          },
+          (error) => {
+            isStreaming.value = false
+            ElMessage.error('初始化会话失败：' + error)
+          },
+        )
+        await scrollToBottom()
+        return
       }
     } catch {
       ElMessage.error('加载会话失败')

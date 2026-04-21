@@ -40,6 +40,7 @@ from app.schemas.drama import (
     SessionSummaryResponse,
 )
 from app.services.script_ai_service import ScriptAIService
+from app.services.handbook_provider import get_handbook
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -470,6 +471,99 @@ async def delete_session(
 # ─── AI Session Routes (SSE) ──────────────────────────────────────────────────
 
 
+def _guess_genre_from_concept(concept: str) -> str:
+    """从创意概念粗略推断类型"""
+    text = concept.lower()
+    if "萌宝" in text or "宝宝" in text or "崽崽" in text or "带球跑" in text:
+        return "原创 / 萌宝"
+    # 男频关键词：修仙/玄幻/系统 + 不含明显女频特征
+    if "男频" in text or "修仙" in text or "玄幻" in text or "系统流" in text:
+        return "原创 / 男频"
+    # 女频关键词
+    if "女频" in text or "古言" in text or "宅斗" in text or "宫斗" in text or "穿书" in text:
+        return "原创 / 女频"
+    # 世情关键词
+    if "世情" in text or "家庭" in text or "婚姻" in text or "婆媳" in text or "伦理" in text:
+        return "原创 / 世情"
+    return ""
+
+
+@router.post("/{id}/session/init")
+async def session_init(
+    project: ScriptProject = Depends(get_drama_project),
+    db: AsyncSession = Depends(get_db),
+):
+    """初始化会话：让 AI 根据项目创意概念生成第一个问题（SSE 流式）"""
+    result = await db.execute(
+        select(ScriptSession).where(ScriptSession.project_id == project.id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        session = ScriptSession(
+            project_id=project.id,
+            state="init",
+            history=[],
+        )
+        db.add(session)
+        await db.commit()
+        await db.refresh(session)
+
+    # 如果 history 已有内容，说明已初始化过，直接返回
+    if session.history:
+        return _sse_response(_already_init_stream(session.history))
+
+    _proj_settings = (project.metadata_ or {}).get("settings", {})
+    ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
+
+    # 注入 handbook 知识到问答阶段
+    handbook = get_handbook()
+    # 从 concept 中粗略推断类型
+    genre = _guess_genre_from_concept(project.concept) if project.concept else ""
+    handbook_context = handbook.get_question_guidance(genre)
+
+    async def stream():
+        full_response = ""
+        async for chunk in _sse_stream(
+            ai_service.generate_question(
+                script_type=project.script_type,
+                title=project.title,
+                concept=project.concept,
+                history=[],
+                genre=genre,
+                handbook_context=handbook_context,
+            )
+        ):
+            try:
+                data = json.loads(chunk.removeprefix("data: ").strip())
+                if data.get("type") == "text":
+                    full_response += data.get("text", "")
+            except Exception:
+                pass
+            yield chunk
+
+        # Save AI first question to history
+        if full_response:
+            update_result = await db.execute(
+                select(ScriptSession).where(ScriptSession.project_id == project.id)
+            )
+            updated_session = update_result.scalar_one_or_none()
+            if updated_session:
+                updated_session.history = [{"role": "assistant", "content": full_response}]
+                updated_session.state = "collecting"
+                await db.commit()
+
+    return _sse_response(stream())
+
+
+async def _already_init_stream(history):
+    """已初始化的 session，返回第一条 AI 消息"""
+    for msg in history:
+        if msg.get("role") == "assistant":
+            yield f"data: {json.dumps({'text': msg['content'], 'type': 'text'})}\n\n"
+            break
+    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+
 @router.post("/{id}/session/answer")
 async def session_answer(
     body: SessionAnswerRequest,
@@ -494,6 +588,11 @@ async def session_answer(
     _proj_settings = (project.metadata_ or {}).get("settings", {})
     ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
+    # 注入 handbook 知识到问答阶段
+    handbook = get_handbook()
+    genre = _guess_genre_from_concept(project.concept) if project.concept else ""
+    handbook_context = handbook.get_question_guidance(genre)
+
     async def stream():
         full_response = ""
         async for chunk in _sse_stream(
@@ -502,6 +601,8 @@ async def session_answer(
                 title=project.title,
                 concept=project.concept,
                 history=history,
+                genre=genre,
+                handbook_context=handbook_context,
             )
         ):
             # Extract text from SSE for history recording

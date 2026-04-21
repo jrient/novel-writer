@@ -225,6 +225,21 @@ export async function confirmOutline(projectId: number): Promise<{ ok: boolean }
 
 // ── SSE Streaming ──
 
+export function streamSessionInit(
+  projectId: number,
+  onChunk: (text: string) => void,
+  onDone: (fullResponse?: unknown) => void,
+  onError: (error: string) => void,
+): AbortController {
+  return _streamRequest(
+    `/api/v1/drama/${projectId}/session/init`,
+    {},
+    onChunk,
+    onDone,
+    onError,
+  )
+}
+
 export function streamSessionAnswer(
   projectId: number,
   content: string,
