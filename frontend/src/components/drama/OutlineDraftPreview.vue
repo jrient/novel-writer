@@ -18,14 +18,14 @@
             <span class="episode-title">{{ ep.title }}</span>
           </div>
           <div class="episode-actions">
-            <el-tag v-if="isExpanded(index)" type="success" size="small">已展开</el-tag>
+            <el-tag v-if="isExpanded(index)" type="success" size="small">已生成</el-tag>
             <el-button
               v-if="!props.disableIndividual && !isExpanded(index)"
               size="small"
               :loading="expandingIndex === index"
               @click="handleExpand(index)"
             >
-              展开场景
+              生成内容
             </el-button>
           </div>
         </div>
@@ -33,16 +33,12 @@
         <!-- 集概要 -->
         <p class="episode-summary">{{ ep.content }}</p>
 
-        <!-- 已展开的场景列表 -->
-        <div v-if="isExpanded(index)" class="scene-list">
-          <div
-            v-for="(scene, si) in ep.children"
-            :key="si"
-            class="scene-item"
-          >
-            <span class="scene-index">场景 {{ si + 1 }}</span>
-            <span class="scene-title">{{ scene.title }}</span>
-          </div>
+        <!-- 已生成时显示完整内容预览 -->
+        <div v-if="isExpanded(index)" class="episode-content-preview">
+          <el-divider content-position="left">
+            <el-tag size="small">完整内容</el-tag>
+          </el-divider>
+          <div class="full-content">{{ ep.content }}</div>
         </div>
       </div>
     </div>
@@ -59,6 +55,7 @@ interface EpisodeSection {
   title: string
   content: string
   sort_order: number
+  generated?: boolean
   children?: Array<{ node_type: string; title: string; content: string; sort_order: number }>
 }
 
@@ -76,7 +73,7 @@ const emit = defineEmits<{
 const expandingIndex = ref<number | null>(null)
 
 function isExpanded(index: number): boolean {
-  return (props.sections[index]?.children?.length ?? 0) > 0
+  return props.sections[index]?.generated === true
 }
 
 function handleExpand(index: number) {
@@ -171,28 +168,21 @@ function handleExpand(index: number) {
   line-height: 1.5;
 }
 
-.scene-list {
-  margin-top: 8px;
-  padding-top: 8px;
+.episode-content-preview {
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #E8F5E9;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
-.scene-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.scene-index {
-  color: #9E9E9E;
-  flex-shrink: 0;
-}
-
-.scene-title {
-  color: #4CAF50;
+.full-content {
+  font-size: 14px;
+  color: #2C2C2C;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #FAFAF9;
+  border-radius: 4px;
 }
 </style>
