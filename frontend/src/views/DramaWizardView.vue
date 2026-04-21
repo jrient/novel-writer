@@ -159,7 +159,7 @@
           <div class="outline-header">
             <h3 class="outline-title">剧本大纲</h3>
             <p class="outline-subtitle">
-              共 {{ outlineSections.length }} 集 · 可逐集展开或一键展开全部场景
+              共 {{ outlineSections.length }} 集 · 可逐集生成或一键生成全部内容
             </p>
           </div>
 
@@ -181,7 +181,7 @@
               :disabled="allExpanded"
               @click="handleExpandAll"
             >
-              {{ isExpandingAll ? `展开中 (${expandAllCurrent}/${expandAllTotal})` : allExpanded ? '已全部展开' : '展开全部场景' }}
+              {{ isExpandingAll ? `生成中 (${expandAllCurrent}/${expandAllTotal})` : allExpanded ? '已全部生成' : '生成全部内容' }}
             </el-button>
             <el-button
               type="primary"
@@ -294,13 +294,14 @@ const outlineSections = computed(() => {
     title: string
     content: string
     sort_order: number
+    generated?: boolean
     children?: Array<{ node_type: string; title: string; content: string; sort_order: number }>
   }>
 })
 
 const allExpanded = computed(() =>
   outlineSections.value.length > 0 &&
-  outlineSections.value.every(ep => (ep.children?.length ?? 0) > 0)
+  outlineSections.value.every(ep => ep.generated === true)
 )
 
 async function handleOutlineReady() {
@@ -379,37 +380,37 @@ async function handleGenerateOutline() {
 
 
 async function handleEpisodeExpanded(_index: number) {
-  // 刷新 session 以获取最新的 outline_draft（含展开后的 children）
+  // 刷新 session 以获取最新的 outline_draft（含已生成内容的标记）
   await dramaStore.fetchSession(projectId.value)
 }
 
 async function handleExpandAll() {
   // 防止重复触发
   if (isExpandingAll.value) {
-    ElMessage.warning('正在展开全部场景，请等待完成')
+    ElMessage.warning('正在生成全部内容，请等待完成')
     return
   }
   // 单集正在展开中，拒绝
   if (isSingleExpanding.value) {
-    ElMessage.warning('请等待当前集展开完成')
+    ElMessage.warning('请等待当前集生成完成')
     return
   }
 
   const sections = outlineSections.value
   let targets: Array<{ originalIndex: number }>
 
-  // 检查是否有已展开的集
-  const hasExpanded = sections.some(ep => (ep.children?.length ?? 0) > 0)
+  // 检查是否有已生成的集
+  const hasExpanded = sections.some(ep => ep.generated === true)
 
   if (hasExpanded) {
     try {
       await ElMessageBox.confirm(
-        '部分集已展开，请选择展开方式',
-        '展开全部场景',
+        '部分集已生成，请选择处理方式',
+        '生成全部内容',
         {
           distinguishCancelAndClose: true,
-          confirmButtonText: '全部重新展开',
-          cancelButtonText: '跳过已展开',
+          confirmButtonText: '全部重新生成',
+          cancelButtonText: '跳过已生成',
         },
       )
       // 用户点"全部重新展开" (confirm)
@@ -419,7 +420,7 @@ async function handleExpandAll() {
         // 用户点"跳过已展开"
         targets = sections
           .map((ep, i) => ({ ep, originalIndex: i }))
-          .filter(({ ep }) => (ep.children?.length ?? 0) === 0)
+          .filter(({ ep }) => ep.generated !== true)
           .map(({ originalIndex }) => ({ originalIndex }))
       } else {
         // 用户点关闭 (close) 或按 Esc
@@ -431,7 +432,7 @@ async function handleExpandAll() {
   }
 
   if (targets.length === 0) {
-    ElMessage.info('没有需要展开的集')
+    ElMessage.info('没有需要生成的集')
     return
   }
 
@@ -454,7 +455,7 @@ async function handleExpandAll() {
           resolve()
         },
         (error) => {
-          ElMessage.error(`第 ${originalIndex + 1} 集展开失败：${error}`)
+          ElMessage.error(`第 ${originalIndex + 1} 集生成失败：${error}`)
           currentAbortController.value = null
           failCount++
           resolve()
@@ -469,11 +470,11 @@ async function handleExpandAll() {
   currentAbortController.value = null
 
   if (failCount === targets.length) {
-    ElMessage.error('全部集展开失败')
+    ElMessage.error('全部集生成失败')
   } else if (failCount > 0) {
-    ElMessage.warning(`${failCount} 集展开失败，其余已完成`)
+    ElMessage.warning(`${failCount} 集生成失败，其余已完成`)
   } else {
-    ElMessage.success('全部场景展开完成')
+    ElMessage.success('全部内容生成完成')
   }
 }
 
