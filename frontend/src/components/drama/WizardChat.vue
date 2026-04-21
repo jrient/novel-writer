@@ -140,7 +140,20 @@ function stopStreaming() {
 
 function parseAiMessage(content: string): ChatMessage['parsed'] | undefined {
   try {
-    const json = JSON.parse(content)
+    let jsonStr = content.trim()
+    // Strip markdown code fences if present
+    if (jsonStr.startsWith('```')) {
+      const firstLine = jsonStr.indexOf('\n')
+      if (firstLine !== -1) {
+        jsonStr = jsonStr.slice(firstLine + 1)
+      }
+      const lastBackticks = jsonStr.lastIndexOf('```')
+      if (lastBackticks !== -1) {
+        jsonStr = jsonStr.slice(0, lastBackticks)
+      }
+      jsonStr = jsonStr.trim()
+    }
+    const json = JSON.parse(jsonStr)
     if (json.question) {
       return { question: json.question, options: json.options || [] }
     }
