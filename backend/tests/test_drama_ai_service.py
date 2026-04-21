@@ -19,17 +19,25 @@ def test_dynamic_outline_prompt_no_scene_content():
     assert "对白" not in user_prompt
 
 
-def test_expand_episode_prompt_exists():
-    """expand_episode prompt 存在"""
-    assert "expand_episode" in DYNAMIC_PROMPTS
+def test_generate_episode_content_method_exists():
+    """generate_episode_content 方法存在"""
+    import inspect
+    sig = inspect.signature(ScriptAIService.generate_episode_content)
+    assert "episode_index" in sig.parameters
+    assert "total_episodes" in sig.parameters
+    assert "current_episode" in sig.parameters
 
 
-def test_expand_episode_prompt_has_required_placeholders():
-    """expand_episode prompt 包含必要占位符"""
-    user_prompt = DYNAMIC_PROMPTS["expand_episode"]["user"]
+def test_generate_episode_content_prompt_has_required_placeholders():
+    """generate_episode_content prompt 包含必要占位符"""
+    import inspect
+    source = inspect.getsource(ScriptAIService.generate_episode_content)
     for placeholder in ["{title}", "{outline_summary}", "{current_episode}",
                         "{episode_position}", "{main_characters}", "{core_conflict}"]:
-        assert placeholder in user_prompt, f"Missing placeholder: {placeholder}"
+        assert placeholder in source, f"Missing placeholder: {placeholder}"
+    # 确保 prompt 要求输出纯文本而非 JSON
+    assert "不输出 JSON" in source
+    assert "800-1500 字" in source
 
 
 def test_calc_max_tokens_for_episode_count():

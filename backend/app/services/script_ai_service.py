@@ -180,41 +180,6 @@ JSON 结构如下：
 
 注意：只输出 JSON，不要有其他内容。""",
     },
-    "expand_episode": {
-        "system": "你是一位专业的动态漫剧本撰写师，擅长将集概要展开为详细的场景描述。你必须严格输出 JSON 格式，不输出任何其他内容。",
-        "user": """剧本信息：
-标题：{title}
-总体概述：{outline_summary}
-主要角色：{main_characters}
-核心冲突：{core_conflict}
-风格基调：{style_tone}
-
-当前集位置：{episode_position}
-前一集：{prev_episode}
-当前集：{current_episode}
-后一集：{next_episode}
-
-请将当前集展开为 2-4 个详细场景，要求：
-1. 第一个场景必须从"前一集"的结尾状态自然衔接开始，不能凭空切换场景
-2. 场景的 content 包含完整的场景描述、对白和动作
-3. 最后一个场景的结尾必须与"后一集"的开头衔接，留好过渡
-4. 场景之间衔接自然，节奏紧凑
-5. sort_order 从 0 开始连续递增
-
-JSON 结构如下：
-{{
-  "children": [
-    {{
-      "node_type": "scene",
-      "title": "场景标题",
-      "content": "【场景】场景描述\\n\\n【对白】\\n角色A：对白内容\\n\\n【动作】\\n动作描述",
-      "sort_order": 0
-    }}
-  ]
-}}
-
-注意：只输出 JSON，不要有其他内容。""",
-    },
     "expand": {
         "system": "你是一位专业的动态漫剧本撰写师，擅长将场景概述扩展为生动的对白和动作描述。你的写作应当：对白自然流畅、符合人物性格；动作描述清晰、画面感强；情节紧凑、节奏感强。",
         "user": """剧本标题：{title}
@@ -582,7 +547,7 @@ class ScriptAIService:
         finally:
             self.max_tokens = original_max_tokens
 
-    async def expand_episode(
+    async def generate_episode_content(
         self,
         title: str,
         outline_summary: str,
@@ -595,8 +560,32 @@ class ScriptAIService:
         prev_episode: Optional[Dict[str, Any]],
         next_episode: Optional[Dict[str, Any]],
     ) -> AsyncGenerator[str, None]:
-        """展开单集为详细场景（SSE 流式）"""
-        prompt_entry = DYNAMIC_PROMPTS["expand_episode"]
+        """生成单集完整内容（SSE 流式，输出纯文本）"""
+        prompt_entry = {
+            "system": "你是一位专业的动态漫剧本撰写师，擅长将集概要展开为完整的叙事内容。你直接输出纯文本剧本，不输出 JSON，不使用结构化标签。",
+            "user": """剧本信息：
+标题：{title}
+总体概述：{outline_summary}
+主要角色：{main_characters}
+核心冲突：{core_conflict}
+风格基调：{style_tone}
+
+当前集位置：{episode_position}
+前一集：{prev_episode}
+当前集概要：{current_episode}
+后一集：{next_episode}
+
+请将当前集扩展为一段完整的剧本文本，要求：
+1. 800-1500 字
+2. 包含自然穿插的对白、动作描写、心理活动和环境描写
+3. 从"前一集"的结尾状态自然衔接开始，不要凭空切换
+4. 结尾必须与"后一集"的开头衔接，留好过渡
+5. 不要使用【场景】【对白】【动作】等结构化标签
+6. 不要分场景，一气呵成
+7. 对白自然流畅，符合人物性格
+
+直接输出完整的剧本内容，不要有任何前缀或解释：""",
+        }
 
         def _ep_str(ep: Optional[Dict[str, Any]]) -> str:
             if not ep:
