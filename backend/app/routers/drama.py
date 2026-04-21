@@ -717,9 +717,9 @@ async def session_expand_episode(
     project: ScriptProject = Depends(get_drama_project),
     db: AsyncSession = Depends(get_db),
 ):
-    """展开单集为详细场景（SSE 流式）"""
+    """生成单集完整内容（SSE 流式）"""
     if project.script_type != "dynamic":
-        raise HTTPException(status_code=400, detail="仅动态漫支持逐集展开")
+        raise HTTPException(status_code=400, detail="仅动态漫支持逐集生成")
 
     result = await db.execute(
         select(ScriptSession).where(ScriptSession.project_id == project.id)
@@ -752,7 +752,7 @@ async def session_expand_episode(
     async def stream():
         full_response = ""
         try:
-            async for chunk in ai_service.expand_episode(
+            async for chunk in ai_service.generate_episode_content(
                 title=project.title,
                 outline_summary=outline_summary,
                 main_characters=main_characters,
@@ -767,21 +767,12 @@ async def session_expand_episode(
                 full_response += chunk
                 yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
         except Exception as e:
-            logger.error(f"expand_episode stream error: {e}", exc_info=True)
+            logger.error(f"generate_episode_content stream error: {e}", exc_info=True)
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
             return
 
         if full_response:
             try:
-                json_str = full_response.strip()
-                start_idx = json_str.find('{')
-                end_idx = json_str.rfind('}')
-                if start_idx != -1 and end_idx != -1:
-                    json_str = json_str[start_idx:end_idx + 1]
-                result_json = json.loads(json_str)
-                children = result_json.get("children", [])
-
-                # 写回 outline_draft
                 update_result = await db.execute(
                     select(ScriptSession).where(ScriptSession.project_id == project.id)
                 )
@@ -791,14 +782,18 @@ async def session_expand_episode(
                     new_draft = copy.deepcopy(updated_session.outline_draft)
                     new_sections = new_draft.get("sections", [])
                     if idx < len(new_sections):
-                        new_sections[idx]["children"] = children
+                        # 纯文本直接写入 content，标记已生成
+                        new_sections[idx]["content"] = full_response.strip()
+                        new_sections[idx]["generated"] = True
+                        # 清除旧的 children（如果有）
+                        new_sections[idx].pop("children", None)
                         new_draft["sections"] = new_sections
                         updated_session.outline_draft = new_draft
                         await db.commit()
-                        logger.info(f"Episode {idx} expanded with {len(children)} scenes for project {project.id}")
-            except json.JSONDecodeError as e:
-                logger.warning(f"Could not parse expand_episode JSON: {e}")
-                yield f"data: {json.dumps({'type': 'error', 'message': '场景生成解析失败，请重试'})}\n\n"
+                        logger.info(f"Episode {idx} content generated for project {project.id}")
+            except Exception as e:
+                logger.warning(f"Could not save episode content: {e}")
+                yield f"data: {json.dumps({'type': 'error', 'message': '内容保存失败，请重试'})}\n\n"
                 return
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
