@@ -31,6 +31,7 @@ services:
       - ./data:/app/data
       - ./uploads:/app/uploads
       - ./reference_novels:/app/reference_novels
+      - ./script_rubric:/app/script_rubric
     env_file:
       - .env
     environment:

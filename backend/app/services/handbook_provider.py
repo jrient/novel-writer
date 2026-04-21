@@ -14,9 +14,17 @@ class HandbookProvider:
     """从 handbook 文件加载知识，提供按类型检索的片段"""
 
     def __init__(self, handbook_dir: Optional[str] = None):
-        self.handbook_dir = Path(handbook_dir) if handbook_dir else (
-            Path(__file__).parent.parent.parent.parent / "script_rubric" / "outputs" / "handbook"
-        )
+        if handbook_dir:
+            self.handbook_dir = Path(handbook_dir)
+        else:
+            # __file__ → backend/app/services/handbook_provider.py
+            # .parent → services, .parent → app, .parent → backend, .parent → project root
+            # Then: project_root/script_rubric/outputs/handbook
+            _root = Path(__file__).parent.parent.parent.parent
+            self.handbook_dir = _root / "script_rubric" / "outputs" / "handbook"
+            # Fallback: if running inside Docker with /app as project root
+            if not self.handbook_dir.exists():
+                self.handbook_dir = Path("/app/script_rubric/outputs/handbook")
         self._version: str = "unknown"
         self._raw_text: str = ""
         self._universal_rules: str = ""
