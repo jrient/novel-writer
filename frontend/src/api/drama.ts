@@ -388,32 +388,38 @@ function _streamRequest(
       const decoder = new TextDecoder()
       let buffer = ''
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
 
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const payload = JSON.parse(line.slice(6))
-              if (payload.text) onChunk(payload.text)
-              if (payload.type === 'done') {
-                onDone(payload.outline || payload.full_response)
-                return
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const payload = JSON.parse(line.slice(6))
+                if (payload.type === 'error') {
+                  onError(payload.message)
+                  return
+                }
+                if (payload.type === 'done') {
+                  onDone(payload.outline || payload.full_response)
+                  return
+                }
+                if (payload.text) onChunk(payload.text)
+              } catch {
+                // ignore parse errors
               }
-              if (payload.type === 'error') {
-                onError(payload.message)
-                return
-              }
-            } catch {
-              // ignore parse errors
             }
           }
         }
+      } catch (err) {
+        // Connection dropped unexpectedly (network error, timeout, etc.)
+        onError(err instanceof Error ? err.message : '连接意外断开')
+        return
       }
 
       // Process remaining buffer after stream ends

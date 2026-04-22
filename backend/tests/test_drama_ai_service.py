@@ -29,15 +29,44 @@ def test_generate_episode_content_method_exists():
 
 
 def test_generate_episode_content_prompt_has_required_placeholders():
-    """generate_episode_content prompt 包含必要占位符"""
-    import inspect
-    source = inspect.getsource(ScriptAIService.generate_episode_content)
+    """动态漫 episode_content prompt 包含必要占位符"""
+    from app.services.script_ai_service import DYNAMIC_PROMPTS
+    user_prompt = DYNAMIC_PROMPTS["episode_content"]["user"]
+    system_prompt = DYNAMIC_PROMPTS["episode_content"]["system"]
     for placeholder in ["{title}", "{outline_summary}", "{current_episode}",
                         "{episode_position}", "{main_characters}", "{core_conflict}"]:
-        assert placeholder in source, f"Missing placeholder: {placeholder}"
+        assert placeholder in user_prompt, f"Missing placeholder: {placeholder}"
     # 确保 prompt 要求输出纯文本而非 JSON
-    assert "不输出 JSON" in source
-    assert "800-1500 字" in source
+    assert "不输出 JSON" in system_prompt
+    assert "800-1500 字" in user_prompt
+
+
+def test_explanatory_episode_content_prompt_exists():
+    """解说漫 episode_content prompt 符合专业剧本格式：场景/画面/对白/旁白四要素齐全"""
+    from app.services.script_ai_service import EXPLANATORY_PROMPTS
+    assert "episode_content" in EXPLANATORY_PROMPTS
+    user_prompt = EXPLANATORY_PROMPTS["episode_content"]["user"]
+    # 必备占位符
+    for placeholder in ["{title}", "{outline_summary}", "{episode_number}",
+                        "{episode_position}", "{style_tone}",
+                        "{main_characters}", "{core_conflict}"]:
+        assert placeholder in user_prompt, f"Missing placeholder: {placeholder}"
+    # 剧本四要素必须都被要求
+    assert "对白" in user_prompt
+    assert "△" in user_prompt  # 动作标记
+    # 必须包含场景标记格式
+    assert "{episode_number}-1" in user_prompt
+    # 必须包含开局爆点要求
+    assert "爆点" in user_prompt or "第一镜" in user_prompt
+    # 必须限制对白长度和情感层次
+    assert "10-30字" in user_prompt or "情感" in user_prompt
+
+
+def test_generate_episode_content_accepts_script_type():
+    """generate_episode_content 接受 script_type 参数"""
+    import inspect
+    sig = inspect.signature(ScriptAIService.generate_episode_content)
+    assert "script_type" in sig.parameters
 
 
 def test_calc_max_tokens_for_episode_count():

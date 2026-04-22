@@ -27,6 +27,16 @@
             >
               生成内容
             </el-button>
+            <el-button
+              v-if="isExpanded(index) && !props.disableIndividual"
+              size="small"
+              type="warning"
+              plain
+              :loading="expandingIndex === index"
+              @click="handleRegenerate(index)"
+            >
+              重新生成
+            </el-button>
           </div>
         </div>
 
@@ -97,6 +107,32 @@ function handleExpand(index: number) {
       expandingIndex.value = null
       emit('expanding-change', false)
       ElMessage.error(`展开失败：${error}`)
+    },
+  )
+}
+
+function handleRegenerate(index: number) {
+  if (expandingIndex.value !== null) {
+    ElMessage.warning('请等待当前集展开完成')
+    return
+  }
+  expandingIndex.value = index
+  emit('expanding-change', true)
+
+  streamExpandEpisode(
+    props.projectId,
+    index,
+    () => { /* chunk 忽略 */ },
+    () => {
+      expandingIndex.value = null
+      emit('expanding-change', false)
+      emit('episode-expanded', index)
+      ElMessage.success('第 ' + (index + 1) + ' 集已重新生成')
+    },
+    (error) => {
+      expandingIndex.value = null
+      emit('expanding-change', false)
+      ElMessage.error(`重新生成失败：${error}`)
     },
   )
 }

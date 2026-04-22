@@ -90,7 +90,7 @@
 
             <div class="summary-section">
               <h4>主要角色</h4>
-              <div v-for="(c, i) in editableSummary.主要角色" :key="i" class="character-row">
+              <div v-for="(_c, i) in editableSummary.主要角色" :key="i" class="character-row">
                 <el-input v-model="editableSummary.主要角色[i]" placeholder="角色名称及简介" />
                 <el-button text type="danger" @click="editableSummary.主要角色.splice(i, 1)">删除</el-button>
               </div>
@@ -178,6 +178,14 @@
             <el-button @click="wizardStepIndex = 1">返回确认</el-button>
             <el-button
               plain
+              type="warning"
+              :loading="regeneratingOutline"
+              @click="handleRegenerateOutline"
+            >
+              {{ regeneratingOutline ? '重新生成中...' : '重新生成大纲' }}
+            </el-button>
+            <el-button
+              plain
               :loading="isExpandingAll"
               :disabled="allExpanded"
               @click="handleExpandAll"
@@ -210,7 +218,6 @@ import { useDramaStore } from '@/stores/drama'
 import { summarizeSession, updateSessionSummary, streamGenerateOutline, streamExpandEpisode } from '@/api/drama'
 import type { SessionSummary } from '@/api/drama'
 import WizardChat from '@/components/drama/WizardChat.vue'
-import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
 import OutlineDraftPreview from '@/components/drama/OutlineDraftPreview.vue'
 
 const route = useRoute()
@@ -241,6 +248,7 @@ const editableSummary = reactive<SessionSummary>({
   目标集数: 20,
 })
 const generatingOutline = ref(false)
+const regeneratingOutline = ref(false)
 const wizardSteps = [
   { title: 'AI 问答' },
   { title: '信息确认' },
@@ -254,37 +262,6 @@ watch(wizardStepIndex, (step) => {
   if (currentStep !== step) {
     router.replace({ query: { ...route.query, step: String(step) } })
   }
-})
-
-// Convert outline_draft sections to display nodes for review step
-const outlineDraftNodes = computed(() => {
-  const session = dramaStore.session
-  if (!session?.outline_draft?.sections) return dramaStore.nodes
-
-  let idCounter = 1
-  function convertSections(sections: any[], parentId: number | null): any[] {
-    return sections.map((section, index) => {
-      const nodeId = idCounter++
-      const node: any = {
-        id: nodeId,
-        project_id: projectId.value,
-        parent_id: parentId,
-        node_type: section.node_type || 'section',
-        title: section.title,
-        content: section.content,
-        speaker: section.speaker,
-        visual_desc: section.visual_desc,
-        sort_order: index,
-        is_completed: false,
-        metadata_: null,
-        created_at: '',
-        updated_at: null,
-        children: section.children ? convertSections(section.children, nodeId) : [],
-      }
-      return node
-    })
-  }
-  return convertSections(session.outline_draft.sections as any[], null)
 })
 
 const outlineSections = computed(() => {
@@ -376,6 +353,42 @@ async function handleGenerateOutline() {
   } catch {
     generatingOutline.value = false
     ElMessage.error('生成大纲失败')
+  }
+}
+
+async function handleRegenerateOutline() {
+  try {
+    await ElMessageBox.confirm(
+      '重新生成将覆盖当前大纲，已生成的内容将被清除。确定要重新生成吗？',
+      '重新生成大纲',
+      {
+        confirmButtonText: '确定重新生成',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+  } catch {
+    return
+  }
+
+  regeneratingOutline.value = true
+  try {
+    streamGenerateOutline(
+      projectId.value,
+      () => {},
+      async () => {
+        regeneratingOutline.value = false
+        await dramaStore.fetchSession(projectId.value)
+        ElMessage.success('大纲已重新生成')
+      },
+      (error) => {
+        regeneratingOutline.value = false
+        ElMessage.error('重新生成失败：' + error)
+      },
+    )
+  } catch {
+    regeneratingOutline.value = false
+    ElMessage.error('重新生成失败')
   }
 }
 
@@ -513,6 +526,12 @@ onMounted(async () => {
       } else if (sess.history) {
         const userMsgCount = sess.history.filter((m) => m.role === 'user').length
         questionCount.value = Math.min(userMsgCount, 5)
+      }
+
+      // Detect stuck "generating" state — no active generation but DB says generating
+      if (sess.state === 'generating' && !generatingOutline.value && !regeneratingOutline.value) {
+        ElMessage.warning('上次生成可能意外中断，请尝试重新生成大纲')
+        sess.state = 'done' // Allow retry
       }
     }
 

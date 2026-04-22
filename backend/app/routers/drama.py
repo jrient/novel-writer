@@ -713,9 +713,9 @@ async def session_generate_outline(
     session.state = "generating"
     await db.commit()
 
-    # 读取目标集数（仅动态漫有效）
+    # 读取目标集数（解说漫与动态漫均有效；解说漫对应段落数）
     episode_count = 20
-    if project.script_type == "dynamic" and session.summary:
+    if session.summary:
         episode_count = int((session.summary or {}).get("目标集数", 20))
         episode_count = max(1, min(200, episode_count))
 
@@ -746,6 +746,17 @@ async def session_generate_outline(
         except Exception as e:
             logger.error(f"SSE stream error: {e}", exc_info=True)
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            # Restore state so user can retry
+            try:
+                rollback_result = await db.execute(
+                    select(ScriptSession).where(ScriptSession.project_id == project.id)
+                )
+                rollback_session = rollback_result.scalar_one_or_none()
+                if rollback_session:
+                    rollback_session.state = "done"
+                    await db.commit()
+            except Exception:
+                pass
             return
 
         # Save outline_draft BEFORE sending done event to avoid race condition
@@ -818,10 +829,7 @@ async def session_expand_episode(
     project: ScriptProject = Depends(get_drama_project),
     db: AsyncSession = Depends(get_db),
 ):
-    """生成单集完整内容（SSE 流式）"""
-    if project.script_type != "dynamic":
-        raise HTTPException(status_code=400, detail="仅动态漫支持逐集生成")
-
+    """生成单集/单段完整内容（SSE 流式）"""
     result = await db.execute(
         select(ScriptSession).where(ScriptSession.project_id == project.id)
     )
@@ -833,8 +841,9 @@ async def session_expand_episode(
 
     sections = session.outline_draft.get("sections", [])
     idx = body.episode_index
+    unit = "集" if project.script_type == "dynamic" else "段"
     if idx < 0 or idx >= len(sections):
-        raise HTTPException(status_code=400, detail=f"集索引 {idx} 超出范围（共 {len(sections)} 集）")
+        raise HTTPException(status_code=400, detail=f"索引 {idx} 超出范围（共 {len(sections)} {unit}）")
 
     current_ep = sections[idx]
     prev_ep = sections[idx - 1] if idx > 0 else None
@@ -864,6 +873,7 @@ async def session_expand_episode(
                 current_episode=current_ep,
                 prev_episode=prev_ep,
                 next_episode=next_ep,
+                script_type=project.script_type,
             ):
                 full_response += chunk
                 yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"

@@ -410,8 +410,10 @@ onMounted(async () => {
 
 .options-list {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
+  width: 100%;
 }
 
 .option-btn {
@@ -419,6 +421,21 @@ onMounted(async () => {
   color: #6B7B8D !important;
   background: transparent !important;
   transition: all 0.2s;
+  white-space: normal !important;
+  height: auto !important;
+  min-height: 28px;
+  max-width: 100%;
+  padding: 6px 12px !important;
+  text-align: left;
+  word-break: break-word;
+  line-height: 1.5;
+  margin-left: 0 !important;
+}
+
+.option-btn :deep(span) {
+  white-space: normal;
+  word-break: break-word;
+  display: inline;
 }
 
 .option-btn:hover:not(:disabled) {
