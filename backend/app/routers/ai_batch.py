@@ -17,7 +17,7 @@ from app.models.reference import ReferenceNovel
 from app.models.user import User
 from app.routers.auth import get_current_user
 from app.schemas.ai import BatchGenerateRequest
-from app.services.ai_service import AIService, PROMPTS
+from app.services.ai_service import AIService, PROMPTS, build_quality_guidance
 from app.services.smart_context import SmartContextService
 from app.services.token_usage_service import log_token_usage, estimate_tokens
 
@@ -101,6 +101,7 @@ async def batch_generate(
                 context=context,
                 style_reference=style_reference,
                 knowledge_reference=knowledge_reference,
+                quality_guidance=build_quality_guidance(genre),
             )
 
             yield f"data: {_json.dumps({'type': 'progress', 'message': '正在生成大纲...'}, ensure_ascii=False)}\n\n"
@@ -190,6 +191,7 @@ async def batch_generate(
                     chapter_summary=chapter_summary,
                     previous_summary=prev_text,
                     previous_ending=prev_ending_text,
+                    quality_guidance=build_quality_guidance(genre),
                 )
 
                 # 流式生成章节内容

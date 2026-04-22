@@ -36,7 +36,7 @@ from app.schemas.wizard import (
     WizardCharactersForPartRequest,
     WizardCreateV2Request,
 )
-from app.services.ai_service import AIService, PROMPTS
+from app.services.ai_service import AIService, PROMPTS, build_quality_guidance
 
 router = APIRouter(
     prefix="/api/v1/wizard",
@@ -148,6 +148,7 @@ async def wizard_generate(
                     target_word_count=payload.target_word_count,
                     chapter_count=payload.chapter_count,
                     style_reference=style_reference,
+                    quality_guidance=build_quality_guidance(payload.genre or ""),
                 )
 
             # 发送开始事件
@@ -677,6 +678,7 @@ async def wizard_generate_outline(
                     target_word_count=payload.target_word_count,
                     chapter_count=payload.chapter_count,
                     style_reference=style_reference or "无",
+                    quality_guidance=build_quality_guidance(payload.genre or ""),
                 ) + f"\n\n当前大纲：\n{current_outline_str}\n\n用户修改意见：\n{payload.revision_request}"
             else:
                 # 生成模式
@@ -687,6 +689,7 @@ async def wizard_generate_outline(
                     target_word_count=payload.target_word_count,
                     chapter_count=payload.chapter_count,
                     style_reference=style_reference,
+                    quality_guidance=build_quality_guidance(payload.genre or ""),
                 )
 
             # 发送开始事件
