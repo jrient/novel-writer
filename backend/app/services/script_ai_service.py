@@ -54,12 +54,13 @@ EXPLANATORY_PROMPTS = {
         "user": """剧本基本信息：
 标题：{title}
 创意概念：{concept}
+目标段落数：{episode_count}
 
 收集到的信息：
 {history}
 
 请生成一份 JSON 格式的大纲，要求：
-1. 生成 5-10 个完整段落，覆盖引言、正文各部分、结语
+1. 必须生成恰好 {episode_count} 个完整段落，不能多也不能少，覆盖引言、正文各部分、结语
 2. 每个段落是最小节点，content 包含完整的旁白内容
 3. sort_order 必须从 0 开始连续递增（0, 1, 2, 3...）
 
@@ -84,6 +85,75 @@ JSON 结构如下：
 }}
 
 注意：只输出 JSON，不要有其他内容。""",
+    },
+    "episode_content": {
+        "system": """你是一位顶级分场剧本撰写师，擅长创作极具张力、情感丰富的短剧分场剧本。你的核心能力：
+1. 开局绝不平淡：第一个镜头必须有强情绪冲击（拍桌、摔门、角色崩溃大哭、角色愤怒逼近），避免大空镜或缓慢建立场景
+2. 对白层次丰富：每句对白要有情绪推进，从隐忍到爆发、从试探到摊牌，用停顿、断句制造张力，让对白成为情感载体而非信息传递工具
+3. △ 动作行即画面：用特写、推镜头、闪回等镜头语言替代冗长的环境描写，动作与对白紧密交织
+4. VO/OS 精简克制：每场至多1-2条，仅用于关键信息交代或心理揭示，绝不用旁白堆砌剧情
+
+你直接输出纯文本分场剧本，不输出 JSON，不使用 Markdown。""",
+        "user": """剧本信息：
+标题：{title}
+总体概述：{outline_summary}
+主要角色：{main_characters}
+核心冲突：{core_conflict}
+风格基调：{style_tone}
+
+当前集位置：{episode_position}
+当前集编号：第{episode_number}集
+前一集收尾：{prev_episode}
+当前集概要：{current_episode}
+后一集开头：{next_episode}
+
+将当前集扩展为分场剧本，严格遵守以下规则：
+
+【格式规范】
+分场号：{episode_number}-1、{episode_number}-2……依次递增（3-5场）
+每场结构：场次号行 → 地点行 → 人物行 → 正文（△动作/对白/VO/OS）
+
+【开局爆点（第一场必须）】
+第一镜必须是以下类型之一：
+- 激烈动作：拍桌、摔东西、拽袖子、推搡、揪领子
+- 强情绪特写：角色崩溃大哭、愤怒瞪眼、震惊表情、痛苦捂脸
+- 戏剧性事件：门被踹开、文件摔桌上、手机砸地上
+禁止使用：大空镜、全景建立场景、缓慢环境描写、无动作的旁白开场
+
+【对白规范——情感层次是关键】
+- 每句10-30字，情感丰富，可拆成多句表达
+- 必带情绪括号，可叠加多层：角色名（隐忍→崩溃）：对白
+- 对白要有起承转合：试探 → 压抑 → 爆发 → 后悔/决绝
+- 用停顿、断句制造张力："我以为……（停顿）我以为你会懂。"
+- 每人连续对白不超过3句，中间穿插动作或对方反应
+- 避免说教、解释剧情、信息性对白
+
+【△动作规范】
+- 占全文≥30%，是剧本骨架
+- 每行一个具体动作或镜头
+- 动作与对白紧密交织：△张总猛拍桌，震得茶杯翻倒。 → 紧接对白
+- 用镜头语言：△镜头特写XX颤抖的手、△推镜头至XX眼中泪光……
+
+【VO/OS规范】
+- 每场≤2条
+- 仅用于关键转折或无法言说的心理
+- 禁止用VO交代剧情背景
+
+输出示例（仅示意格式与对白层次）：
+{episode_number}-1
+地点：日 内 办公室
+人物：李明 张总
+△张总猛拍桌，文件飞散，茶杯震翻。
+张总（暴怒）：三十万！公司账上的三十万！你敢说不知道？！
+△李明僵在椅上，嘴唇动了动，没出声。
+张总（逼近，压低声音）：从小到大，你哪件事瞒得过我？这次，也一样。
+△李明缓缓抬头，眼眶泛红。
+李明（隐忍→颤抖）：爸……我以为你会懂。我以为，你至少会问一句我为什么要这么做。
+△张总愣住。
+李明（决绝）：三十万是给妈的。她在医院等着手术，而您——忙着开这间破公司。
+△张总脸色骤变。
+
+直接从 {episode_number}-1 开始输出，无任何前缀解释：""",
     },
     "expand": {
         "system": "你是一位专业的解说漫剧本撰写师，擅长将简要概述扩展为详细、生动的解说漫内容。你的写作风格应当：内容详实、信息准确、语言流畅、适合配音和视觉呈现。",
@@ -173,7 +243,7 @@ DYNAMIC_PROMPTS = {
 {history}
 
 请生成一份 JSON 格式的简要大纲，要求：
-1. 生成 {episode_count} 集的剧情大纲，覆盖故事的开端、发展、高潮、结局
+1. 必须生成恰好 {episode_count} 集，不能多也不能少，覆盖故事的开端、发展、高潮、结局
 2. 每集的 content 必须包含三部分：①承接上集（本集从什么状态/情境开始，第一集写"开篇"）②本集核心剧情 ③本集结尾状态（人物处境、悬念或转折点）
 3. 确保相邻两集的"结尾状态"与下一集的"承接上集"严格对应，不能出现断裂
 4. 节奏合理，各阶段集数分配得当
@@ -195,6 +265,31 @@ JSON 结构如下：
 }}
 
 注意：只输出 JSON，不要有其他内容。""",
+    },
+    "episode_content": {
+        "system": "你是一位专业的动态漫剧本撰写师，擅长将集概要展开为完整的叙事内容。你直接输出纯文本剧本，不输出 JSON，不使用结构化标签。",
+        "user": """剧本信息：
+标题：{title}
+总体概述：{outline_summary}
+主要角色：{main_characters}
+核心冲突：{core_conflict}
+风格基调：{style_tone}
+
+当前集位置：{episode_position}
+前一集：{prev_episode}
+当前集概要：{current_episode}
+后一集：{next_episode}
+
+请将当前集扩展为一段完整的剧本文本，要求：
+1. 800-1500 字
+2. 包含自然穿插的对白、动作描写、心理活动和环境描写
+3. 从"前一集"的结尾状态自然衔接开始，不要凭空切换
+4. 结尾必须与"后一集"的开头衔接，留好过渡
+5. 不要使用【场景】【对白】【动作】等结构化标签
+6. 不要分场景，一气呵成
+7. 对白自然流畅，符合人物性格
+
+直接输出完整的剧本内容，不要有任何前缀或解释：""",
     },
     "expand": {
         "system": "你是一位专业的动态漫剧本撰写师，擅长将场景概述扩展为生动的对白和动作描述。你的写作应当：对白自然流畅、符合人物性格；动作描述清晰、画面感强；情节紧凑、节奏感强。",
@@ -245,6 +340,42 @@ def _get_prompts(script_type: str) -> Dict[str, Dict[str, str]]:
     if script_type == "explanatory":
         return EXPLANATORY_PROMPTS
     return DYNAMIC_PROMPTS
+
+
+def _build_episode_system_prompt(
+    base_system: str,
+    script_type: str,
+) -> str:
+    """
+    为 episode_content 构建三层 system prompt：
+    1. 原始规则（base_system）
+    2. 反 AI 味清单（追加到末尾）
+    """
+    from app.services.style_guard import get_style_guard
+
+    sg = get_style_guard()
+    anti_slop = sg.get_anti_slop_rules()
+    if anti_slop:
+        return f"{base_system}\n\n{anti_slop}"
+    return base_system
+
+
+def _build_episode_user_prompt(
+    base_user: str,
+    script_type: str,
+) -> str:
+    """
+    为 episode_content 构建三层 user prompt：
+    1. 原始生成指令（base_user）
+    2. <examples> 范本+金句（追加到末尾）
+    """
+    from app.services.style_guard import get_style_guard
+
+    sg = get_style_guard()
+    style_ctx = sg.build_style_context(script_type)
+    if style_ctx:
+        return f"{base_user}\n\n{style_ctx}"
+    return base_user
 
 
 def calc_outline_max_tokens(episode_count: int) -> int:
@@ -545,25 +676,17 @@ class ScriptAIService:
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["outline"]
 
-        # 动态漫使用 episode_count 占位符，解说漫不需要
-        if script_type == "dynamic":
-            prompt = prompt_entry["user"].format(
-                title=title,
-                concept=concept or "（未提供）",
-                history=_build_history_text(history),
-                episode_count=episode_count,
-            )
-            # 动态计算 max_tokens
-            dynamic_max_tokens = calc_outline_max_tokens(episode_count)
-            original_max_tokens = self.max_tokens
-            self.max_tokens = max(self.max_tokens, dynamic_max_tokens)
-        else:
-            prompt = prompt_entry["user"].format(
-                title=title,
-                concept=concept or "（未提供）",
-                history=_build_history_text(history),
-            )
-            original_max_tokens = self.max_tokens
+        # 动态漫和解说漫都使用 episode_count 占位符
+        prompt = prompt_entry["user"].format(
+            title=title,
+            concept=concept or "（未提供）",
+            history=_build_history_text(history),
+            episode_count=episode_count,
+        )
+        # 动态计算 max_tokens
+        dynamic_max_tokens = calc_outline_max_tokens(episode_count)
+        original_max_tokens = self.max_tokens
+        self.max_tokens = max(self.max_tokens, dynamic_max_tokens)
 
         system_prompt = self._get_system_prompt("outline", script_type)
         messages = self._build_messages(prompt, system_prompt)
@@ -585,33 +708,11 @@ class ScriptAIService:
         current_episode: Dict[str, Any],
         prev_episode: Optional[Dict[str, Any]],
         next_episode: Optional[Dict[str, Any]],
+        script_type: str = "dynamic",
     ) -> AsyncGenerator[str, None]:
-        """生成单集完整内容（SSE 流式，输出纯文本）"""
-        prompt_entry = {
-            "system": "你是一位专业的动态漫剧本撰写师，擅长将集概要展开为完整的叙事内容。你直接输出纯文本剧本，不输出 JSON，不使用结构化标签。",
-            "user": """剧本信息：
-标题：{title}
-总体概述：{outline_summary}
-主要角色：{main_characters}
-核心冲突：{core_conflict}
-风格基调：{style_tone}
-
-当前集位置：{episode_position}
-前一集：{prev_episode}
-当前集概要：{current_episode}
-后一集：{next_episode}
-
-请将当前集扩展为一段完整的剧本文本，要求：
-1. 800-1500 字
-2. 包含自然穿插的对白、动作描写、心理活动和环境描写
-3. 从"前一集"的结尾状态自然衔接开始，不要凭空切换
-4. 结尾必须与"后一集"的开头衔接，留好过渡
-5. 不要使用【场景】【对白】【动作】等结构化标签
-6. 不要分场景，一气呵成
-7. 对白自然流畅，符合人物性格
-
-直接输出完整的剧本内容，不要有任何前缀或解释：""",
-        }
+        """生成单集/单段完整内容（SSE 流式，输出纯文本）"""
+        prompts = _get_prompts(script_type)
+        prompt_entry = prompts["episode_content"]
 
         def _ep_str(ep: Optional[Dict[str, Any]]) -> str:
             if not ep:
@@ -629,18 +730,29 @@ class ScriptAIService:
         else:
             stage = "结局阶段"
 
-        prompt = prompt_entry["user"].format(
-            title=title,
-            outline_summary=outline_summary,
-            main_characters="、".join(main_characters) if main_characters else "（未指定）",
-            core_conflict=core_conflict or "（未指定）",
-            style_tone=style_tone or "（未指定）",
-            episode_position=f"第 {episode_index + 1} 集 / 共 {total_episodes} 集，处于{stage}",
-            prev_episode=_ep_str(prev_episode),
-            current_episode=_ep_str(current_episode),
-            next_episode=_ep_str(next_episode),
-        )
+        unit_name = "集" if script_type == "dynamic" else "段落"
+        format_kwargs: Dict[str, Any] = {
+            "title": title,
+            "outline_summary": outline_summary,
+            "main_characters": "、".join(main_characters) if main_characters else "（未指定）",
+            "core_conflict": core_conflict or "（未指定）",
+            "style_tone": style_tone or "（未指定）",
+            "episode_position": f"第 {episode_index + 1} {unit_name} / 共 {total_episodes} {unit_name}，处于{stage}",
+            "episode_number": episode_index + 1,
+            "prev_episode": _ep_str(prev_episode),
+            "current_episode": _ep_str(current_episode),
+            "next_episode": _ep_str(next_episode),
+        }
+
+        prompt = prompt_entry["user"].format(**format_kwargs)
         system_prompt = prompt_entry["system"]
+
+        # 注入反 AI 味清单到 system prompt
+        system_prompt = _build_episode_system_prompt(system_prompt, script_type)
+
+        # 注入范本+金句到 user prompt
+        prompt = _build_episode_user_prompt(prompt, script_type)
+
         messages = self._build_messages(prompt, system_prompt)
         async for chunk in self._stream(messages):
             yield chunk
