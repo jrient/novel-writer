@@ -69,18 +69,24 @@ def extract_from_huangzi():
 
 
 def _clean_scene_text(text):
-    """Remove character description lines embedded in scene text.
-    Lines like '（杜涛：男/白须+黑色官袍/威严的太子少傅）' are stage directions,
-    not part of the actual script body."""
+    """Remove character description and stage direction lines embedded in scene text."""
     lines = text.splitlines()
     cleaned = []
     for line in lines:
+        stripped = line.strip()
         # Skip lines with character descriptions containing + separator
-        if re.search(r"[（(].*：.*\+.*[）)]", line):
+        if re.search(r"[（(].*：.*\+.*[）)]", stripped):
             continue
-        # Skip lines like "出场人物：..." or "人物：..."
-        if re.match(r"^\s*(出场)?人物[：:]", line):
+        # Skip lines like "出场人物：..." or "人物：..." (standalone)
+        if re.match(r"^\s*(出场)?人物[：:]", stripped):
             continue
+        # Skip lines that are scene headers with character list
+        # e.g. "场景：天界  日/内  出场人物：昭昭、天君..."
+        if "出场人物" in stripped:
+            continue
+        # Remove embedded parenthetical notes like "（注：...）" from action lines
+        # e.g. "△ 豪华宽敞的餐厅里...（注：桑柔柔不出声，不露脸。）"
+        line = re.sub(r"[（(]注[：:].*?[）)]", "", line)
         cleaned.append(line)
     return "\n".join(cleaned)
 
@@ -193,7 +199,7 @@ def extract_from_scripts_json():
             else:
                 end = start + 600
 
-            excerpt = content[start:end].strip()
+            excerpt = _clean_scene_text(content[start:end].strip())
             excerpt = _truncate_at_line(excerpt, 500)
 
             if len(excerpt) > 200:
