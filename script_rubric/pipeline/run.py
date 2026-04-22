@@ -124,6 +124,28 @@ async def cmd_incremental(args):
     logger.info(f"Re-synthesizing handbook v{version} with {len(all_archives)} total archives...")
     await synthesize_all(all_archives, version=version, confirmed_titles=confirmed_titles)
 
+    # Run backtest on holdout set
+    train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
+
+    logger.info(f"Step 6: Backtesting on {len(test)} holdout scripts...")
+    metrics = await run_backtest(test, version=version)
+    logger.info(f"  Status accuracy: {metrics.status_accuracy:.0%}")
+    logger.info(f"  Range accuracy: {metrics.range_accuracy:.0%}")
+    logger.info(f"  MAE: {metrics.mae:.1f}")
+    logger.info(f"  Critical miss rate: {metrics.critical_miss_rate:.0%}")
+
+    all_pass = all([
+        metrics.status_accuracy >= BACKTEST_STATUS_ACCURACY,
+        metrics.range_accuracy >= BACKTEST_RANGE_ACCURACY,
+        metrics.mae <= BACKTEST_MAE_THRESHOLD,
+        metrics.critical_miss_rate <= BACKTEST_CRITICAL_MISS_RATE,
+    ])
+
+    if all_pass:
+        logger.info("=== PASS: Handbook meets all thresholds ===")
+    else:
+        logger.warning("=== FAIL: Handbook did not meet thresholds ===")
+
     logger.info("=== Incremental run complete ===")
 
 

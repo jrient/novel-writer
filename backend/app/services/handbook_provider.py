@@ -4,10 +4,13 @@ HandbookProvider — 加载并解析剧本评审手册（handbook_vN.md）
 """
 import logging
 import re
+import time
 from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+_CHECK_INTERVAL = 30  # 每 30 秒检查一次是否有新版本
 
 
 class HandbookProvider:
@@ -89,7 +92,8 @@ class HandbookProvider:
     def load(self):
         """发现并加载最新版本 handbook"""
         try:
-            files = sorted(self.handbook_dir.glob("handbook_v*.md"))
+            files = sorted(self.handbook_dir.glob("handbook_v*.md"),
+                           key=lambda f: int(re.search(r"v(\d+)", f.stem).group(1)))
             if not files:
                 logger.warning("No handbook files found in %s", self.handbook_dir)
                 return
@@ -247,10 +251,27 @@ class HandbookProvider:
 
 # Module-level singleton, loaded on import
 _instance: Optional[HandbookProvider] = None
+_last_check_time: float = 0
 
 
 def get_handbook() -> HandbookProvider:
-    global _instance
+    global _instance, _last_check_time
     if _instance is None:
         _instance = HandbookProvider()
+        _last_check_time = time.time()
+        return _instance
+
+    # 每 _CHECK_INTERVAL 秒检查一次是否有新版本
+    now = time.time()
+    if now - _last_check_time > _CHECK_INTERVAL:
+        _last_check_time = now
+        files = sorted(_instance.handbook_dir.glob("handbook_v*.md"),
+                       key=lambda f: int(re.search(r"v(\d+)", f.stem).group(1)))
+        if files:
+            m = re.search(r"v(\d+)", files[-1].stem)
+            latest_version = f"v{m.group(1)}" if m else "unknown"
+            if latest_version != _instance._version:
+                logger.info(f"Auto-reloading handbook: {_instance._version} -> {latest_version}")
+                _instance.reload()
+
     return _instance

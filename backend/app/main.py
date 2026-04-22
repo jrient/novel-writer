@@ -34,13 +34,18 @@ from app.routers import (
     drama_router,
     expansion_router,
 )
+from app.routers.feishu_sync import router as feishu_sync_router
+from app.routers.rubric_pipeline import router as rubric_pipeline_router
+from app.services.scheduled_task import start_scheduler, stop_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理：启动时初始化数据库"""
+    """应用生命周期管理：启动时初始化数据库、启动定时任务"""
     await init_db()
+    await start_scheduler()
     yield
+    await stop_scheduler()
 
 
 # 配置日志
@@ -129,6 +134,8 @@ app.include_router(note_router)
 app.include_router(admin_router)
 app.include_router(drama_router)
 app.include_router(expansion_router)
+app.include_router(feishu_sync_router)
+app.include_router(rubric_pipeline_router)
 
 
 @app.get("/")
