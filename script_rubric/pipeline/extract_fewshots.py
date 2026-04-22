@@ -36,7 +36,7 @@ def extract_from_huangzi():
             end = markers[1][0]
         else:
             end = start + 500
-        excerpt = content[start:end].strip()
+        excerpt = _clean_scene_text(content[start:end].strip())
         # Truncate to ~400 chars at line boundary
         excerpt = _truncate_at_line(excerpt, 400)
         samples.append({
@@ -53,7 +53,7 @@ def extract_from_huangzi():
             end = markers[2][0]
         else:
             end = start + 400
-        excerpt = content[start:end].strip()
+        excerpt = _clean_scene_text(content[start:end].strip())
         excerpt = _truncate_at_line(excerpt, 300)
         samples.append({
             "title": "动态漫：皇子",
@@ -66,6 +66,23 @@ def extract_from_huangzi():
     golden_quotes = _extract_quotes_from_huangzi(content)
 
     return samples, golden_quotes
+
+
+def _clean_scene_text(text):
+    """Remove character description lines embedded in scene text.
+    Lines like '（杜涛：男/白须+黑色官袍/威严的太子少傅）' are stage directions,
+    not part of the actual script body."""
+    lines = text.splitlines()
+    cleaned = []
+    for line in lines:
+        # Skip lines with character descriptions containing + separator
+        if re.search(r"[（(].*：.*\+.*[）)]", line):
+            continue
+        # Skip lines like "出场人物：..." or "人物：..."
+        if re.match(r"^\s*(出场)?人物[：:]", line):
+            continue
+        cleaned.append(line)
+    return "\n".join(cleaned)
 
 
 def _truncate_at_line(text, max_chars):
@@ -86,6 +103,13 @@ def _extract_quotes_from_huangzi(content):
     for line in content.splitlines():
         line = line.strip()
         if not line:
+            continue
+
+        # Skip lines containing character descriptions (with + separator, common in stage directions)
+        if "+" in line and "：" in line:
+            continue
+        # Skip lines with role description patterns like "(角色：外貌/服装/身份)"
+        if re.search(r"[（(].*：.*[+/）)]", line):
             continue
 
         # △ action lines: start with △, 10-60 chars
