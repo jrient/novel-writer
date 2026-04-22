@@ -2,7 +2,7 @@
  * AI 服务 API
  * 支持 SSE 流式调用
  */
-import { getAccessToken } from './request'
+import { authedFetch } from './request'
 
 export interface PinnedContext {
   characters: number[]
@@ -66,13 +66,7 @@ export interface AIConfig {
  * 获取 AI 配置
  */
 export async function getAIConfig(): Promise<AIConfig> {
-  const headers: Record<string, string> = {}
-  const token = getAccessToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  const resp = await fetch('/api/v1/ai/config', { headers })
+  const resp = await authedFetch('/api/v1/ai/config')
   if (!resp.ok) throw new Error('获取 AI 配置失败')
   return resp.json()
 }
@@ -97,15 +91,9 @@ export function streamGenerate(
 ): AbortController {
   const controller = new AbortController()
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const token = getAccessToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  fetch(`/api/v1/projects/${projectId}/ai/generate`, {
+  authedFetch(`/api/v1/projects/${projectId}/ai/generate`, {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
     signal: controller.signal,
   })
@@ -177,15 +165,9 @@ export async function contextPreview(
   projectId: number,
   data: AIGenerateRequest,
 ): Promise<{ entities: ContextEntity[]; suggestions: string }> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const token = getAccessToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  const resp = await fetch(`/api/v1/projects/${projectId}/ai/context-preview`, {
+  const resp = await authedFetch(`/api/v1/projects/${projectId}/ai/context-preview`, {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
 
@@ -208,15 +190,9 @@ export function streamBatchGenerate(
 ): AbortController {
   const controller = new AbortController()
 
-  const batchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
-  const batchToken = getAccessToken()
-  if (batchToken) {
-    batchHeaders['Authorization'] = `Bearer ${batchToken}`
-  }
-
-  fetch(`/api/v1/projects/${projectId}/ai/batch-generate`, {
+  authedFetch(`/api/v1/projects/${projectId}/ai/batch-generate`, {
     method: 'POST',
-    headers: batchHeaders,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
     signal: controller.signal,
   })

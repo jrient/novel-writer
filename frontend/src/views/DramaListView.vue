@@ -109,6 +109,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { ArrowLeft, Plus, Edit, Delete, MoreFilled, Download, Document, Clock } from '@element-plus/icons-vue'
 import { useDramaStore } from '@/stores/drama'
 import { getExportUrl } from '@/api/drama'
+import { authedFetch } from '@/api/request'
 import type { ScriptProjectListItem } from '@/api/drama'
 
 const router = useRouter()
@@ -187,10 +188,7 @@ function handleCommand(command: string, project: ScriptProjectListItem) {
 async function downloadExport(id: number, format: 'txt' | 'markdown', title: string) {
   try {
     const url = getExportUrl(id, format)
-    const token = localStorage.getItem('access_token')
-    const headers: Record<string, string> = {}
-    if (token) headers['Authorization'] = `Bearer ${token}`
-    const resp = await fetch(url, { headers })
+    const resp = await authedFetch(url)
     if (!resp.ok) throw new Error('导出失败')
     const blob = await resp.blob()
     const a = document.createElement('a')

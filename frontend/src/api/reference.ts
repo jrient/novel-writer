@@ -1,4 +1,4 @@
-import request, { getAccessToken } from './request'
+import request, { authedFetch } from './request'
 
 export interface ReferenceNovel {
   id: number
@@ -84,15 +84,8 @@ export async function uploadReference(file: File, metadata?: {
   if (metadata?.notes) formData.append('notes', metadata.notes)
   if (metadata?.rating) formData.append('rating', String(metadata.rating))
 
-  const headers: Record<string, string> = {}
-  const token = getAccessToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  const resp = await fetch('/api/v1/references/upload', {
+  const resp = await authedFetch('/api/v1/references/upload', {
     method: 'POST',
-    headers,
     body: formData,
   })
   if (!resp.ok) {

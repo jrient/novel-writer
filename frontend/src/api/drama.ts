@@ -2,8 +2,7 @@
  * 剧本模块 API
  * 支持 REST CRUD 和 SSE 流式调用
  */
-import request from './request'
-import { getAccessToken } from './request'
+import request, { authedFetch } from './request'
 
 // ── Types ──
 
@@ -360,15 +359,10 @@ function _streamRequest(
   onError: (error: string) => void,
 ): AbortController {
   const controller = new AbortController()
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const token = getAccessToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
 
-  fetch(url, {
+  authedFetch(url, {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
     signal: controller.signal,
   })

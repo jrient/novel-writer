@@ -2,8 +2,7 @@
  * 扩写模块 API
  * 支持 REST CRUD 和 SSE 流式调用
  */
-import request from './request'
-import { getAccessToken } from './request'
+import request, { authedFetch } from './request'
 
 // ── Types ──
 
@@ -302,11 +301,6 @@ function _expansionStreamRequest(
   timeoutMs: number = 600000, // 默认 10 分钟超时（长文本分析可能需要）
 ): AbortController {
   const controller = new AbortController()
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const token = getAccessToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
 
   // 设置整体超时
   const timeoutId = setTimeout(() => {
@@ -314,9 +308,9 @@ function _expansionStreamRequest(
     callbacks.onError?.('请求超时，文本过长或服务器响应过慢')
   }, timeoutMs)
 
-  fetch(url, {
+  authedFetch(url, {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
     signal: controller.signal,
     credentials: 'same-origin',

@@ -197,6 +197,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDramaStore } from '@/stores/drama'
 import { getExportUrl } from '@/api/drama'
+import { authedFetch } from '@/api/request'
 import { createNodeVersion } from '@/api/drama'
 import type { ScriptNode } from '@/api/drama'
 import ScriptOutlineTree from '@/components/drama/ScriptOutlineTree.vue'
@@ -456,10 +457,7 @@ async function handleVersionRestored() {
 async function handleExport(format: 'txt' | 'markdown') {
   try {
     const url = getExportUrl(projectId.value, format)
-    const token = localStorage.getItem('access_token')
-    const headers: Record<string, string> = {}
-    if (token) headers['Authorization'] = `Bearer ${token}`
-    const resp = await fetch(url, { headers })
+    const resp = await authedFetch(url)
     if (!resp.ok) throw new Error()
     const blob = await resp.blob()
     const a = document.createElement('a')

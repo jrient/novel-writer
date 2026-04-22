@@ -54,6 +54,69 @@ function isAuthPage(): boolean {
   return path === '/login' || path === '/register'
 }
 
+// 共享 refresh 流程：多个请求同时 401 时只发一次刷新请求
+let refreshInFlight: Promise<string | null> | null = null
+
+async function refreshAccessTokenShared(): Promise<string | null> {
+  if (refreshInFlight) return refreshInFlight
+  refreshInFlight = (async () => {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) return null
+    try {
+      const resp = await axios.post('/api/v1/auth/refresh', {}, {
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      })
+      const { access_token, refresh_token } = resp.data
+      setTokens(access_token, refresh_token)
+      return access_token as string
+    } catch {
+      return null
+    }
+  })()
+  try {
+    return await refreshInFlight
+  } finally {
+    refreshInFlight = null
+  }
+}
+
+/**
+ * 带鉴权的 fetch。用于 SSE 流式 / blob 下载等 axios 不适用的场景。
+ * - 自动从 localStorage 读取 access_token 写入 Authorization
+ * - 收到 401 时通过 refresh_token 刷新并自动重试一次
+ * - 刷新失败则清空登录态并跳转 /login
+ */
+export async function authedFetch(
+  url: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const buildHeaders = (token: string | null): Headers => {
+    const headers = new Headers(init.headers)
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`)
+    }
+    return headers
+  }
+
+  let response = await fetch(url, { ...init, headers: buildHeaders(getAccessToken()) })
+
+  if (response.status === 401) {
+    const newToken = await refreshAccessTokenShared()
+    if (newToken) {
+      response = await fetch(url, { ...init, headers: buildHeaders(newToken) })
+      if (response.status === 401) {
+        clearTokens()
+        if (!isAuthPage()) window.location.href = '/login'
+      }
+    } else {
+      clearTokens()
+      if (!isAuthPage()) window.location.href = '/login'
+    }
+  }
+
+  return response
+}
+
 // 请求拦截器 - 添加 Token
 instance.interceptors.request.use(
   (config) => {
