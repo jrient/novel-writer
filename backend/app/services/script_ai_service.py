@@ -673,6 +673,8 @@ class ScriptAIService:
         concept: Optional[str],
         history: List[Dict[str, Any]],
         episode_count: int = 20,
+        genre: str = "",
+        handbook_context: str = "",
     ) -> AsyncGenerator[str, None]:
         """生成剧本大纲（SSE 流式）"""
         prompts = _get_prompts(script_type)
@@ -685,12 +687,23 @@ class ScriptAIService:
             history=_build_history_text(history),
             episode_count=episode_count,
         )
+        # 注入 handbook 到 system prompt（如果提供）
+        extra = ""
+        if handbook_context:
+            extra = f"\n\n{handbook_context}"
+        if genre and genre not in extra:
+            extra += f"\n\n【项目题材】{genre}"
+
         # 动态计算 max_tokens
         dynamic_max_tokens = calc_outline_max_tokens(episode_count)
         original_max_tokens = self.max_tokens
         self.max_tokens = max(self.max_tokens, dynamic_max_tokens)
 
         system_prompt = self._get_system_prompt("outline", script_type)
+        if extra and system_prompt:
+            system_prompt = f"{system_prompt}{extra}"
+        elif extra:
+            system_prompt = extra
         messages = self._build_messages(prompt, system_prompt)
         try:
             async for chunk in self._stream(messages):

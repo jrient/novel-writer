@@ -729,6 +729,9 @@ async def session_generate_outline(
             {"role": "user", "content": f"确认的创作信息：{summary_text}\n请严格基于以上确认信息生成大纲。"},
         ]
     _proj_settings = (project.metadata_ or {}).get("settings", {})
+    genre = _guess_genre_from_concept(project.concept) if project.concept else ""
+    handbook = get_handbook()
+    handbook_context = handbook.get_question_guidance(genre)
     ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
@@ -740,6 +743,8 @@ async def session_generate_outline(
                 concept=project.concept,
                 history=history,
                 episode_count=episode_count,
+                genre=genre,
+                handbook_context=handbook_context,
             ):
                 full_response += chunk
                 yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
