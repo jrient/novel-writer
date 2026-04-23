@@ -69,6 +69,35 @@ def test_generate_episode_content_accepts_script_type():
     assert "script_type" in sig.parameters
 
 
+def test_generate_episode_content_accepts_genre():
+    """generate_episode_content 接受 genre 参数"""
+    import inspect
+    sig = inspect.signature(ScriptAIService.generate_episode_content)
+    assert "genre" in sig.parameters
+
+
+def test_build_episode_user_prompt_passes_genre(monkeypatch):
+    """_build_episode_user_prompt 把 genre 透传给 StyleGuard.build_style_context"""
+    from app.services import script_ai_service
+
+    captured = {}
+
+    class FakeGuard:
+        def build_style_context(self, script_type, genre=None):
+            captured["script_type"] = script_type
+            captured["genre"] = genre
+            return "<examples>FAKE</examples>"
+        def get_anti_slop_rules(self):
+            return ""
+
+    monkeypatch.setattr(script_ai_service, "get_style_guard", lambda: FakeGuard())
+
+    result = script_ai_service._build_episode_user_prompt("BASE", "explanatory", genre="女频")
+    assert "FAKE" in result
+    assert captured["script_type"] == "explanatory"
+    assert captured["genre"] == "女频"
+
+
 def test_calc_max_tokens_for_episode_count():
     """max_tokens 根据集数动态计算"""
     from app.services.script_ai_service import calc_outline_max_tokens

@@ -10,6 +10,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import httpx
 
 from app.core.config import settings
+from app.services.style_guard import get_style_guard
 
 logger = logging.getLogger(__name__)
 
@@ -363,16 +364,17 @@ def _build_episode_system_prompt(
 def _build_episode_user_prompt(
     base_user: str,
     script_type: str,
+    genre: Optional[str] = None,
 ) -> str:
     """
     为 episode_content 构建三层 user prompt：
     1. 原始生成指令（base_user）
     2. <examples> 范本+金句（追加到末尾）
-    """
-    from app.services.style_guard import get_style_guard
 
+    优先抽取同 genre 范本，不足时回退同 script_type 全池。
+    """
     sg = get_style_guard()
-    style_ctx = sg.build_style_context(script_type)
+    style_ctx = sg.build_style_context(script_type, genre=genre)
     if style_ctx:
         return f"{base_user}\n\n{style_ctx}"
     return base_user
@@ -709,6 +711,7 @@ class ScriptAIService:
         prev_episode: Optional[Dict[str, Any]],
         next_episode: Optional[Dict[str, Any]],
         script_type: str = "dynamic",
+        genre: Optional[str] = None,
     ) -> AsyncGenerator[str, None]:
         """生成单集/单段完整内容（SSE 流式，输出纯文本）"""
         prompts = _get_prompts(script_type)
@@ -751,7 +754,7 @@ class ScriptAIService:
         system_prompt = _build_episode_system_prompt(system_prompt, script_type)
 
         # 注入范本+金句到 user prompt
-        prompt = _build_episode_user_prompt(prompt, script_type)
+        prompt = _build_episode_user_prompt(prompt, script_type, genre=genre)
 
         messages = self._build_messages(prompt, system_prompt)
         async for chunk in self._stream(messages):
