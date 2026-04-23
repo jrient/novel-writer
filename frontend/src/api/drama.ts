@@ -132,6 +132,9 @@ export interface SessionSummary {
   场景设定: string
   风格基调: string
   目标集数: number
+  主角弱点?: string
+  反派逻辑?: string
+  开局钩子?: string
 }
 
 export interface ScriptSession {

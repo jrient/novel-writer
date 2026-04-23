@@ -176,6 +176,9 @@ class SessionSummaryResponse(BaseModel):
     场景设定: str
     风格基调: str
     目标集数: int = Field(default=20, ge=1, description="目标集数，仅动态漫有效")
+    主角弱点: Optional[str] = Field(default=None, description="主角的致命弱点/恐惧/软肋")
+    反派逻辑: Optional[str] = Field(default=None, description="反派为什么觉得自己是对的")
+    开局钩子: Optional[str] = Field(default=None, description="第一集的悬念/反转/迫在眉睫的损失")
 
 
 # --- AI 操作请求 ---

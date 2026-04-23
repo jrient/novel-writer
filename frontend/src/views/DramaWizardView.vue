@@ -108,6 +108,36 @@
             </div>
 
             <div class="summary-section">
+              <h4>主角弱点</h4>
+              <el-input
+                v-model="editableSummary.主角弱点"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 3 }"
+                placeholder="主角的致命弱点/恐惧/软肋，让读者产生代入感。例：他很强，但他害怕失去仅存的家人……"
+              />
+            </div>
+
+            <div class="summary-section">
+              <h4>反派逻辑</h4>
+              <el-input
+                v-model="editableSummary.反派逻辑"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 3 }"
+                placeholder="反派为什么觉得自己是对的，不是纯坏。例：他认为优胜劣汰是自然法则，弱肉强食天经地义……"
+              />
+            </div>
+
+            <div class="summary-section">
+              <h4>开局钩子</h4>
+              <el-input
+                v-model="editableSummary.开局钩子"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 3 }"
+                placeholder="第一集的悬念/反转/迫在眉睫的损失，吸引读者继续看。例：故事从一场意外开始，主角发现自己被陷害，必须在24小时内找到证据……"
+              />
+            </div>
+
+            <div class="summary-section">
               <h4>场景设定</h4>
               <el-input
                 v-model="editableSummary.场景设定"
@@ -243,6 +273,9 @@ const editableSummary = reactive<SessionSummary>({
   故事概要: '',
   主要角色: [],
   核心冲突: '',
+  主角弱点: '',
+  反派逻辑: '',
+  开局钩子: '',
   场景设定: '',
   风格基调: '',
   目标集数: 20,
@@ -301,6 +334,9 @@ function syncEditableSummary(summary: SessionSummary) {
   editableSummary.故事概要 = summary.故事概要 || ''
   editableSummary.主要角色 = [...(summary.主要角色 || [])]
   editableSummary.核心冲突 = summary.核心冲突 || ''
+  editableSummary.主角弱点 = summary.主角弱点 || ''
+  editableSummary.反派逻辑 = summary.反派逻辑 || ''
+  editableSummary.开局钩子 = summary.开局钩子 || ''
   editableSummary.场景设定 = summary.场景设定 || ''
   editableSummary.风格基调 = summary.风格基调 || ''
   editableSummary.目标集数 = summary.目标集数 ?? 20
