@@ -857,6 +857,7 @@ async def session_expand_episode(
     outline_summary = session.outline_draft.get("summary", "")
 
     _proj_settings = (project.metadata_ or {}).get("settings", {})
+    genre = _guess_genre_from_concept(project.concept) if project.concept else ""
     ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
@@ -874,6 +875,7 @@ async def session_expand_episode(
                 prev_episode=prev_ep,
                 next_episode=next_ep,
                 script_type=project.script_type,
+                genre=genre,
             ):
                 full_response += chunk
                 yield f"data: {json.dumps({'text': chunk, 'type': 'text'})}\n\n"
