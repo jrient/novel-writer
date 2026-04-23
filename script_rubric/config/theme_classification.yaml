@@ -1,0 +1,58 @@
+# 人工主题白名单：标题精确匹配优先于关键字规则
+# theme_tag 取值: urban | rebirth_modern | ai_realperson | xianxia | historical | family | cute_baby
+# script_type 映射:
+#   dynamic:      xianxia, historical, cute_baby(玄幻向)
+#   explanatory:  urban, rebirth_modern, ai_realperson, family, cute_baby(都市向)
+
+overrides:
+  # --- 明确解说漫方向 ---
+  "改编Ai真人剧《谋妃千岁》大纲小传前三集": {theme_tag: ai_realperson, script_type: explanatory}
+  "改编AI真人剧《嫡女贵凰：重生毒妃狠绝色》（1）": {theme_tag: ai_realperson, script_type: explanatory}
+  "改编AI真人剧《一世容安》一卡": {theme_tag: ai_realperson, script_type: explanatory}
+  "改编AI真人剧《日久成瘾：撩妻总裁轻点宠》 人设大纲一卡": {theme_tag: ai_realperson, script_type: explanatory}
+  "改编ai真人剧《帝国老公狠狠爱》人设+大纲+一卡": {theme_tag: ai_realperson, script_type: explanatory}
+  "《八零福星俏娇妻》": {theme_tag: rebirth_modern, script_type: explanatory}
+  "改编ai真人剧《重生之小三疯了我笑了》人设大纲+前三集": {theme_tag: rebirth_modern, script_type: explanatory}
+  "ai仿真人 我走后，他们的橙子喂了猪1-10": {theme_tag: family, script_type: explanatory}
+  "ai仿真人 出租狂飙1-10": {theme_tag: urban, script_type: explanatory}
+  "ai仿真人 撕碎闺蜜后，我成了靳总心尖宠1-10": {theme_tag: urban, script_type: explanatory}
+  "副本《我的蚀骨之恨你来解》1-60集完本4.7修改": {theme_tag: rebirth_modern, script_type: explanatory}
+  "【原创全本】男友全家占我房，我反手找大哥上门清理门户": {theme_tag: family, script_type: explanatory}
+  "《穿成大佬黑月光，在种田文里稳定发疯》": {theme_tag: rebirth_modern, script_type: explanatory}
+  "修改《吃了饺子后，我和婆婆同时怀孕》1-42集完本": {theme_tag: family, script_type: explanatory}
+  "定版：霜雪伴晚筝（女频虐恋）": {theme_tag: rebirth_modern, script_type: explanatory}
+  "苍苍白发对红妆（修）": {theme_tag: rebirth_modern, script_type: explanatory}
+
+  # --- 明确动态漫方向 ---
+  "动态漫：皇子": {theme_tag: xianxia, script_type: dynamic}
+  "《天降魔丸，纨绔爹爹被逼成栋梁！》": {theme_tag: xianxia, script_type: dynamic}
+  "《天降魔丸，纨绔爹爹被逼成栋梁！》1-35集(2)": {theme_tag: xianxia, script_type: dynamic}
+  "《棺边低语》前三集": {theme_tag: xianxia, script_type: dynamic}
+  "《棺边低语》一卡": {theme_tag: xianxia, script_type: dynamic}
+  "大明大纲+小传+全60集": {theme_tag: historical, script_type: dynamic}
+  "封神：只想跑路的我，被人皇偷听了1-30": {theme_tag: xianxia, script_type: dynamic}
+  "鉴宝大玩家2": {theme_tag: urban, script_type: dynamic}
+  "文道1-30": {theme_tag: xianxia, script_type: dynamic}
+  "《心术》一卡2.1": {theme_tag: urban, script_type: dynamic}
+  "《重生归来，权势滔天》1-65，完本（修改2_ 0）": {theme_tag: urban, script_type: dynamic}
+  "姐，咱家南瓜成精了！4.19 修": {theme_tag: xianxia, script_type: dynamic}
+
+  # --- 买榴莲：解说漫第一人称叙事体 ---
+  "解说漫：买榴莲": {theme_tag: urban, script_type: explanatory}
+
+# 关键字规则（仅用于不在 overrides 中的剧本）
+keyword_rules:
+  - keywords: ["AI真人", "ai真人", "AI仿真", "ai仿真", "Ai真人", "Ai仿真", "ai仿真人", "AI仿真人"]
+    theme_tag: ai_realperson
+    script_type: explanatory
+  - keywords: ["修真", "玄幻", "仙", "神", "道", "法宝", "大帝", "炼"]
+    theme_tag: xianxia
+    script_type: dynamic
+    content_check: true
+  - keywords: ["皇", "朝", "太子", "将军", "宫"]
+    theme_tag: historical
+    script_type: dynamic
+    content_check: true
+  - keywords: ["萌宝", "爹爹", "小祖宗"]
+    theme_tag: cute_baby
+    script_type: dynamic
