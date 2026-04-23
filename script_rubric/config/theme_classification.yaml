@@ -37,6 +37,9 @@ overrides:
   "《重生归来，权势滔天》1-65，完本（修改2_ 0）": {theme_tag: urban, script_type: dynamic}
   "姐，咱家南瓜成精了！4.19 修": {theme_tag: xianxia, script_type: dynamic}
 
+  "王琰《八零福星俏娇妻》": {theme_tag: rebirth_modern, script_type: explanatory}
+  "《一世容安》前20集": {theme_tag: ai_realperson, script_type: explanatory}
+
   # --- 买榴莲：解说漫第一人称叙事体 ---
   "解说漫：买榴莲": {theme_tag: urban, script_type: explanatory}
 
