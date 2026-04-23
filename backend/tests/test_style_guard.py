@@ -1,37 +1,29 @@
 """StyleGuard 服务单元测试"""
 import json
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
 
 @pytest.fixture
 def sample_dir(tmp_path):
-    """创建临时样本目录"""
     dynamic_samples = {
         "script_type": "dynamic",
         "samples": [
-            {"title": "剧本A", "excerpt": "△张总猛拍桌，文件飞散。"},
-            {"title": "剧本B", "excerpt": "△李秘书推门而入，脸色铁青。"},
-            {"title": "剧本C", "excerpt": "△王老板摔门而去，茶杯震翻在地。"},
+            {"title": "剧A", "excerpt": "△张总猛拍桌。", "genre": "男频", "theme_tag": "xianxia"},
+            {"title": "剧B", "excerpt": "△李秘书推门。", "genre": "男频", "theme_tag": "xianxia"},
+            {"title": "剧C", "excerpt": "△王老板摔门。", "genre": "女频", "theme_tag": "urban"},
         ],
-        "golden_quotes": [
-            "张总（暴怒）：三十万！你敢说不知道？！",
-            "△李秘书冷笑一声，把文件甩在桌上。",
-            "王老板（颤抖）：我……我以为你会懂。",
-            "△她眼眶红了，没说话。",
-        ],
+        "golden_quotes": ["张总（暴怒）：三十万！你敢说不知道？！"],
     }
     explanatory_samples = {
         "script_type": "explanatory",
         "samples": [
-            {"title": "买榴莲", "excerpt": "快递员敲门的时候，我正烧得浑身骨头缝都在疼。"},
+            {"title": "买榴莲", "excerpt": "快递员敲门的时候，我正烧得浑身骨头缝都在疼。", "genre": "世情", "theme_tag": "urban"},
+            {"title": "蚀骨之恨", "excerpt": "△丈夫和妹妹在灵堂上苟合。", "genre": "女频", "theme_tag": "rebirth_modern"},
+            {"title": "男友全家", "excerpt": "△许妍关门。", "genre": "女频", "theme_tag": "family"},
         ],
-        "golden_quotes": [
-            "门刚拉开一条缝。一股浓烈到令人作呕的味道，瞬间冲进鼻腔。",
-            "我扶着门框的手指骨节泛白，指甲死死抠进木头里。",
-        ],
+        "golden_quotes": ["门刚拉开一条缝。"],
     }
     (tmp_path / "style_samples_dynamic.json").write_text(
         json.dumps(dynamic_samples, ensure_ascii=False), encoding="utf-8"
@@ -47,9 +39,10 @@ def test_style_guard_loads_dynamic_samples(sample_dir):
     from app.services.style_guard import StyleGuard
     sg = StyleGuard(samples_dir=str(sample_dir))
     samples = sg.get_style_samples("dynamic")
-    assert len(samples) == 1  # 默认返回 1 段
-    assert isinstance(samples[0], str)
-    assert len(samples[0]) > 0
+    assert len(samples) == 1
+    assert isinstance(samples[0], dict)
+    assert "excerpt" in samples[0]
+    assert "genre" in samples[0]
 
 
 def test_style_guard_loads_explanatory_samples(sample_dir):
@@ -58,7 +51,7 @@ def test_style_guard_loads_explanatory_samples(sample_dir):
     sg = StyleGuard(samples_dir=str(sample_dir))
     samples = sg.get_style_samples("explanatory")
     assert len(samples) == 1
-    assert isinstance(samples[0], str)
+    assert isinstance(samples[0], dict)
 
 
 def test_style_guard_random_rotation(sample_dir):
@@ -68,8 +61,7 @@ def test_style_guard_random_rotation(sample_dir):
     results = set()
     for _ in range(10):
         samples = sg.get_style_samples("dynamic", count=2)
-        results.add(tuple(samples))
-    # 至少有 2 种不同组合
+        results.add(tuple(s["title"] for s in samples))
     assert len(results) >= 2
 
 
@@ -78,7 +70,7 @@ def test_style_guard_returns_all_when_count_exceeds(sample_dir):
     from app.services.style_guard import StyleGuard
     sg = StyleGuard(samples_dir=str(sample_dir))
     samples = sg.get_style_samples("dynamic", count=10)
-    assert len(samples) == 3  # 只有 3 段样本
+    assert len(samples) == 3
 
 
 def test_style_guard_get_golden_quotes(sample_dir):
@@ -98,7 +90,6 @@ def test_style_guard_get_anti_slop_rules():
     rules = sg.get_anti_slop_rules()
     assert isinstance(rules, str)
     assert len(rules) > 100
-    # 验证包含关键条目
     assert "比喻" in rules or "暗喻" in rules
     assert "情绪" in rules
 
@@ -110,18 +101,52 @@ def test_style_guard_build_style_context(sample_dir):
     context = sg.build_style_context("dynamic")
     assert "<examples>" in context
     assert "</examples>" in context
-    assert "节奏" in context or "句式" in context  # 包含引导语
+    assert "节奏" in context or "句式" in context
+
+
+def test_style_guard_genre_preference(sample_dir):
+    """同 genre 优先返回"""
+    from app.services.style_guard import StyleGuard
+    sg = StyleGuard(samples_dir=str(sample_dir))
+    seen_titles = set()
+    for _ in range(30):
+        got = sg.get_style_samples("explanatory", count=1, genre="女频")
+        seen_titles.add(got[0]["title"])
+    assert seen_titles.issubset({"蚀骨之恨", "男友全家"})
+
+
+def test_style_guard_fallback_when_no_genre_match(sample_dir):
+    """未知 genre 回退到同 script_type 全池"""
+    from app.services.style_guard import StyleGuard
+    sg = StyleGuard(samples_dir=str(sample_dir))
+    got = sg.get_style_samples("explanatory", count=3, genre="完全不存在的类")
+    assert len(got) == 3
+
+
+def test_style_guard_backward_compat_no_genre(sample_dir):
+    """不带 genre 调用仍然工作"""
+    from app.services.style_guard import StyleGuard
+    sg = StyleGuard(samples_dir=str(sample_dir))
+    got = sg.get_style_samples("dynamic", count=2)
+    assert len(got) == 2
+    assert all(isinstance(s, dict) for s in got)
+
+
+def test_build_style_context_with_genre(sample_dir):
+    """build_style_context 带 genre 时返回同 genre 范本"""
+    from app.services.style_guard import StyleGuard
+    sg = StyleGuard(samples_dir=str(sample_dir))
+    ctx = sg.build_style_context("explanatory", genre="女频")
+    assert ("蚀骨之恨" in ctx) or ("男友全家" in ctx)
 
 
 def test_style_guard_missing_file(sample_dir):
     """不存在的 script_type 回退到 dynamic 数据"""
     from app.services.style_guard import StyleGuard
     sg = StyleGuard(samples_dir=str(sample_dir))
-    # unknown_type 回退到 dynamic，所以有数据
     samples = sg.get_style_samples("unknown_type")
     assert len(samples) == 1
-    assert isinstance(samples[0], str)
-    # empty script_type 也回退到 dynamic
+    assert isinstance(samples[0], dict)
     quotes = sg.get_golden_quotes("unknown_type")
     assert len(quotes) > 0
 

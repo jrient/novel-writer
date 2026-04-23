@@ -44,18 +44,47 @@ class StyleGuard:
 
     # ── Public ──
 
-    def get_style_samples(self, script_type: str, count: int = 1) -> list[str]:
-        """随机返回 1-N 段范本（轮换防固化）"""
+    def get_style_samples(
+        self,
+        script_type: str,
+        count: int = 1,
+        genre: Optional[str] = None,
+    ) -> list[dict]:
+        """按 script_type 抽样，同 genre 优先，不足则回退同 script_type 全池。
+
+        返回 list[dict]，每条含 title/excerpt/genre/theme_tag。
+        """
         data = self._get_data(script_type)
         if not data:
             return []
-        samples = data.get("samples", [])
-        if not samples:
+        all_samples = data.get("samples", []) or []
+        if not all_samples:
             return []
-        count = min(count, len(samples))
-        raw = random.sample(samples, count)
-        # Extract excerpt text from dict objects, or return raw strings
-        return [s.get("excerpt", "") if isinstance(s, dict) else str(s) for s in raw]
+
+        # Prefer same-genre subset
+        pool = all_samples
+        if genre:
+            same_genre = [s for s in all_samples if isinstance(s, dict) and s.get("genre") == genre]
+            if same_genre:
+                pool = same_genre
+
+        n = min(count, len(pool))
+        picked = random.sample(pool, n)
+
+        # Top up from full pool if genre subset too small to meet count
+        if len(picked) < count:
+            remaining = [s for s in all_samples if s not in picked]
+            extra = random.sample(remaining, min(count - len(picked), len(remaining)))
+            picked.extend(extra)
+
+        # Normalize old string-only entries to dict format (defensive)
+        normalized = []
+        for p in picked:
+            if isinstance(p, dict):
+                normalized.append(p)
+            else:
+                normalized.append({"title": "", "excerpt": str(p), "genre": "", "theme_tag": ""})
+        return normalized
 
     def get_golden_quotes(self, script_type: str) -> list[str]:
         """返回金句/句式列表"""
@@ -68,9 +97,13 @@ class StyleGuard:
         """返回 9 条反 AI 味清单，格式化为 prompt 文本"""
         return ANTI_SLOP_RULES
 
-    def build_style_context(self, script_type: str) -> str:
-        """组合：范本 + 金句，格式化为 <examples> 标签块"""
-        samples = self.get_style_samples(script_type)
+    def build_style_context(
+        self,
+        script_type: str,
+        genre: Optional[str] = None,
+    ) -> str:
+        """组合：范本 + 金句 → <examples> 标签块。同 genre 优先。"""
+        samples = self.get_style_samples(script_type, count=2, genre=genre)
         quotes = self.get_golden_quotes(script_type)
         if not samples and not quotes:
             return ""
@@ -84,8 +117,8 @@ class StyleGuard:
         ]
 
         for s in samples:
-            excerpt = s.get("excerpt", "") if isinstance(s, dict) else str(s)
-            title = s.get("title", "") if isinstance(s, dict) else ""
+            title = s.get("title", "")
+            excerpt = s.get("excerpt", "")
             if title:
                 parts.append(f"── {title} ──")
             parts.append(excerpt)
