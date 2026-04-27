@@ -1169,7 +1169,11 @@ async def export_project(
     project: ScriptProject = Depends(get_drama_project),
     db: AsyncSession = Depends(get_db),
 ):
-    """导出剧本（txt 或 markdown 格式）"""
+    """导出剧本（txt 或 markdown 格式）
+
+    输出顺序参考精品剧本档案：剧本简介 → 人物小传 → 正文。
+    简介与人物小传从 session.summary 中读取，缺失时跳过对应段落。
+    """
     nodes_result = await db.execute(
         select(ScriptNode)
         .where(ScriptNode.project_id == project.id)
@@ -1177,12 +1181,18 @@ async def export_project(
     )
     all_nodes = nodes_result.scalars().all()
 
+    session_result = await db.execute(
+        select(ScriptSession).where(ScriptSession.project_id == project.id)
+    )
+    session = session_result.scalar_one_or_none()
+    summary = (session.summary or {}) if session else {}
+
     if format == "markdown":
-        content = _export_markdown(project, all_nodes)
+        content = _export_markdown(project, all_nodes, summary)
         media_type = "text/markdown"
         filename = f"{project.title}.md"
     else:
-        content = _export_txt(project, all_nodes)
+        content = _export_txt(project, all_nodes, summary)
         media_type = "text/plain"
         filename = f"{project.title}.txt"
 
@@ -1197,15 +1207,48 @@ async def export_project(
     )
 
 
-def _export_txt(project: ScriptProject, nodes: list) -> str:
+_TXT_DIVIDER = "=" * 50
+_BIO_FIELD_LABELS = [
+    ("身份", "身份"),
+    ("目标", "目标"),
+    ("弱点", "弱点"),
+    ("关键关系", "关键关系"),
+    ("典型台词", "典型台词"),
+]
+
+
+def _txt_section_header(title: str) -> List[str]:
+    """生成 txt 大段标题分隔符（=== 标题 === 居中风格）"""
+    return [_TXT_DIVIDER, f"  {title}".center(50), _TXT_DIVIDER, ""]
+
+
+def _export_txt(project: ScriptProject, nodes: list, summary: Dict[str, Any]) -> str:
     lines = [f"《{project.title}》", f"类型：{project.script_type}", ""]
     if project.concept:
         lines += [f"创意概念：{project.concept}", ""]
-    lines.append("=" * 40)
-    lines.append("")
 
-    node_map = {n.id: n for n in nodes}
-    roots = [n for n in nodes if not n.parent_id]
+    # —— 剧本简介 ——
+    intro = (summary.get("故事简介") or "").strip()
+    if intro:
+        lines += _txt_section_header("剧本简介")
+        lines.append(intro)
+        lines.append("")
+
+    # —— 人物小传 ——
+    bios = summary.get("人物小传") or []
+    valid_bios = [b for b in bios if isinstance(b, dict) and (b.get("姓名") or "").strip()]
+    if valid_bios:
+        lines += _txt_section_header("人物小传")
+        for bio in valid_bios:
+            lines.append(f"【{bio.get('姓名', '').strip()}】")
+            for key, label in _BIO_FIELD_LABELS:
+                val = (bio.get(key) or "").strip()
+                if val:
+                    lines.append(f"  {label}：{val}")
+            lines.append("")
+
+    # —— 正文 ——
+    lines += _txt_section_header("正文")
 
     def render(node, depth=0):
         indent = "  " * depth
@@ -1225,30 +1268,49 @@ def _export_txt(project: ScriptProject, nodes: list) -> str:
         ):
             render(child, depth + 1)
 
-    for root in roots:
+    for root in [n for n in nodes if not n.parent_id]:
         render(root)
 
     return "\n".join(lines)
 
 
-def _export_markdown(project: ScriptProject, nodes: list) -> str:
+def _export_markdown(project: ScriptProject, nodes: list, summary: Dict[str, Any]) -> str:
     lines = [f"# 《{project.title}》", f"**类型：**{project.script_type}", ""]
     if project.concept:
         lines += [f"**创意概念：**{project.concept}", ""]
     lines.append("---")
     lines.append("")
 
+    # —— 剧本简介 ——
+    intro = (summary.get("故事简介") or "").strip()
+    if intro:
+        lines += ["## 剧本简介", "", intro, ""]
+
+    # —— 人物小传 ——
+    bios = summary.get("人物小传") or []
+    valid_bios = [b for b in bios if isinstance(b, dict) and (b.get("姓名") or "").strip()]
+    if valid_bios:
+        lines += ["## 主要人物小传", ""]
+        for bio in valid_bios:
+            lines.append(f"### {bio.get('姓名', '').strip()}")
+            for key, label in _BIO_FIELD_LABELS:
+                val = (bio.get(key) or "").strip()
+                if val:
+                    lines.append(f"- **{label}**：{val}")
+            lines.append("")
+
+    # —— 正文 ——
+    lines += ["## 正文", ""]
+
     heading_map = {
-        "episode": "##",
-        "scene": "###",
-        "section": "##",
-        "intro": "##",
+        "episode": "###",
+        "scene": "####",
+        "section": "###",
+        "intro": "###",
     }
 
-    roots = [n for n in nodes if not n.parent_id]
-
     def render(node, depth=0):
-        heading = heading_map.get(node.node_type, "####")
+        heading = heading_map.get(node.node_type, "#####")
         label = node.title or f"（{node.node_type}）"
         lines.append(f"{heading} {label}")
         if node.speaker:
@@ -1263,7 +1325,7 @@ def _export_markdown(project: ScriptProject, nodes: list) -> str:
         ):
             render(child, depth + 1)
 
-    for root in roots:
+    for root in [n for n in nodes if not n.parent_id]:
         render(root)
 
     return "\n".join(lines)
