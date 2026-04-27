@@ -335,6 +335,22 @@ JSON 结构如下：
     },
 }
 
+# ─── 前5集特别规则（来自 script_rubric handbook 经验总结） ─────────────────────
+# 仅对 episode_index < 5 的正文生成生效，追加到 user prompt 末尾。
+_EARLY_EPISODE_RULES = """
+
+【第{ep}集·前5集强制规则——来自精品剧本评审经验，必须遵守】
+
+第{ep}集处于开局阶段，必须执行以下规则：
+
+1. **第一镜禁止平淡**：第一个镜头必须有强情绪冲击（拍桌/摔门/角色崩溃大哭/愤怒逼近/戏剧性事件），禁止大空镜、全景建立场景、缓慢环境描写、无动作的旁白开场
+2. **核心角色必须露面**：主角（主角弱点+反派逻辑中涉及的角色）必须在第3集前全部出场，延迟出场会严重拖沓
+3. **冲突速闭环**：第1-3集必须完成至少一次完整冲突闭环（挑衅/打压→反击/打脸→情绪释放），禁止"下一集再报复"的拖延
+4. **禁止单一场景水字数**：同一场景/同一纠纷不能连续拉扯超过2集，必须引入新危机或升级冲突
+5. **核心卖点必须落地**：大纲/标题承诺的奇观（金手指/异能/身份反转等）必须在前3集出现，不能只做铺垫
+6. **单集至少3个冲突事件**：本集内必须有≥3个具体的冲突/对峙/反转事件，不能只写日常或背景交代
+7. **集末必须有卡点**：本集结尾必须有悬念/反转/迫在眉睫的损失，驱动观众看下一集"""
+
 
 def _get_prompts(script_type: str) -> Dict[str, Dict[str, str]]:
     """根据剧本类型获取提示词模板"""
@@ -768,6 +784,10 @@ class ScriptAIService:
 
         # 注入范本+金句到 user prompt
         prompt = _build_episode_user_prompt(prompt, script_type, genre=genre)
+
+        # 前5集特别规则：冲突密度/角色速出/爽点速兑（来自 script_rubric 经验）
+        if episode_index < 5:
+            prompt += _EARLY_EPISODE_RULES.format(ep=episode_index + 1)
 
         messages = self._build_messages(prompt, system_prompt)
         async for chunk in self._stream(messages):
