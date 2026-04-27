@@ -5,6 +5,7 @@ Project CRUD + Node CRUD + Session CRUD + AI SSE 接口
 import json
 import logging
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -1190,7 +1191,9 @@ async def export_project(
     return Response(
         content=content.encode("utf-8"),
         media_type=media_type,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename)}",
+        },
     )
 
 
