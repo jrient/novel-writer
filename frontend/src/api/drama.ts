@@ -125,6 +125,15 @@ export interface ReorderItem {
   parent_id?: number | null
 }
 
+export interface CharacterBio {
+  姓名: string
+  身份: string
+  目标: string
+  弱点: string
+  关键关系: string
+  典型台词: string
+}
+
 export interface SessionSummary {
   故事概要: string
   主要角色: string[]
@@ -135,6 +144,8 @@ export interface SessionSummary {
   主角弱点?: string
   反派逻辑?: string
   开局钩子?: string
+  故事简介?: string
+  人物小传?: CharacterBio[]
 }
 
 export interface ScriptSession {

@@ -168,6 +168,16 @@ class ScriptSessionResponse(BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class CharacterBio(BaseModel):
+    """主要人物小传（中版结构化）"""
+    姓名: str = Field(..., max_length=50)
+    身份: str = Field("", max_length=200, description="年龄/职业/社会角色")
+    目标: str = Field("", max_length=200, description="表面目标 + 内心渴望")
+    弱点: str = Field("", max_length=200, description="致命弱点/恐惧/盲点")
+    关键关系: str = Field("", max_length=200, description="与其他主要角色的关系")
+    典型台词: str = Field("", max_length=100, description="一句能体现性格的台词")
+
+
 class SessionSummaryResponse(BaseModel):
     """会话摘要响应（中文键名）"""
     故事概要: str
@@ -179,6 +189,8 @@ class SessionSummaryResponse(BaseModel):
     主角弱点: Optional[str] = Field(default=None, description="主角的致命弱点/恐惧/软肋")
     反派逻辑: Optional[str] = Field(default=None, description="反派为什么觉得自己是对的")
     开局钩子: Optional[str] = Field(default=None, description="第一集的悬念/反转/迫在眉睫的损失")
+    故事简介: Optional[str] = Field(default=None, max_length=3000, description="面向读者的剧情简介，3-5段500-800字")
+    人物小传: Optional[List[CharacterBio]] = Field(default=None, max_length=20, description="主要人物的中版结构化档案")
 
 
 # --- AI 操作请求 ---

@@ -79,7 +79,7 @@
 
           <div class="summary-card">
             <div class="summary-section">
-              <h4>故事概要</h4>
+              <h4>故事概要 <span class="field-hint">（AI 内部凝练版，1-2 句）</span></h4>
               <el-input
                 v-model="editableSummary.故事概要"
                 type="textarea"
@@ -89,12 +89,60 @@
             </div>
 
             <div class="summary-section">
-              <h4>主要角色</h4>
-              <div v-for="(_c, i) in editableSummary.主要角色" :key="i" class="character-row">
-                <el-input v-model="editableSummary.主要角色[i]" placeholder="角色名称及简介" />
-                <el-button text type="danger" @click="editableSummary.主要角色.splice(i, 1)">删除</el-button>
+              <h4>
+                故事简介
+                <span class="field-hint">（面向读者，3-5 段 500-800 字，可作宣传文案）</span>
+                <span class="field-counter">{{ (editableSummary.故事简介 || '').length }} 字</span>
+              </h4>
+              <el-input
+                v-model="editableSummary.故事简介"
+                type="textarea"
+                :autosize="{ minRows: 6, maxRows: 15 }"
+                placeholder="例：他是江湖上人人闻风丧胆的杀手，却在一个雨夜救下了濒死的少女……"
+              />
+            </div>
+
+            <div class="summary-section">
+              <div class="bios-header">
+                <h4>主要人物小传 <span class="field-hint">（中版结构化，每人 5 字段）</span></h4>
+                <el-button text size="small" @click="addCharacterBio">+ 添加人物</el-button>
               </div>
-              <el-button text size="small" @click="editableSummary.主要角色.push('')">+ 添加角色</el-button>
+              <div v-if="!(editableSummary.人物小传 && editableSummary.人物小传.length)" class="bios-empty">
+                暂无人物小传，点击右上"+ 添加人物"开始填写
+              </div>
+              <div
+                v-for="(bio, i) in editableSummary.人物小传 || []"
+                :key="i"
+                class="bio-card"
+              >
+                <div class="bio-card-header">
+                  <el-input v-model="bio.姓名" placeholder="姓名" class="bio-name" />
+                  <el-button text type="danger" size="small" @click="removeCharacterBio(i)">删除</el-button>
+                </div>
+                <el-input v-model="bio.身份" placeholder="身份：年龄/职业/社会角色（50字内）" size="small" />
+                <el-input v-model="bio.目标" placeholder="目标：表面目标 + 内心渴望（50字内）" size="small" />
+                <el-input v-model="bio.弱点" placeholder="弱点：致命弱点/恐惧/盲点（50字内）" size="small" />
+                <el-input v-model="bio.关键关系" placeholder="关键关系：与其他主角的关系（50字内）" size="small" />
+                <el-input v-model="bio.典型台词" placeholder="典型台词：一句能体现性格的台词（30字内）" size="small" />
+              </div>
+            </div>
+
+            <div class="summary-section">
+              <h4>主要角色 <span class="field-hint">（由人物小传自动同步，AI 大纲生成消费）</span></h4>
+              <div v-if="editableSummary.主要角色.length" class="role-tags">
+                <el-tag
+                  v-for="(role, i) in editableSummary.主要角色"
+                  :key="i"
+                  type="info"
+                  size="large"
+                  class="role-tag"
+                >
+                  {{ role }}
+                </el-tag>
+              </div>
+              <div v-else class="bios-empty">
+                请在"主要人物小传"中添加人物
+              </div>
             </div>
 
             <div class="summary-section">
@@ -171,6 +219,8 @@
 
           <div class="summary-actions">
             <el-button @click="handleBackToChat">重新问答</el-button>
+            <el-button @click="copyProfileMarkdown">复制档案 Markdown</el-button>
+            <el-button @click="downloadProfileMarkdown">下载档案 .md</el-button>
             <el-button
               type="primary"
               size="large"
@@ -276,6 +326,8 @@ const editableSummary = reactive<SessionSummary>({
   主角弱点: '',
   反派逻辑: '',
   开局钩子: '',
+  故事简介: '',
+  人物小传: [],
   场景设定: '',
   风格基调: '',
   目标集数: 20,
@@ -337,9 +389,99 @@ function syncEditableSummary(summary: SessionSummary) {
   editableSummary.主角弱点 = summary.主角弱点 || ''
   editableSummary.反派逻辑 = summary.反派逻辑 || ''
   editableSummary.开局钩子 = summary.开局钩子 || ''
+  editableSummary.故事简介 = summary.故事简介 || ''
+  editableSummary.人物小传 = (summary.人物小传 || []).map(b => ({
+    姓名: b.姓名 || '',
+    身份: b.身份 || '',
+    目标: b.目标 || '',
+    弱点: b.弱点 || '',
+    关键关系: b.关键关系 || '',
+    典型台词: b.典型台词 || '',
+  }))
   editableSummary.场景设定 = summary.场景设定 || ''
   editableSummary.风格基调 = summary.风格基调 || ''
   editableSummary.目标集数 = summary.目标集数 ?? 20
+}
+
+function addCharacterBio() {
+  if (!editableSummary.人物小传) editableSummary.人物小传 = []
+  editableSummary.人物小传.push({
+    姓名: '',
+    身份: '',
+    目标: '',
+    弱点: '',
+    关键关系: '',
+    典型台词: '',
+  })
+}
+
+function removeCharacterBio(idx: number) {
+  editableSummary.人物小传?.splice(idx, 1)
+}
+
+// 自动同步：人物小传 → 主要角色（单向，人物小传是 source of truth）
+// 注意：人物小传为空时不重置主要角色，避免老 session（仅有主要角色字符串列表）被清空
+watch(
+  () => editableSummary.人物小传,
+  (bios) => {
+    if (!bios || !bios.length) return
+    editableSummary.主要角色 = bios
+      .filter(b => b.姓名.trim())
+      .map(b => (b.身份.trim() ? `${b.姓名.trim()}：${b.身份.trim()}` : b.姓名.trim()))
+  },
+  { deep: true },
+)
+
+function buildProfileMarkdown(): string {
+  const s = editableSummary
+  const title = dramaStore.currentProject?.title || '剧本档案'
+  const lines: string[] = [`# ${title}`, '']
+  if (s.故事简介) {
+    lines.push('## 故事简介', '', s.故事简介, '')
+  }
+  if (s.人物小传 && s.人物小传.length) {
+    lines.push('## 主要人物小传', '')
+    for (const c of s.人物小传) {
+      if (!c.姓名.trim()) continue
+      lines.push(`### ${c.姓名}`, '')
+      if (c.身份) lines.push(`- **身份**：${c.身份}`)
+      if (c.目标) lines.push(`- **目标**：${c.目标}`)
+      if (c.弱点) lines.push(`- **弱点**：${c.弱点}`)
+      if (c.关键关系) lines.push(`- **关键关系**：${c.关键关系}`)
+      if (c.典型台词) lines.push(`- **典型台词**：${c.典型台词}`)
+      lines.push('')
+    }
+  }
+  return lines.join('\n')
+}
+
+async function copyProfileMarkdown() {
+  const md = buildProfileMarkdown()
+  if (!md.trim() || md.trim().split('\n').length <= 1) {
+    ElMessage.warning('档案内容为空')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(md)
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败，请检查浏览器剪贴板权限')
+  }
+}
+
+function downloadProfileMarkdown() {
+  const md = buildProfileMarkdown()
+  if (!md.trim() || md.trim().split('\n').length <= 1) {
+    ElMessage.warning('档案内容为空')
+    return
+  }
+  const title = dramaStore.currentProject?.title || '剧本档案'
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `${title}-档案.md`
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 
 async function handleNextStep() {
@@ -772,6 +914,80 @@ onUnmounted(() => {
 
 .character-row .el-input {
   flex: 1;
+}
+
+.field-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9E9E9E;
+  margin-left: 6px;
+}
+
+.field-counter {
+  float: right;
+  font-size: 12px;
+  font-weight: 400;
+  color: #9E9E9E;
+}
+
+.bios-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bios-header h4 {
+  margin: 0;
+}
+
+.bios-empty {
+  font-size: 13px;
+  color: #9E9E9E;
+  padding: 12px 0;
+  text-align: center;
+  background: #F8F9FA;
+  border: 1px dashed #E0E0E0;
+  border-radius: 6px;
+}
+
+.bio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #FAFBFC;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+}
+
+.bio-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bio-name {
+  flex: 1;
+}
+
+.bio-name :deep(.el-input__inner) {
+  font-weight: 600;
+}
+
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.role-tag {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  padding: 6px 12px;
+  line-height: 1.4;
 }
 
 .summary-section p,
