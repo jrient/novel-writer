@@ -24,7 +24,7 @@
 
 ### 1.2 问题
 
-业务方启用了飞书"高级权限"模式（`is_advanced=true`），导致即便应用 `cli_a955fe3f1e7a9bce` 是文档协作者，列出数据表 API 仍返回 `code=0, items=[]`（静默拒绝）。原 bitable 的所有者无法配合关闭高级权限。
+业务方启用了飞书"高级权限"模式（`is_advanced=true`），导致即便应用（`<FEISHU_APP_ID>`）是文档协作者，列出数据表 API 仍返回 `code=0, items=[]`（静默拒绝）。原 bitable 的所有者无法配合关闭高级权限。
 
 ### 1.3 用户解决方案
 
@@ -171,7 +171,7 @@ python data/sync_bitable.py <BITABLE_URL> [--no-pipeline] [--mode incremental|fu
 ```json
 {
   "synced_at": "2026-04-27T14:30:12+08:00",
-  "source_app_token": "EyhfburjGa6q41s6Ck6c664Knnc",
+  "source_app_token": "<BITABLE_APP_TOKEN>",
   "source_table_id": "tblkvyapBqrMSQWa",
   "source_table_name": "精品",
   "total": 180,
@@ -226,8 +226,8 @@ python data/sync_bitable.py <BITABLE_URL> [--no-pipeline] [--mode incremental|fu
 [
   {
     "synced_at": "2026-04-27T14:30:12+08:00",
-    "source_url": "https://e76yjr9njh.feishu.cn/base/EyhfburjGa6q41s6Ck6c664Knnc",
-    "source_app_token": "EyhfburjGa6q41s6Ck6c664Knnc",
+    "source_url": "https://<TENANT>.feishu.cn/base/<BITABLE_APP_TOKEN>",
+    "source_app_token": "<BITABLE_APP_TOKEN>",
     "source_app_name": "外部待审核剧本 副本0427",
     "tables": {
       "冲量": {"table_id": "tblVeKJiaT7sRo3J", "records": 177, "fields": 21},
@@ -302,7 +302,7 @@ CLI 使用：
 
 | 项 | 说明 |
 |---|---|
-| **O1** 应用权限 | 应用 `cli_a955fe3f1e7a9bce` 是否已开通 `bitable:app:readonly`（开发者后台查；可借探测脚本验证） |
+| **O1** 应用权限 | 应用（`<FEISHU_APP_ID>`）是否已开通 `bitable:app:readonly`（开发者后台查；可借探测脚本验证） |
 | **O2** 测试集影响 | `tests/test_extract_archive.py`、`tests/test_iterate_handbook.py` 等不依赖 `parse_xlsx` 的测试是否仍通过（实际运行验证） |
 | **O3** scheduled_task 残留引用 | `scheduled_task.py` 的 `get_sync_history` / `get_last_sync_info` 是否被其他代码（API 路由、frontend）引用；如有引用决定保留还是迁移到 CLI 历史 |
 | **O4** 容器同步 | 改动 backend 代码是否需 docker rebuild，还是 hot reload 生效（看 backend Dockerfile 与启动方式） |

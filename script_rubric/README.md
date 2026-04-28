@@ -101,7 +101,7 @@ data/
 
 ```bash
 # 1. 从飞书多维表格拉取数据（需要用户提供 bitable URL）
-python data/sync_bitable.py https://e76yjr9njh.feishu.cn/base/xxx
+python data/sync_bitable.py https://<TENANT>.feishu.cn/base/<APP_TOKEN>
 
 # 2. 环境变量（.env 或 export）
 OPENAI_BASE_URL=https://yibuapi.com/v1

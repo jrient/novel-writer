@@ -67,8 +67,8 @@ docker inspect novel-writer-backend --format='{{.Config.Cmd}} {{.HostConfig.Bind
 ```bash
 docker exec novel-writer-backend python -c "
 import json, requests
-APP_ID='cli_a955fe3f1e7a9bce'; APP_SECRET='xwJC9KtmyvgQBfOi9mTKheLIfp7TG6O0'
-APP_TOKEN='EyhfburjGa6q41s6Ck6c664Knnc'
+APP_ID='<FEISHU_APP_ID>'; APP_SECRET='<FEISHU_APP_SECRET>'
+APP_TOKEN='<BITABLE_APP_TOKEN>'
 NO_PROXY={'http':'','https':''}
 r=requests.post('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal',
   json={'app_id':APP_ID,'app_secret':APP_SECRET},proxies=NO_PROXY)
@@ -122,19 +122,19 @@ from data.feishu_common import extract_token, FeishuURLError
 
 class TestExtractToken:
     def test_base_url(self):
-        url = "https://e76yjr9njh.feishu.cn/base/EyhfburjGa6q41s6Ck6c664Knnc"
+        url = "https://<TENANT>.feishu.cn/base/<BITABLE_APP_TOKEN>"
         kind, token = extract_token(url)
         assert kind == "bitable"
-        assert token == "EyhfburjGa6q41s6Ck6c664Knnc"
+        assert token == "<BITABLE_APP_TOKEN>"
 
     def test_base_url_with_query(self):
-        url = "https://e76yjr9njh.feishu.cn/base/EyhfburjGa6q41s6Ck6c664Knnc?from=copylink"
+        url = "https://<TENANT>.feishu.cn/base/<BITABLE_APP_TOKEN>?from=copylink"
         kind, token = extract_token(url)
         assert kind == "bitable"
-        assert token == "EyhfburjGa6q41s6Ck6c664Knnc"
+        assert token == "<BITABLE_APP_TOKEN>"
 
     def test_wiki_url(self):
-        url = "https://e76yjr9njh.feishu.cn/wiki/IEorwlbIwiafLzk5WK2cDK0on4b"
+        url = "https://<TENANT>.feishu.cn/wiki/IEorwlbIwiafLzk5WK2cDK0on4b"
         kind, token = extract_token(url)
         assert kind == "wiki"
         assert token == "IEorwlbIwiafLzk5WK2cDK0on4b"
@@ -145,7 +145,7 @@ class TestExtractToken:
 
     def test_bare_token_rejected(self):
         with pytest.raises(FeishuURLError):
-            extract_token("EyhfburjGa6q41s6Ck6c664Knnc")
+            extract_token("<BITABLE_APP_TOKEN>")
 ```
 
 - [ ] **Step 3：运行测试确认失败**
@@ -177,8 +177,8 @@ from typing import Any
 
 import requests
 
-FEISHU_APP_ID = os.environ.get("FEISHU_APP_ID", "cli_a955fe3f1e7a9bce")
-FEISHU_APP_SECRET = os.environ.get("FEISHU_APP_SECRET", "xwJC9KtmyvgQBfOi9mTKheLIfp7TG6O0")
+FEISHU_APP_ID = os.environ["FEISHU_APP_ID"]
+FEISHU_APP_SECRET = os.environ["FEISHU_APP_SECRET"]
 
 BASE_URL = "https://open.feishu.cn"
 NO_PROXY = {"http": "", "https": ""}
@@ -1393,7 +1393,7 @@ EOF
 - [ ] **Step 1：用户在飞书克隆原 bitable，关闭高级权限，提供副本 URL**
 
 提示用户：
-> 请在飞书克隆原 bitable，关闭副本高级权限，把副本 URL 贴给我。形如 https://e76yjr9njh.feishu.cn/base/&lt;token&gt;
+> 请在飞书克隆原 bitable，关闭副本高级权限，把副本 URL 贴给我。形如 https://<TENANT>.feishu.cn/base/&lt;token&gt;
 
 记录 URL，下面用 `<URL>` 占位。
 
