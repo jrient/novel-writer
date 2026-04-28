@@ -1,0 +1,85 @@
+{
+  "title": "改版：霜雪伴晚筝（女频虐恋）",
+  "status": "签",
+  "genre": "原创 / 男频",
+  "mean_score": 75.0,
+  "score_range": [
+    75,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "被评定为精品的剧本通常在题材设定上具备较高的完成度，能够精准击中受众痛点。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "A级剧本的开局通常具备极强的情绪钩子，能迅速抓住受众注意力。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "作为参考剧本，其人物塑造必然立体且符合目标受众的审美偏好。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "高分剧本的节奏把控和冲突密度均需达到行业优质标准，松紧交替合理。"
+    },
+    "writing_dialogue": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "精品参考剧本的文笔与台词成熟自然，具有行业示范和借鉴意义。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "虐恋题材的A级剧本能够精准兑现情绪价值，虐点与爽点的释放恰到好处。"
+    },
+    "benchmark_differentiation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "被官方明确指定为“参考剧本”，说明其在同类赛道中具有极高的标杆价值和明确的市场定位。"
+    }
+  },
+  "type_specific_notes": "元数据中存在明显矛盾：标题标明为‘女频虐恋’，但类型字段登记为‘原创 / 男频’。从标题推测，本作核心看点应为极致的情感拉扯与虐心体验。作为被责编盖章的‘精品参考剧本’，其在情绪流的把控、虐恋桥段的设置上具有极高的内部学习与对标价值。",
+  "consensus_points": [
+    "该剧本整体质量极高，达到A级（80分以上）标准，可作为精品参考剧本"
+  ],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": [
+    "精品参考剧本",
+    "评级A"
+  ]
+}

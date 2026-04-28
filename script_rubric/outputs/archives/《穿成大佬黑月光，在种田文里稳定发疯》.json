@@ -1,0 +1,86 @@
+{
+  "title": "《穿成大佬黑月光，在种田文里稳定发疯》",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 90.0,
+  "score_range": [
+    90,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "将“发疯文学”与“种田文”结合的反差设定具有极高的市场创新度和吸引力"
+    },
+    "opening_hook": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "S级标杆剧本通常具备极强的情绪钩子和快速进入主线的开局"
+    },
+    "character_depth": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "“黑月光”叠加“稳定发疯”属性，打破传统女频白月光套路，人设极致且符合当代观众偏好"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "作为精品参考剧本，其冲突密度与节奏把控达到了行业顶尖水平"
+    },
+    "writing_dialogue": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "S级剧本的文笔与台词需具备高度的成熟感与自然度"
+    },
+    "payoff_satisfaction": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "极致人设带来的高频爽点兑现是女频S级剧本的核心竞争力"
+    },
+    "benchmark_differentiation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "能够被定义为“参考剧本”的作品，必然在同类赛道中具有不可替代的差异化优势"
+    }
+  },
+  "type_specific_notes": "在女频改编赛道中，将“种田文”的慢节奏/治愈感与“稳定发疯”的极致情绪/高冲突结合，形成强烈的反差感，是当前女频微短剧极具潜力的创新趋势。",
+  "consensus_points": [
+    "该剧本整体质量极高，达到了S级标准，可作为精品参考剧本"
+  ],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": [
+    "精品参考剧本",
+    "评级S",
+    "极具反差感与情绪张力的标题设定（黑月光+发疯+种田）"
+  ]
+}

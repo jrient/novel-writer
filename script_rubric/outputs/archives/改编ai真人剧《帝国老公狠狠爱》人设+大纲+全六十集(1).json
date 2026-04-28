@@ -1,0 +1,98 @@
+{
+  "title": "改编ai真人剧《帝国老公狠狠爱》人设+大纲+全六十集(1)",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "许意暖作为私生女，因家族欠债，成年后便被送到了顾老三的床上，顾老三面容丑陋，不近女色，传说中以面具示人"
+      ],
+      "extracted_rule": "采用经典的“替嫁+大佬扮猪吃虎”设定，元素组合成熟，市场接受度高。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我男人自然是全天下最帅的，再说了，他带着面具，你怎么知道他不好看？",
+        "我要她的全部资料，顺便打探一下她喜欢什么样的男人。"
+      ],
+      "extracted_rule": "开局直奔主题，通过外部压力（记者刁难）迅速建立女主“护夫”人设，有效吸引男主和观众的注意力。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "许意暖：（冷笑）爸爸，你真偏心，那她打我的时候，你怎么就你不替我说说话？",
+        "等顾东彻掌权，一定会处处排挤顾寒州的，我也不能坐以待毙了，必须找个兼职，以后能为顾寒州分担一些财务压力。"
+      ],
+      "extracted_rule": "女主双商在线、独立自主且护短，男主腹黑宠妻，符合当下女频受众对“双强/互宠”的偏好。"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "顾霖狠狠踹了她一脚，许意暖被踹倒在地",
+        "顾寒州狠狠地踹在顾霖的肚子上，揪着他的衣领，狠狠给了他一拳。"
+      ],
+      "extracted_rule": "冲突密度极高，反派挑衅与男女主反击交替进行，事件推进迅速，节奏紧凑不拖沓。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "你这个贱人，我今天撕烂你的嘴！",
+        "如果再有下次，就不是一个巴掌能解决的了，明白吗？许意暖是我的女人，谁敢动一下，休怪我不客气！"
+      ],
+      "extracted_rule": "台词直白且情绪饱满，符合短剧下沉市场的视听刺激需求，虽略显古早但足够有效。"
+    },
+    "payoff_satisfaction": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "顾寒州狠狠地踹在顾霖的肚子上，揪着他的衣领，狠狠给了他一拳。",
+        "许意暖狠狠的给了许莹莹一巴掌。"
+      ],
+      "extracted_rule": "仇不过夜，反派挑衅后迅速迎来男女主的混合双打，爽点兑现及时且力度大。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我男人自然是全天下最帅的，再说了，他带着面具，你怎么知道他不好看？"
+      ],
+      "extracted_rule": "在经典替嫁赛道中，通过女主前期的“护夫”行为和独立意识打出一定的差异化体验。"
+    }
+  },
+  "type_specific_notes": "作为女频改编短剧，本作精准踩中了“替嫁”、“扮猪吃虎”、“霸总宠妻”等核心流量密码。女主不圣母、男主武力/权力值碾压，是标准的爽剧配置，具备极高的商业化潜力。",
+  "consensus_points": [
+    "剧本整体质量极高，达到精品参考级别"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "反派行为逻辑略显降智（如顾霖在顾家老宅直接骚扰女主，许莹莹在许家当着男主面嚣张）",
+    "部分反派台词略显古早套路化"
+  ],
+  "green_flags": [
+    "冲突密集且解决迅速，爽点兑现极快",
+    "男女主互动甜且人设讨喜，女主护短，男主护妻，双向奔赴感强",
+    "开局钩子设置巧妙，迅速立住人设并拉升期待值"
+  ]
+}

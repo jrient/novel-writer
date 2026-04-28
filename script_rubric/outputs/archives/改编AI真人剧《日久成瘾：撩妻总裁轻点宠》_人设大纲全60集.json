@@ -1,0 +1,61 @@
+{
+  "title": "改编AI真人剧《日久成瘾：撩妻总裁轻点宠》 人设大纲全60集",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "席莫庭是恶魔使者，拥有超能力... 意外使超能力转移到乔念身上，只有与乔念肢体接触才能使用超能力。"
+      ],
+      "extracted_rule": "在传统的“霸总+先婚后爱”框架中融入奇幻设定（超能力转移绑定），能有效为男女主制造合理的肢体接触与宿命羁绊。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "乔念双手搂住他脖子，吻了上去。席莫庭停顿片刻，双手握住她的腰，热情地回吻... 镜头定格在乔念左手手腕内侧，有一道印记，为骷髅头，口中钻出一条蛇。此时正发出红色的光。"
+      ],
+      "extracted_rule": "采用倒叙/闪前手法，开篇直接释出男女主高浓度亲密互动与奇幻悬念画面，能迅速抓住下沉市场观众眼球。"
+    },
+    "character_depth": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "乔念急中生智，抄起一旁的灭火器，打开，干粉四散，喷得打手们捂着眼睛哀嚎。",
+        "乔念：爸爸！如果你还当我是你女儿，请不要逼我！"
+      ],
+      "extracted_rule": "女主身处弱势但具备反抗精神（敢于反击原生家庭、危机中能救男主），符合当下女频受众对“清醒独立”人设的偏好。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "第3集男主救女主导致能力转移，第4集原生家庭逼迫，第8集两人配合收割灵魂，第10集感情升温首尾呼应。"
+      ],
+      "extracted_rule": "将世俗危机（反派骚扰、家庭逼迫）与奇幻危机（法力尽失、神之反噬）交替抛出，能保持极高的剧情张力和紧凑感。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "乔安：你怎么跟我妈说话，有没有教养，你想跟我比?别忘了你只是个私生女，你有什么资格！",
+        "刘德海：你少装清纯了，开个价吧，今晚我把你包了！"
+      ],
+      "extracted_rule": "反派台词较为直白且情绪外放，虽略显套路化和脸谱化，但能精准传递人物性格与矛盾冲突，符合短剧下沉属性。"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "title": "八零福星俏娇妻",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "商界女强人叶清宁遭丈夫的暗恋者桑柔柔突然袭击后，穿越到桑柔柔写的年代文里成了炮灰女二。"
+      ],
+      "extracted_rule": "穿书年代文结合现代女强人逆袭打脸，是女频短剧成熟且受众基础庞大的经典设定。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "被高高举起的玻璃水壶重重砸向叶清宁的头。字幕：后湾村。",
+        "叶清宁挣扎着摸起块石头重重砸向王兴生的脑袋，王兴生惨叫松开叶清宁"
+      ],
+      "extracted_rule": "现代生死危机无缝衔接年代贞操危机，双重爆点能迅速建立强烈的生存与反抗悬念。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我叶清宁的人设，从来都是自己给的，不是外人定义的！想让我当炮灰女二？我偏要逆天改命",
+        "放心，我对垃圾回收不感兴趣！"
+      ],
+      "extracted_rule": "拒绝恋爱脑、武力值与智力值双在线、绝不内耗的女主极度契合当下女频受众的爽感需求。"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "叶清宁飞起一脚，将王兴生踹倒在地。王兴生恼羞成怒，爬起身向叶清宁扑来。叶清宁三两下将王兴生打倒在地"
+      ],
+      "extracted_rule": "单集内完成“遭遇挑衅-直接反击-建立威势”的完整闭环，能有效维持高密度的剧情张力。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "你是真关心我，还是担心我离婚之后会跟李卓然旧情复燃？",
+        "你空口白牙就敢造我黄谣，觉得我叶清宁好欺负是吧？"
+      ],
+      "extracted_rule": "台词直白犀利，直指角色痛点与虚伪面具，是短剧塑造“爽感”的重要辅助手段。"
+    },
+    "payoff_satisfaction": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "叶清宁从村妇手里抢过洗衣棒槌，直直向王兴生的嘴巴抽去。",
+        "叶清宁一记窝心脚踹在王兴生胸口。"
+      ],
+      "extracted_rule": "面对造谣和肢体威胁，女主采用直接的暴力反击与公开对峙，能提供极强的即时情绪释放。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "全面落实包产到户，包干到户。",
+        "这部小说的男主和女二，样貌，名字，家庭背景跟你和李总一模一样，只是故事发生在1980年"
+      ],
+      "extracted_rule": "年代穿书赛道同质化较高，主要依赖女主的极致人设（如高武力值、毒舌）来拉开与其他竞品的微观差距。"
+    }
+  }
+}

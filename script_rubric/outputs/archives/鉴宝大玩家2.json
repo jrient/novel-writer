@@ -1,0 +1,80 @@
+{
+  "title": "鉴宝大玩家2",
+  "status": "签",
+  "genre": "改编 / 男频",
+  "mean_score": 75.0,
+  "score_range": [
+    75,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本 —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "续作或改编作品在设定上通常具有成熟的市场验证基础。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "男频鉴宝类作品通常依赖开局的“捡漏”或“反转”作为钩子。"
+    },
+    "character_depth": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "男频改编剧本需注重主角的专业能力与性格魅力平衡。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "高评级剧本通常意味着冲突密度和节奏把控达到了精品标准。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "精品参考剧本通常要求台词具备一定的专业门槛和生活化质感。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本 —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "鉴宝类爽点在于“眼力差”带来的阶级跨越和打脸快感。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "作为续作或系列改编，其差异化往往体现在更高级别的宝物或更复杂的局中局。"
+    }
+  },
+  "type_specific_notes": "鉴宝类男频剧本核心在于“专业性”带来的爽感，作为改编续作，需注意与前作的衔接及套路升级。",
+  "consensus_points": [
+    "该剧本被视为精品参考级别",
+    "整体质量达到A级标准"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "由于是续作/改编，需警惕审美疲劳或情节套路化"
+  ],
+  "green_flags": [
+    "责编明确给出精品参考建议",
+    "评级较高（A级/80分潜力）"
+  ]
+}

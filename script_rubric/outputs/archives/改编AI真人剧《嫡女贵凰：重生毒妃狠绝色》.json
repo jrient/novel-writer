@@ -1,0 +1,98 @@
+{
+  "title": "改编AI真人剧《嫡女贵凰：重生毒妃狠绝色》",
+  "status": "签",
+  "genre": "改编 / 女频",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "带着前世的记忆和登峰造极的医术毒术，她反设陷阱",
+        "南宫凛，男主，天生白发，表面冷漠阴鸷、杀伐果断……真实身份为先皇私生子"
+      ],
+      "extracted_rule": "经典的重生复仇+毒医双绝+隐藏身份设定，元素组合成熟且市场验证度高。"
+    },
+    "opening_hook": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "叶慕兮浑身血污，被铁链锁在石柱上，毒酒穿肠的剧痛让她浑身痉挛。",
+        "叶慕兮猛地睁眼，大口喘着粗气……我竟然……回来了。"
+      ],
+      "extracted_rule": "开局直接展现极致惨状与强烈恨意，迅速切入重生反杀，情绪钩子极强且节奏极快。"
+    },
+    "character_depth": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "这一世，她不再是那个愚钝懦弱的恋爱脑",
+        "叶慕兮（os）：皇甫绝！该来的，终于来了。前世你欠我的，欠叶家满门的，这一世，我定要你血债血偿。"
+      ],
+      "extracted_rule": "女主杀伐果断、智商在线，符合当代大女主爽文受众对“拒绝内耗、狠辣反击”的偏好。"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "房门大开，只见叶婉芙和张公子衣衫不整地纠缠在一起",
+        "赵梦兰！你好大的胆子！你自己好好看看！（将账本扔在赵梦兰身上）"
+      ],
+      "extracted_rule": "冲突密度极高，前10集已完成多次“陷害-反杀”循环，绝不拖泥带水，节奏把控达到精品标准。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "妹妹，你求了一辈子的凤冠霞帔，最终还是戴在了我头上。",
+        "仙人个板板，叶二小姐玩的够花啊！"
+      ],
+      "extracted_rule": "台词直白且具有强烈的煽动性，部分配角用词略显现代但有效增强了下沉市场的爽感。"
+    },
+    "payoff_satisfaction": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "叶慕兮假装怯懦伸手去接，手一抖，将整杯茶水尽数泼在叶婉芙身上",
+        "叶婉柔衣衫不整，头发散乱，崩溃哭喊着和同样衣衫不整的张公子扭打在一起跑了出来"
+      ],
+      "extracted_rule": "爽点兑现极快，反派的阴谋不仅被迅速识破，还会被“以其人之道还治其人之身”，带来双倍打脸爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "改编AI真人剧《嫡女贵凰：重生毒妃狠绝色》80集短剧剧本"
+      ],
+      "extracted_rule": "在传统女频古言重生赛道中，通过极致的短剧化压缩提升了爽感密度，是该品类的优秀标杆。"
+    }
+  },
+  "type_specific_notes": "作为女频重生复仇短剧，本作将长篇古言的经典桥段（如抓奸、查账、宴会斗诗）进行了高密度的提纯与压缩。单集信息量大，爽点直给，非常符合下沉市场对“大女主反杀”的期待，具备极高的商业化潜力。",
+  "consensus_points": [
+    "剧本整体质量极高，节奏与爽点把控精准，可作为该品类的精品参考剧本"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "部分配角台词过于现代（如‘仙人个板板’、‘玩的够花’），在古装背景下略显违和出戏"
+  ],
+  "green_flags": [
+    "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+    "女主全程智商在线，反击手段狠辣果决，绝不圣母",
+    "单集冲突密度高，每集都有明确的打脸或剧情推进点，完播率预期极高"
+  ]
+}

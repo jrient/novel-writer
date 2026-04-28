@@ -1,0 +1,84 @@
+{
+  "title": "魔丸1-74集",
+  "status": "签",
+  "genre": "原创 / 萌宝",
+  "mean_score": 90.0,
+  "score_range": [
+    90,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "S级精品剧本通常在题材设定上具备极高的成熟度与市场吸引力"
+    },
+    "opening_hook": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "作为标杆参考剧本，其开局钩子必然具备强烈的抓人能力"
+    },
+    "character_depth": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "萌宝类S级剧本通常拥有极其鲜明、讨喜且立体的人物设定"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "精品剧本的节奏把控与冲突密度均达到行业顶尖标准"
+    },
+    "writing_dialogue": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "S级剧本的文笔与台词精炼自然，无出戏感"
+    },
+    "payoff_satisfaction": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "参考级剧本能够精准且密集地兑现观众期待的爽点"
+    },
+    "benchmark_differentiation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "被定性为“参考剧本”，说明其在同类赛道中具有明确的标杆与示范作用"
+    }
+  },
+  "type_specific_notes": "作为'萌宝'类型的S级参考剧本，虽然缺乏具体的维度点评，但其整体质量极高，被直接视为该赛道的标杆和学习范本。",
+  "consensus_points": [
+    "该剧本为S级精品参考剧本，整体质量极高"
+  ],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": [
+    "被官方评定为S级精品参考剧本，具有极高的示范价值"
+  ]
+}

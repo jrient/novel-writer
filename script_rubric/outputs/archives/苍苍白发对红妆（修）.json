@@ -1,0 +1,82 @@
+{
+  "title": "苍苍白发对红妆（修）",
+  "status": "签",
+  "genre": "原创 / 男频",
+  "mean_score": 75.0,
+  "score_range": [
+    75,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本 —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧本具有一定的市场参考价值，设定应符合当前精品剧流行趋势。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "基于整体75分的评价，开局应具备基础的吸引力，但未被特别强调为惊艳。"
+    },
+    "character_depth": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "男频精品剧通常要求主角形象鲜明，能够承载强烈的代入感。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "高评级通常意味着冲突密度和节奏把控达到了行业优良水平。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔需达到精品剧的基准线，保证叙事流畅。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本 —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频作品的爽点兑现是评级的核心指标，A级评价暗示其爽感合格。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "精品参考剧本 —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "定位明确，作为“精品参考”，其在同类赛道中具有一定的代表性。"
+    }
+  },
+  "type_specific_notes": "男频剧本通常侧重于社会地位的反差、复仇或守护，标题“苍苍白发对红妆”暗示了极大的年龄跨度或身份反差，可能涉及情感补偿或忘年交织的冲突元素。",
+  "consensus_points": [
+    "该剧本被视为具有参考价值的精品（A级潜力）。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "评审意见过于简略，缺乏具体优缺点的细节支撑。",
+    "均分（75）与责编提到的评级分数（80以上）存在5分的认知落差。"
+  ],
+  "green_flags": [
+    "责编明确给出“签”的建议并定级为A。",
+    "标题具有较强的意境感和反差感，易于传播。"
+  ]
+}

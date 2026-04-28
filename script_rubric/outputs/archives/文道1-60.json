@@ -1,0 +1,85 @@
+{
+  "title": "文道1-60",
+  "status": "签",
+  "genre": "改编 / 男频",
+  "mean_score": 75.0,
+  "score_range": [
+    75,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "精品男频改编剧本通常具备扎实且具有吸引力的设定基础。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "作为参考剧本，开局需具备强吸引力和成熟的钩子设置。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "A级剧本人设通常立体且高度符合目标受众期待。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "精品剧本的节奏与冲突密度需达到标杆水平，松紧有度。"
+    },
+    "writing_dialogue": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "参考级剧本文笔与台词需成熟自然，无出戏感。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频改编的核心在于爽点的精准兑现，A级剧本在此维度表现优异。"
+    },
+    "benchmark_differentiation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级A（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "被评为“参考剧本”意味着在同类赛道中具有明确的标杆意义和示范价值。"
+    }
+  },
+  "type_specific_notes": "作为男频改编剧本，被责编直接定性为‘精品参考剧本’，说明其在男频受众的爽点、节奏和设定上具有极高的成熟度和标杆价值，可作为同类作品的对标范本。",
+  "consensus_points": [
+    "该剧本质量极高，达到了A级精品参考剧本的标准"
+  ],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": [
+    "被官方认定为精品参考剧本，具有标杆示范作用",
+    "评级达到A级（80分以上）标准"
+  ]
+}

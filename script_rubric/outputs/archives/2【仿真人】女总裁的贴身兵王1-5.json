@@ -15,14 +15,14 @@
         "剧情会比较无脑 —— 帕克"
       ],
       "evidence_from_text": [],
-      "extracted_rule": "男频兵王题材若过度依赖动作戏，往往会导致剧情设定套路化、缺乏深度创新。"
+      "extracted_rule": "男频兵王题材往往设定套路化，依赖动作戏而非设定创新。"
     },
     "opening_hook": {
       "score": 5,
       "verdict": "mixed",
       "evidence_from_reviews": [],
       "evidence_from_text": [],
-      "extracted_rule": "缺乏具体评价，但对于主推打戏的剧本，开局通常需要以高强度的动作冲突作为核心钩子。"
+      "extracted_rule": "动作向男频剧本开局通常直接以打戏作为主要视觉钩子。"
     },
     "character_depth": {
       "score": 4,
@@ -31,7 +31,7 @@
         "剧情会比较无脑 —— 帕克"
       ],
       "evidence_from_text": [],
-      "extracted_rule": "“无脑”剧情通常伴随人物扁平化，角色容易沦为推动动作戏的工具人。"
+      "extracted_rule": "主打动作的无脑爽文中，人物塑造通常偏向脸谱化和工具人。"
     },
     "pacing_conflict": {
       "score": 7,
@@ -40,16 +40,16 @@
         "主推打戏 —— 帕克"
       ],
       "evidence_from_text": [],
-      "extracted_rule": "以打戏为主推卖点能保证较高的物理冲突密度，从而维持男频受众的观看节奏。"
+      "extracted_rule": "动作戏密集的剧本通常能通过物理冲突保证基本的节奏紧凑度。"
     },
     "writing_dialogue": {
-      "score": 4,
-      "verdict": "negative",
+      "score": 5,
+      "verdict": "mixed",
       "evidence_from_reviews": [
         "剧情会比较无脑 —— 帕克"
       ],
       "evidence_from_text": [],
-      "extracted_rule": "剧情逻辑薄弱的剧本，其文笔和台词往往缺乏打磨，仅满足基本的叙事功能。"
+      "extracted_rule": "剧情无脑往往伴随台词和文笔的直白与套路化。"
     },
     "payoff_satisfaction": {
       "score": 7,
@@ -58,7 +58,7 @@
         "主推打戏 —— 帕克"
       ],
       "evidence_from_text": [],
-      "extracted_rule": "明确主推打戏能直接且高频地满足男频受众对暴力美学和战力碾压的视觉爽点需求。"
+      "extracted_rule": "男频兵王题材的爽点主要通过高频、密集的动作打戏来直接兑现。"
     },
     "benchmark_differentiation": {
       "score": 6,
@@ -67,19 +67,19 @@
         "做出来会向像隐身侍卫一样 —— 帕克"
       ],
       "evidence_from_text": [],
-      "extracted_rule": "有明确的同类对标作品（如《隐身侍卫》）有助于市场定位，但也意味着差异化程度有限。"
+      "extracted_rule": "有明确的同类对标作品有助于确立视觉风格，但可能意味着缺乏核心差异化。"
     }
   },
-  "type_specific_notes": "典型的男频兵王题材，重动作轻剧情。视觉爽感和打戏质量是决定成败的关键，剧情逻辑退居次位。",
+  "type_specific_notes": "典型的男频兵王题材，核心卖点完全倾斜于动作戏（打戏）而非剧情深度。剧情“无脑”在特定下沉受众群体中可被接受，制作重心需放在动作设计和视觉刺激上。",
   "consensus_points": [
-    "项目核心卖点是动作戏（打戏），剧情逻辑较弱（无脑），整体风格对标《隐身侍卫》。"
+    "项目主打动作戏，剧情偏向无脑爽文"
   ],
   "disagreement_points": [],
   "red_flags": [
-    "剧情会比较无脑，可能导致非动作戏受众流失或口碑走低。"
+    "剧情会比较无脑，可能存在逻辑漏洞或套路化严重的问题"
   ],
   "green_flags": [
-    "主推打戏，受众定位精准，爽点直接。",
-    "有明确的对标作品，制作方向清晰。"
+    "主推打戏，动作爽点明确",
+    "有明确的市场对标作品（隐身侍卫）"
   ]
 }

@@ -1,0 +1,84 @@
+{
+  "title": "《心术》一卡2.1",
+  "status": "签",
+  "genre": "原创 / 男频",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "精品参考级剧本通常在题材设定上具备足够的吸引力与市场认可度。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "作为标杆剧本，开局必然具备强有力的事件或情绪钩子以留存观众。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频精品剧本需要主角人设立体、智商在线，符合受众代入需求。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "优秀的节奏控制和层层递进的冲突密度是高分剧本的核心基石。"
+    },
+    "writing_dialogue": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔成熟、台词精炼自然是达到80分以上参考标准的必要条件。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频剧本的高分往往建立在爽点密集且兑现到位的基础之上。"
+    },
+    "benchmark_differentiation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "能被列为“参考剧本”，说明其在同类赛道中具有明确的定位优势和示范效应。"
+    }
+  },
+  "type_specific_notes": "作为男频原创剧本，能够被责编直接定性为“精品参考剧本”，说明其在男频受众最看重的爽感机制、节奏把控以及主角人设上均达到了行业标杆水平，可作为同类作品的创作范本。",
+  "consensus_points": [
+    "剧本整体质量极高，达到精品参考级别（80分以上）。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": [
+    "被责编明确标记为“精品参考剧本”，综合质量过硬，具有示范价值。"
+  ]
+}

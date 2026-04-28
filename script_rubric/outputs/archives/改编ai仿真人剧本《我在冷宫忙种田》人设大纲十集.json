@@ -1,0 +1,104 @@
+{
+  "title": "改编ai仿真人剧本《我在冷宫忙种田》人设大纲十集",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 30.0,
+  "score_range": [
+    20,
+    40
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "emmmm感觉有点看疲了 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越成冷宫废后，靠着在冷宫种田一步步站稳脚跟",
+        "寂无绝假扮侍卫与其共处（一卡期待为掉马）"
+      ],
+      "extracted_rule": "缝合常见网文梗（穿越+冷宫+种田+掉马）若无微创新，极易引发阅卷疲劳。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝一身白衣，腰上挂着玉佩，闭眼躺在土坑里，两个太监一人一铲子往上面填土",
+        "我不是在菜市场卖菜吗？（一阵头痛）我穿越了！",
+        "屋内一个胖子和美女在床上拥吻，屋顶陆云萝趴在没有瓦片的地方观看"
+      ],
+      "extracted_rule": "强行制造生死危机与穿越设定的衔接过于生硬，且冷宫废后随意上屋顶偷窥的情节缺乏基本逻辑。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "外表盛世白莲花，实则心机深沉，自私自利",
+        "明明为了试探才靠近，却对陆云萝时会不自觉放下防备",
+        "面若佛陀，心若蛇蝎"
+      ],
+      "extracted_rule": "角色标签化、脸谱化严重，反派纯粹为送打脸而存在，缺乏真实的行为动机。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "如果刚刚我没听错，你只是个妃子，宫规森严，言语间以下犯上，我可以给你20个大逼兜，想试试吗？",
+        "嬷嬷被一巴掌扇的躺到在地，捂着脸不敢动弹"
+      ],
+      "extracted_rule": "冲突推进过于简单粗暴，过度依赖反派的降智行为，缺乏合理的权力博弈与拉扯。"
+    },
+    "writing_dialogue": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "这少说值一套别墅了，上哪找这么有钱的冤大头！",
+        "我可以给你20个大逼兜",
+        "夺少？一坛一千两？"
+      ],
+      "extracted_rule": "古言背景下滥用现代网络热词（别墅、大逼兜、夺少）会严重破坏沉浸感，产生廉价感。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "银霜在一旁左右开弓扇巴掌，白慕瑶如释重负",
+        "好家伙，我大概有十壶，那就是，一万两！发财了发财了！"
+      ],
+      "extracted_rule": "打脸与搞钱的爽点直给且密集，虽逻辑欠缺，但能满足最基础的下沉市场情绪需求。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "emmmm感觉有点看疲了 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "类型：种田，大女主，家国大义",
+        "不爱宫斗爱种田盼着早日暴富"
+      ],
+      "extracted_rule": "在高度饱和的“冷宫种田+皇帝掉马”赛道中，缺乏核心差异化竞争力，极易泯然众人。"
+    }
+  },
+  "type_specific_notes": "作为女频古言种田爽剧，剧本虽然凑齐了搞钱、打脸、男主掉马等热门元素，但缝合痕迹过重。最大的问题在于语境割裂，现代词汇的滥用破坏了古言的基本盘，导致剧本呈现出强烈的“草台班子”感。",
+  "consensus_points": [
+    "剧本题材与设定套路化严重，缺乏新意，导致责编产生阅读疲劳。"
+  ],
+  "disagreement_points": [
+    "无明显分歧，责编均表现出对该剧本的负面/疲劳态度（“看疲了”、“维持原判”）。"
+  ],
+  "red_flags": [
+    "台词极度出戏，古言中出现“别墅”、“大逼兜”、“夺少”等现代网络词汇。",
+    "剧情逻辑儿戏，如冷宫废后能随便上屋顶看皇帝亲热，皇帝随便在屋顶溜达被当成侍卫。",
+    "反派强行降智送人头，宫斗手段如同儿戏。"
+  ],
+  "green_flags": [
+    "节奏较快，单集内均有明确的事件（诈尸、打脸、赚钱），不拖泥带水。"
+  ]
+}

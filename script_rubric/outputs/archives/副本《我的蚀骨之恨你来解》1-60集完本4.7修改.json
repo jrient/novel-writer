@@ -1,0 +1,85 @@
+{
+  "title": "副本《我的蚀骨之恨你来解》1-60集完本4.7修改",
+  "status": "签",
+  "genre": "原创 / 女频",
+  "mean_score": 90.0,
+  "score_range": [
+    90,
+    90
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "S级精品剧本通常在题材设定上具备极强的吸引力或极致的情感张力。"
+    },
+    "opening_hook": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "作为参考级剧本，开局必须具备强烈的事件或情绪钩子以迅速抓住观众。"
+    },
+    "character_depth": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "女频S级剧本需要立体且符合当代受众偏好的人设，避免扁平化。"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "精品剧本的节奏紧凑，冲突密度达标且层层递进。"
+    },
+    "writing_dialogue": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "S级剧本通常具备成熟的文笔与精炼有力的台词功底。"
+    },
+    "payoff_satisfaction": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "带有复仇/虐恋色彩的女频剧本，需要极强的情绪释放与爽点兑现能力。"
+    },
+    "benchmark_differentiation": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本，评级S（80分以上） —— 47"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "被定性为“参考剧本”，说明其在同类赛道中具有明确的标杆作用和差异化优势。"
+    }
+  },
+  "type_specific_notes": "从剧名《我的蚀骨之恨你来解》及女频标签推断，本作主打极致的情感拉扯与复仇爽感。被责编直接定性为“精品参考剧本”，表明其在情绪价值提供、节奏把控和商业化标准上做到了该品类的极致，可作为同类题材的创作范本。",
+  "consensus_points": [
+    "该剧本质量极高，达到S级精品参考剧本的标准。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": [
+    "被官方定性为精品参考剧本",
+    "获得S级（90分）的极高评价"
+  ]
+}

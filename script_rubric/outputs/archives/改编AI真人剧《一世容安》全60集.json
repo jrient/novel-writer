@@ -1,0 +1,115 @@
+{
+  "title": "改编AI真人剧《一世容安》",
+  "status": "签",
+  "genre": "重生 / 古装言情 / 宫斗宅斗",
+  "mean_score": 80.0,
+  "score_range": [
+    80,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "李容安前世遭惨死，含恨重生到镇国公府三小姐李容安的身上",
+        "我死后，魂魄一直附在阿湖的玉镯上，后来恰逢镇国公府三小姐落水身亡，我便借她的身躯重生了"
+      ],
+      "extracted_rule": "借尸还魂+双重身份重叠的设定，为复仇增加了寻找旧部和解开前世谜团的维度。"
+    },
+    "opening_hook": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "第1集交代前世惨死及重生回归，迅速切入继母夺婚约的冲突",
+        "第2集末尾五小姐毁容，第3集末尾沈夫人强行逼婚，冲突点密集且反转快"
+      ],
+      "extracted_rule": "开局即展示核心仇恨，并以快节奏的宅斗反击（毁容、反杀）迅速抓住观众。"
+    },
+    "character_depth": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "李容安：外表温婉柔弱，内心坚韧狠绝，擅长隐忍布局",
+        "裴宴笙：表面温润谦和，实则偏执狠戾，控制欲极强",
+        "萧瓒：表面开朗洒脱，实则心思深沉，后期起兵造反"
+      ],
+      "extracted_rule": "女主清醒搞事业，男主与男二呈现“双强”博弈，人设具有极强的张力和对抗感。"
+    },
+    "pacing_conflict": {
+      "score": 9,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "第1-3集解决五小姐，第4-5集解决沈家逼婚，第6-9集彻底铲除继母蒋氏与庶姐李云桐",
+        "每一集都有明确的危机触发与高潮反转"
+      ],
+      "extracted_rule": "节奏极快，平均2-3集解决一个大反派，符合短剧高频爽点的需求。"
+    },
+    "writing_dialogue": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "裴宴笙：魏青，你相信这世上有借尸还魂之事吗？",
+        "李云桐：燕王妃的位置本该是我的！你们都该死，全都该死！"
+      ],
+      "extracted_rule": "台词功能性强，能够有效推动剧情并外化人物性格，具备古装剧的韵味。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "李容安故意打翻水粉让李云瑶毁容",
+        "李容安设计让蒋南误入李云桐房间，导致李云桐失贞并杀人",
+        "蒋氏被揭发害死原配后被秘密处死"
+      ],
+      "extracted_rule": "反击手段果断，不圣母，爽点兑现迅速且力度大。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "精品参考剧本（80分以上） —— 47"
+      ],
+      "evidence_from_text": [
+        "核心主题：重生复仇、双强夺妻、宅斗权谋、追妻火葬场"
+      ],
+      "extracted_rule": "虽然是常规的重生复仇赛道，但通过“前世丈夫”与“今生未婚夫”的权力博弈增加了差异化竞争点。"
+    }
+  },
+  "type_specific_notes": "该剧本属于典型的女频重生复仇爽剧，重点在于女主的智商在线和反派的迅速下线。AI真人剧的定位要求视觉冲击力强，剧本中的“毁容”、“沉湖”、“杖毙”等桥段非常符合该形式。",
+  "consensus_points": [
+    "剧本质量极高，属于精品参考级别",
+    "节奏紧凑，冲突密度大",
+    "女主性格清醒，符合当代审美"
+  ],
+  "disagreement_points": [
+    "暂无（仅一位责编评审）"
+  ],
+  "red_flags": [
+    "前世与今生的逻辑衔接需在拍摄中通过视觉（如玉镯）强化，否则观众易混淆",
+    "裴宴笙的迷魂术设定略显玄幻，需注意与整体宅斗风格的平衡"
+  ],
+  "green_flags": [
+    "反转设计精巧，如蒋南进错房间的桥段",
+    "男二裴宴笙的偏执深情极具爆款潜质",
+    "复仇逻辑闭环，证据链（卷宗、香囊）交代清晰"
+  ]
+}
