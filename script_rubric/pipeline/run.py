@@ -10,12 +10,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from script_rubric.config import (
-    XLSX_PATH, DRAMA_DIR, PARSED_DIR, ARCHIVES_DIR, HANDBOOK_DIR,
+    BITABLE_RUBRIC_JSON, DRAMA_DIR, PARSED_DIR, ARCHIVES_DIR, HANDBOOK_DIR,
     HOLDOUT_RATIO, HOLDOUT_SEED,
     BACKTEST_STATUS_ACCURACY, BACKTEST_RANGE_ACCURACY,
     BACKTEST_MAE_THRESHOLD, BACKTEST_CRITICAL_MISS_RATE,
 )
-from script_rubric.pipeline.parse_xlsx import parse_xlsx, save_parsed
+from script_rubric.pipeline.parse_bitable import parse_bitable_json
 from script_rubric.pipeline.match_texts import match_texts
 from script_rubric.pipeline.pass1_extract import extract_all, load_all_archives
 from script_rubric.pipeline.pass2_synthesize import synthesize_all
@@ -31,8 +31,12 @@ logger = logging.getLogger("run")
 async def cmd_full(args):
     logger.info("=== Full Run ===")
 
-    logger.info("Step 1: Parsing xlsx (with scored expansion)...")
-    all_records = parse_xlsx(XLSX_PATH, include_scored=True)
+    logger.info("Step 1: Parsing bitable JSON (with scored expansion)...")
+    if not BITABLE_RUBRIC_JSON.exists():
+        logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
+        logger.error("请先运行: python data/sync_bitable.py <bitable_url>")
+        return
+    all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
     confirmed = [r for r in all_records if r.status_source == "confirmed"]
     scored_only = [r for r in all_records if r.status_source == "score_inferred"]
     logger.info(
@@ -45,7 +49,12 @@ async def cmd_full(args):
     logger.info(f"  Matched {match_result.matched}/{match_result.total} texts")
     PARSED_DIR.mkdir(parents=True, exist_ok=True)
     (PARSED_DIR / "match_report.txt").write_text(match_result.to_report(), encoding="utf-8")
-    save_parsed(all_records, PARSED_DIR / "scripts.json")
+    # Save parsed records for reference
+    parsed_data = [r.model_dump() for r in all_records]
+    (PARSED_DIR / "scripts.json").write_text(
+        json.dumps(parsed_data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
     logger.info("Step 3: Splitting holdout set (confirmed only)...")
     train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
@@ -97,7 +106,12 @@ async def cmd_full(args):
 async def cmd_incremental(args):
     logger.info("=== Incremental Run ===")
 
-    records = parse_xlsx(XLSX_PATH, include_scored=True)
+    if not BITABLE_RUBRIC_JSON.exists():
+        logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
+        logger.error("请先运行: python data/sync_bitable.py <bitable_url>")
+        return
+
+    records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
     confirmed = [r for r in records if r.status_source == "confirmed"]
     match_texts(records, DRAMA_DIR)
     logger.info(f"Total records: {len(records)} (confirmed={len(confirmed)})")
@@ -153,7 +167,11 @@ async def cmd_backtest_only(args):
     version = args.version or 1
     logger.info(f"=== Backtest Only (v{version}) ===")
 
-    records = parse_xlsx(XLSX_PATH)
+    if not BITABLE_RUBRIC_JSON.exists():
+        logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
+        return
+
+    records = parse_bitable_json(BITABLE_RUBRIC_JSON)
     match_texts(records, DRAMA_DIR)
     _, test = split_holdout(records, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
 
@@ -168,7 +186,11 @@ async def cmd_pass2_only(args):
     version = args.version or 1
     logger.info(f"=== Pass 2 Only -> v{version} ===")
 
-    all_records = parse_xlsx(XLSX_PATH, include_scored=True)
+    if not BITABLE_RUBRIC_JSON.exists():
+        logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
+        return
+
+    all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
     confirmed = [r for r in all_records if r.status_source == "confirmed"]
     scored_only = [r for r in all_records if r.status_source == "score_inferred"]
     match_texts(all_records, DRAMA_DIR)

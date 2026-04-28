@@ -1,3 +1,5 @@
+import pytest
+
 from script_rubric.models import ScriptRecord, Review
 from script_rubric.pipeline.match_texts import match_texts, fuzzy_match_score
 
@@ -20,11 +22,13 @@ class TestFuzzyMatch:
 
 
 class TestMatchTexts:
-    def test_match_with_real_data(self):
-        from script_rubric.config import XLSX_PATH, DRAMA_DIR
-        from script_rubric.pipeline.parse_xlsx import parse_xlsx
+    def test_match_with_bitable_data(self):
+        from script_rubric.config import BITABLE_RUBRIC_JSON, DRAMA_DIR
+        from script_rubric.pipeline.parse_bitable import parse_bitable_json
 
-        records = parse_xlsx(XLSX_PATH)
+        if not BITABLE_RUBRIC_JSON.exists():
+            pytest.skip(f"BITABLE_RUBRIC_JSON not found: {BITABLE_RUBRIC_JSON}")
+        records = parse_bitable_json(BITABLE_RUBRIC_JSON)
         result = match_texts(records, DRAMA_DIR)
 
         matched = sum(1 for r in result.records if r.text_content is not None)
@@ -45,10 +49,12 @@ class TestMatchTexts:
         assert result.matched == 0
 
     def test_report_generated(self):
-        from script_rubric.config import XLSX_PATH, DRAMA_DIR
-        from script_rubric.pipeline.parse_xlsx import parse_xlsx
+        from script_rubric.config import BITABLE_RUBRIC_JSON, DRAMA_DIR
+        from script_rubric.pipeline.parse_bitable import parse_bitable_json
 
-        records = parse_xlsx(XLSX_PATH)
+        if not BITABLE_RUBRIC_JSON.exists():
+            pytest.skip(f"BITABLE_RUBRIC_JSON not found: {BITABLE_RUBRIC_JSON}")
+        records = parse_bitable_json(BITABLE_RUBRIC_JSON)
         result = match_texts(records, DRAMA_DIR)
         report = result.to_report()
         assert "Total scripts" in report

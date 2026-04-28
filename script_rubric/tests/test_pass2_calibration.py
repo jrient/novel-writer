@@ -165,7 +165,7 @@ class TestCmdPass2Filter:
             captured["titles"] = [a.title for a in passed_archives]
             return "handbook", {}
 
-        monkeypatch.setattr(run, "parse_xlsx", lambda *a, **kw: records)
+        monkeypatch.setattr(run, "parse_bitable_json", lambda *a, **kw: records)
         monkeypatch.setattr(run, "match_texts", lambda *a, **kw: None)
         monkeypatch.setattr(run, "load_all_archives", lambda: archives)
         monkeypatch.setattr(run, "synthesize_all", fake_synth)

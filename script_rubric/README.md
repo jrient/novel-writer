@@ -7,16 +7,20 @@
 两阶段 LLM pipeline + 确定性校准 + 回测验证：
 
 ```
-xlsx + 剧本正文
+飞书多维表格 (冲量/精品)
+       │
+       ▼  data/sync_bitable.py CLI
+bitable_rubric.json
        │
        ▼
-   ┌─────────┐     44 部剧本（11 名编辑评分 + 评语）
+   ┌─────────┐     精品表（完整评分字段）
    │ parse    │────────────────────────────┐
+   │ bitable  │                            │
    └─────────┘                             │
        │                                   │
        ▼                                   ▼
    ┌─────────┐  seed=42        ┌──────────────────┐
-   │ holdout  │───────────────▶│ 训练集 36 / 测试集 8 │
+   │ holdout  │───────────────▶│ 训练集 / 测试集    │
    │ split    │                └──────────────────┘
    └─────────┘                    │            │
        │                          │            │
@@ -53,10 +57,14 @@ xlsx + 剧本正文
 script_rubric/
 ├── config.py                  # 所有配置（路径/模型/阈值/维度定义）
 ├── models.py                  # Pydantic v2 模型
-├── requirements.txt           # 独立依赖（openai/openpyxl/pydantic/json-repair/httpx）
+├── requirements.txt           # 独立依赖（openai/pydantic/json-repair/httpx）
+│
+├── data/                      # 数据目录
+│   ├── bitable_rubric.json    # 飞书多维表格导出数据（由 data/sync_bitable.py 生成）
+│   └── sync_history.json      # 同步历史记录
 │
 ├── pipeline/
-│   ├── parse_xlsx.py          # xlsx → ScriptRecord[]
+│   ├── parse_bitable.py       # bitable JSON → ScriptRecord[]
 │   ├── match_texts.py         # 匹配剧本正文文件
 │   ├── llm_client.py          # AsyncOpenAI 封装 + extract_json（4 层降级）
 │   ├── pass1_extract.py       # 每部剧本 → ScriptArchive（结构化档案）
@@ -72,27 +80,35 @@ script_rubric/
 │   └── backtest_predict.md    # 回测预测（两阶段：先 status 后 score）
 │
 ├── outputs/
-│   ├── archives/              # 44 份结构化档案（JSON）
+│   ├── archives/              # 结构化档案（JSON）
 │   ├── handbook/              # handbook_v1-v4.md + rubric_v1-v4.json
 │   └── backtest/              # report_v1-v4.md
 │
-└── tests/                     # 43 个单测
-    ├── test_parse_xlsx.py
+└── tests/                     # 单测
     ├── test_models.py
     ├── test_llm_client.py
     ├── test_match_texts.py
     ├── test_backtest.py
     └── test_pass2_calibration.py
+
+data/
+├── sync_bitable.py            # CLI: 从飞书多维表格 URL 拉取数据
+├── feishu_common.py           # 飞书 API 公共模块
+└── downloads/                 # 下载缓存目录
 ```
 
 ## 使用
 
 ```bash
-# 环境变量（.env 或 export）
+# 1. 从飞书多维表格拉取数据（需要用户提供 bitable URL）
+python data/sync_bitable.py https://e76yjr9njh.feishu.cn/base/xxx
+
+# 2. 环境变量（.env 或 export）
 OPENAI_BASE_URL=https://yibuapi.com/v1
 OPENAI_API_KEY=sk-xxx
 OPENAI_MODEL=gemini-3.1-pro-preview
 
+# 3. 运行 pipeline
 # 完整流程：解析 → 切分 → Pass 1 → Pass 2 → 回测
 python -m script_rubric.pipeline.run full --version 1
 
