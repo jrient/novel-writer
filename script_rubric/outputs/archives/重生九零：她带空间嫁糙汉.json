@@ -1,0 +1,90 @@
+{
+  "title": "重生九零：她带空间嫁糙汉",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 72.3,
+  "score_range": [
+    70,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "现在已经不泼洗脚水了，直接端尿盆 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "年代文设定套路化严重时，若桥段设计陈旧或过度粗俗（如端尿盆），容易引发审美疲劳。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "情节一般 —— 小冉",
+        "咋说呢，太太太太太平淡了 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局缺乏强有力的事件冲突和情绪钩子，会导致整体观感平淡如水。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "在意这个糙汉的柔情啊，以及女主怎么把糙汉吊成翘嘴啊 —— 贾酒",
+        "想看和糙汉拉扯的点，通通都没有 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "“糙汉”人设的核心在于展现反差萌（柔情）并与女主形成有效的情感推拉，否则人物会显得单薄无趣。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "咋说呢，太太太太太平淡了 —— 贾酒",
+        "情节一般 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突密度严重不足会导致剧情节奏过于平缓，无法持续吸引受众注意力。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "现在已经不泼洗脚水了，直接端尿盆 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "细节描写和行为逻辑应避免过度粗俗化，需符合当下受众的审美底线。"
+    },
+    "payoff_satisfaction": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "想看和糙汉拉扯的点，通通都没有 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "类型文承诺的核心看点（如男女主的情感拉扯）必须得到充分兑现，否则会严重破坏读者的期待与爽感。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "其实不用在意这个空间，在意这个糙汉的柔情啊 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在成熟赛道中，应准确把握受众的核心诉求（如情感互动）而非过度依赖外挂设定（如空间）来做差异化。"
+    }
+  },
+  "type_specific_notes": "女频年代文（重生九零+糙汉+空间）的核心看点在于男女主的情感拉扯（糙汉的反差柔情）以及打脸极品的爽感。本作过于依赖“空间”设定，忽略了核心的情感互动，且桥段设计可能过于陈旧或粗俗，未能抓住该品类受众的真正痛点。",
+  "consensus_points": [
+    "剧情过于平淡，缺乏起伏和冲突。",
+    "男女主之间缺乏有效的情感拉扯和互动，没有写出“糙汉”设定的精髓，核心看点缺失。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "剧情太平淡，缺乏冲突密度。",
+    "核心看点（情感拉扯）完全缺失。",
+    "桥段设计陈旧或过度粗俗（端尿盆）。"
+  ],
+  "green_flags": []
+}

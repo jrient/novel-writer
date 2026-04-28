@@ -1,0 +1,92 @@
+{
+  "title": "原创AI真人剧《我有一剪，可碎九天神明！》",
+  "status": "拒",
+  "genre": "原创 / 男频",
+  "mean_score": 68.7,
+  "score_range": [
+    66,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "包装成剪刀的秒杀外挂，这种超强男主感觉已经过了巅峰期了 —— 宇间",
+        "设定似曾相识 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "外挂设定需与时俱进，过时的“秒杀”外挂和老套设定难以吸引受众。"
+    },
+    "opening_hook": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "看不明白 —— 小冉",
+        "无力再评 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局必须清晰易懂，混乱的表达会直接劝退读者和评审。"
+    },
+    "character_depth": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "男主性格过于老套 —— 山南",
+        "这种超强男主感觉已经过了巅峰期了 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男主性格需要有新意，传统的无脑超强人设已缺乏市场吸引力。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "看不明白 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "叙事逻辑和节奏需保持清晰，避免让读者产生阅读障碍。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "看不明白 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "基础的文笔表达必须过关，确保设定和剧情能够准确传达。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "包装成剪刀的秒杀外挂，这种超强男主感觉已经过了巅峰期了 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点设计不能依赖过时的套路，需要符合当下市场的爽感预期。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "设定似曾相识 —— 山南",
+        "这种超强男主感觉已经过了巅峰期了 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏差异化的跟风之作在市场中难以立足，容易被判定为同质化严重。"
+    }
+  },
+  "type_specific_notes": "男频爽文对外挂和男主人设的迭代要求很高，过时的“秒杀流”和老套性格已无法满足当前受众，且基础表达能力是及格线。",
+  "consensus_points": [
+    "设定老套、缺乏新意（宇间、山南）",
+    "整体阅读体验极差，表达存在严重问题（小冉、贾酒）"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "设定似曾相识",
+    "男主性格老套",
+    "表达不清导致“看不明白”",
+    "外挂设定过时"
+  ],
+  "green_flags": []
+}

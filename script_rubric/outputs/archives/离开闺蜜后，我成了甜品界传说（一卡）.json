@@ -1,0 +1,98 @@
+{
+  "title": "离开闺蜜后，我成了甜品界传说（一卡）",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 72.0,
+  "score_range": [
+    65,
+    77
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "还是要做升级，单线太单一了 —— 小冉",
+        "自己编剧出品创新度不够 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "单线叙事在当前市场缺乏竞争力，需要元素叠加与设定升级。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "不知道想干啥，感觉遭遇了鬼打墙 —— 贾酒",
+        "前十集孟寻几乎全程“被欺负—隐忍—被欺负—爆发” —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局切忌让主角陷入“鬼打墙”式的无目标状态，一味被动挨打无法留存观众。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "女主过于被动...直到第11集才出现反抗动作 —— 千北",
+        "这个女反得是张美丽 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "女主不能一味被动挨打，反派需要具备极强的特质与辨识度。"
+    },
+    "pacing_conflict": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "不知道想干啥，感觉遭遇了鬼打墙 —— 贾酒",
+        "情绪层级没有递进 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "情绪和冲突必须有层级递进，避免剧情原地踏步和重复拉扯。"
+    },
+    "writing_dialogue": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "对话过于“交代剧情”...现实中没人会这样自言自语。这是典型的“说给观众听” —— 千北",
+        "重复性台词：孟寻多次说“为什么这样对我”，于辉多次说“我是为了你和咱妈” —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "避免用生硬的自言自语交代背景，台词需符合生活逻辑且避免无意义重复。"
+    },
+    "payoff_satisfaction": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "直到第11集才出现反抗动作（咬人、砸花瓶）。观众等待“爽点”的时间太长 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点前置是短剧刚需，压抑期过长（如超过10集）会导致严重弃剧。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "还是要做升级，单线太单一了 —— 小冉",
+        "自己编剧出品创新度不够 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "常规女频逆袭题材缺乏差异化，需在传统框架上做微创新或复合元素融合。"
+    }
+  },
+  "type_specific_notes": "在女频逆袭/搞事业（甜品界传说）题材中，前期的“隐忍”不能过长。女主必须在极短时间内（前3集）展现出破局的苗头或小反击，否则观众在看到她成为“传说”之前就会因为过度憋屈而流失。",
+  "consensus_points": [
+    "剧情推进缓慢，存在“鬼打墙”现象",
+    "女主前期过于被动，爽点严重滞后",
+    "剧本整体缺乏创新，单线叙事过于单薄"
+  ],
+  "disagreement_points": [
+    "责编之间无明显分歧，整体评价均偏低（一般/一般般），仅在具体缺陷的指出上存在颗粒度差异（千北给出了极度详细的台词和节奏拆解，而其他责编多为宏观感受）。"
+  ],
+  "red_flags": [
+    "女主前十集纯挨打无反抗，憋屈感太重",
+    "台词生硬交代剧情，存在大量不符合现实逻辑的自白",
+    "剧情原地打转，情绪和冲突缺乏递进"
+  ],
+  "green_flags": [
+    "女反派如果匹配特定演员（如张美丽）可能会产生较好的化学反应"
+  ]
+}

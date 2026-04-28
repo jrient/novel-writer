@@ -1,0 +1,55 @@
+{
+  "title": "改编AI真人剧《剑墟》人设大纲三集",
+  "status": "改",
+  "genre": "改编 / 男频",
+  "mean_score": 78.0,
+  "score_range": [
+    76,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "剧情中规中矩，也不差 —— 山南"
+      ],
+      "evidence_from_text": [
+        "若熙睁眼醒来，发现自己重生到了简家不受宠的受气包养女简若兮身上"
+      ],
+      "extracted_rule": "剧情设定中规中矩，采用经典的重生复仇套路，缺乏突破性创新。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "潘哲栋举起打火机，火苗窜起。整个若家古宅陷入火海。",
+        "我重生了，重生到简家养女简若兮身上。"
+      ],
+      "extracted_rule": "开局采用强烈的生死冲突与重生钩子，快速切入主线。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "我是苍狼王弟子，悟性逆天，没有掌握大帝宝术。 —— 山南"
+      ],
+      "evidence_from_text": [
+        "简淑念（冷笑）：哟！小贱人，恢复得挺快啊！",
+        "前世20岁父母又亡接手公司，以风火之姿将若氏集团带向鼎盛"
+      ],
+      "extracted_rule": "主角自带满级光环，但反派塑造偏向脸谱化和降智。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "简若兮一个旋转，脚稍稍往前一带，简淑念直接摔了一个狗吃屎。",
+        "好，这是合约，没问题就签字吧！"
+      ],
+      "extracted_rule": "冲突密度较高，单集内包含多次交锋与打脸，节奏紧凑。"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "title": "渣了京圈太子全寝后，我掉马了",
+  "status": "改",
+  "genre": "原创 / 女频",
+  "mean_score": 70.0,
+  "score_range": [
+    65,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "设定挺好的 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "新颖的设定是吸引眼球的基础，但必须配合严密的底层逻辑才能立得住。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏具体评价，需在正文中检验前三集的情绪钩子是否有效。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "女主的人设不做好吧，一般这种反派英雄要有高光往回拉的 —— 贾酒",
+        "而且每集都跟这几个男主有交集么，是不是显得有点渣了 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "“海王”或“反派”型女主必须有极强的高光时刻或合理的行为动机来挽回观众好感，否则容易沦为单纯的惹人厌。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "而且每集都跟这几个男主有交集么 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "角色互动需要合理的节奏分配，避免为了制造修罗场而强行让人物每集交集，导致结构刻意和审美疲劳。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏具体评价，需在正文中检验台词的自然度与文笔成熟度。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "掉马和修罗场题材的爽点不仅在于事件爆发，更在于主角掌控全局的高光表现。"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "细分赛道（京圈、掉马、一女多男）需要精准把握受众对“渣女”设定的接受尺度。"
+    }
+  },
+  "type_specific_notes": "女频海王/掉马类题材极度依赖女主的行为动机和高光时刻。如果只是单纯的“渣”而没有合理的苦衷、智商碾压或道德上的“往回拉”，很容易引起女性受众的道德反感，导致人设崩塌。",
+  "consensus_points": [
+    "女主的人设存在明显缺陷，行为显得过于‘渣’，缺乏高光时刻或合理动机来挽回观众好感。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "女主缺乏高光时刻，人设不讨喜，容易引起观众反感",
+    "核心情节缺乏逻辑支撑（如女主住进男主房子的动机、男主之间的过节未交代清楚）",
+    "人物交集过于刻意（每集都强行与多位男主互动）"
+  ],
+  "green_flags": [
+    "基础设定具备一定吸引力"
+  ]
+}

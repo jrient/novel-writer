@@ -1,0 +1,90 @@
+{
+  "title": "《重生80，我带妻女制霸鲜城餐饮业》",
+  "status": "改",
+  "genre": "原创 / 男频",
+  "mean_score": 77.0,
+  "score_range": [
+    75,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "卖凉皮的设定还是要结合人物的个性的 —— 贾酒",
+        "能不能做成美食番 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "年代重生创业题材需结合具体的细分行业（如美食餐饮）打出特色，避免同质化。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "男主重生后反击和创业的动机...还是要结合人物的个性的 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "重生后的反击与创业动机必须有强烈的个人情感或性格支撑，不能仅靠套路驱动。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "现在感觉男主有些干吧，没啥特点 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "主角人设不能沦为走剧情的工具人，必须赋予其鲜明、立体的性格特征。"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "打脸可以少点 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突设计应服务于核心主线，避免为了制造冲突而堆砌过多的生硬“打脸”桥段。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔需能生动展现年代感与行业细节，避免干瘪叙事。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "打脸可以少点 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点不应仅局限于人际冲突的“打脸”，事业成就（如美食制霸）也是重要的爽感来源。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这是男频吧？ —— Vicki",
+        "对啊，这好像男频啊 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在明确的男频受众定位下，可通过强化垂直元素（如纯粹的美食番路线）来提升与其他同类作品的差异化。"
+    }
+  },
+  "type_specific_notes": "典型的男频年代重生创业文，带有明显的美食元素。多位责编对其受众定位（男频）有强烈感知，建议在后续修改中弱化传统的低级“打脸”套路，强化“美食番”的垂直属性以提升质感。",
+  "consensus_points": [
+    "作品具有强烈的男频属性（Vicki、小刚）。",
+    "男主的人设和行为动机需要进一步打磨和丰富（贾酒）。"
+  ],
+  "disagreement_points": [
+    "整体观感存在一定分化：千北表示“挺喜欢”，但贾酒认为男主“干巴没特点”，山南则对现有的“打脸”套路数量提出异议。"
+  ],
+  "red_flags": [
+    "男主形象单薄，缺乏性格特点，导致行为动机显得生硬。",
+    "打脸桥段可能过多，影响了主线（美食创业）的观感。"
+  ],
+  "green_flags": [
+    "具备做成“美食番”的潜力，细分题材有一定的吸引力。"
+  ]
+}

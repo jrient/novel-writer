@@ -1,0 +1,83 @@
+{
+  "title": "养成奶娃娃，你告诉我说是如来佛祖？",
+  "status": "改",
+  "genre": "原创 / 男频",
+  "mean_score": 73.7,
+  "score_range": [
+    70,
+    76
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "设定挺好 —— 山南",
+        "我猜作者是不是想写金蝉子但是又觉得咖位不够，改成的如来佛？ —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "将高位阶神明（如来）进行幼态化养成，具备较强的反差感和吸睛度。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "书名通过强烈的身份反差（奶娃娃vs如来佛祖）建立了初步的悬念钩子。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这种设定里面的那个小孩儿弥勒佛是不是更合适？ —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "人设原型选择存在争议，需考虑神明原有形象与“奶娃”设定的适配度。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "养成类题材通常依赖于身份揭露前后的节奏对比，目前信息不足以判断具体密度。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "无具体反馈，但此类题材对台词的趣味性和反差感要求较高。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点核心在于“满级大佬重练”或“养出至尊”的成就感。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这类型。，女频有得看吧？ —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在男频赛道中引入偏女频的“养成”元素，具有一定的差异化，但也存在受众错位的风险。"
+    }
+  },
+  "type_specific_notes": "养成类题材在男频中需强化“护短”、“升级”和“身份反转带来的社会地位提升”，而非单纯的情感互动。",
+  "consensus_points": [
+    "该剧本的核心卖点在于其独特的设定（如来佛祖的养成）。"
+  ],
+  "disagreement_points": [
+    "受众定位分歧：贾酒认为该类型更偏向女频市场，而作者将其投递为男频。",
+    "角色原型选择：宇间认为弥勒佛比如来佛更适合“小孩儿”设定。"
+  ],
+  "red_flags": [
+    "制作难度：山南指出“做真人有难度”，暗示特效或选角（高质感萌娃）可能增加成本。",
+    "性别赛道模糊：男频观众对纯养成题材的接受度存疑。"
+  ],
+  "green_flags": [
+    "设定新颖：如来佛祖作为养成对象的咖位极高，具备天然的话题度和流量潜力。"
+  ]
+}

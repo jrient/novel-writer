@@ -1,0 +1,242 @@
+{
+  "version": "8",
+  "generated_at": "2026-04-25",
+  "sample_size": 57,
+  "universal_dimensions": {
+    "premise_innovation": {
+      "name_zh": "题材与设定创新度",
+      "avg_score": 5.0,
+      "avg_by_status": {
+        "拒": 4.2,
+        "改": 5.8,
+        "签": 5.3
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    },
+    "opening_hook": {
+      "name_zh": "开局与钩子",
+      "avg_score": 5.1,
+      "avg_by_status": {
+        "拒": 4.7,
+        "改": 5.5,
+        "签": 5.4
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    },
+    "character_depth": {
+      "name_zh": "人设立体度",
+      "avg_score": 4.7,
+      "avg_by_status": {
+        "拒": 4.2,
+        "改": 4.8,
+        "签": 6.1
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    },
+    "pacing_conflict": {
+      "name_zh": "节奏与冲突密度",
+      "avg_score": 5.2,
+      "avg_by_status": {
+        "拒": 4.7,
+        "改": 5.4,
+        "签": 6.3
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    },
+    "writing_dialogue": {
+      "name_zh": "文笔与台词",
+      "avg_score": 4.8,
+      "avg_by_status": {
+        "拒": 4.3,
+        "改": 4.8,
+        "签": 6.0
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    },
+    "payoff_satisfaction": {
+      "name_zh": "爽点兑现",
+      "avg_score": 5.5,
+      "avg_by_status": {
+        "拒": 5.0,
+        "改": 5.6,
+        "签": 6.9
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    },
+    "benchmark_differentiation": {
+      "name_zh": "对标与差异化",
+      "avg_score": 4.6,
+      "avg_by_status": {
+        "拒": 3.4,
+        "改": 5.6,
+        "签": 5.3
+      },
+      "red_flags_sample": [
+        "主角反击节奏过慢，导致前中期压抑",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "标题含有“ai仿真人”但正文毫无关联（文不对题）",
+        "频繁使用闪回/闪出，导致叙事结构碎片化",
+        "复仇手段落后（靠美色周旋于父子之间）"
+      ],
+      "green_flags_sample": [
+        "尽管评语以挑刺为主，但三位责编给出的分数较高（均分80），说明故事的整体框架或题材在男频赛道具有较好的市场潜力。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "男女主互动自带喜剧反差感（卖小黄书、吐槽不行）。",
+        "爽点兑现极快（第三集立刻实现暴富目标）。"
+      ]
+    }
+  },
+  "type_overlays": {
+    "原创 / 萌宝": {
+      "premise_innovation": 5.0,
+      "opening_hook": 5.5,
+      "character_depth": 5.5,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 5.2,
+      "payoff_satisfaction": 5.8,
+      "benchmark_differentiation": 3.7
+    },
+    "改编 / 女频": {
+      "premise_innovation": 4.5,
+      "opening_hook": 5.2,
+      "character_depth": 4.8,
+      "pacing_conflict": 5.8,
+      "writing_dialogue": 4.7,
+      "payoff_satisfaction": 5.9,
+      "benchmark_differentiation": 4.2
+    },
+    "原创 / 男频": {
+      "premise_innovation": 5.4,
+      "opening_hook": 5.1,
+      "character_depth": 4.2,
+      "pacing_conflict": 5.5,
+      "writing_dialogue": 5.2,
+      "payoff_satisfaction": 5.5,
+      "benchmark_differentiation": 5.2
+    },
+    "原创 / 女频": {
+      "premise_innovation": 5.4,
+      "opening_hook": 4.7,
+      "character_depth": 4.5,
+      "pacing_conflict": 4.5,
+      "writing_dialogue": 4.4,
+      "payoff_satisfaction": 4.7,
+      "benchmark_differentiation": 4.8
+    },
+    "改编 / 世情": {
+      "premise_innovation": 3.0,
+      "opening_hook": 5.5,
+      "character_depth": 5.0,
+      "pacing_conflict": 5.5,
+      "writing_dialogue": 4.5,
+      "payoff_satisfaction": 6.0,
+      "benchmark_differentiation": 3.0
+    },
+    "原创 / 世情": {
+      "premise_innovation": 4.0,
+      "opening_hook": 6.0,
+      "character_depth": 4.3,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 4.7,
+      "payoff_satisfaction": 6.7,
+      "benchmark_differentiation": 3.3
+    },
+    "改编 / 男频": {
+      "premise_innovation": 6.0,
+      "opening_hook": 5.2,
+      "character_depth": 5.5,
+      "pacing_conflict": 5.2,
+      "writing_dialogue": 5.0,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 5.8
+    },
+    "原创": {
+      "premise_innovation": 8.0,
+      "opening_hook": 5.0,
+      "character_depth": 6.0,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 4.0,
+      "benchmark_differentiation": 6.0
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "title": "穿书炮灰（一卡）",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 76.0,
+  "score_range": [
+    70,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "共感设定利用不足目前共感只用在：砸石头（自己疼）掐脖子（自己窒息）戳伤口（自己疼）缺什么：情绪共感 —— 千北",
+        "一眼看到底，前一段时间才刷到过别人做的同款短视频 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "核心奇幻设定（如共感）需深度挖掘其在情感和机制上的延展性，避免流于表面物理伤害，且需警惕与市面竞品高度同质化。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "男女主的宿命感，开场缺这个，后面再精彩都要打折扣 —— 贾酒",
+        "1-1好长，一直在对话 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局需迅速建立核心人物的宿命感与核心冲突，避免用冗长的纯对话拖慢节奏。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "男主人设问题……他的“缺爱”人设没有体现，他为什么会对江晚晚产生兴趣？目前只是因为共感 —— 千北",
+        "男反人设问题：薛君浩第1集就暴露了所有阴谋，第7集就被抓了。如果第7集就搞定薛君浩，后面十几集演什么？ —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男主需有内在情感逻辑支撑其行为，反派需有足够的智商和存活周期以维持对抗张力。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "5集往后有点平 —— 小冉",
+        "节奏问题：4-5别院养伤+讨好，拖沓；6烤肉+喝粥，水剧情；7白府抓薛君浩，高潮太早；8江府见祖母，过渡，但有点平 —— 千北"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧情节奏需张弛有度，避免连续的日常水剧情，高潮事件需合理分布，避免过早消耗核心反派。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "1-1好长，一直在对话 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧本对白需精炼，避免用大段对话替代动作和冲突展现。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "7白府抓薛君浩，高潮太早……9-10明月楼冲突，重复第7集的打脸套路 —— 千北",
+        "5集往后有点平 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点设计需层层递进，避免过早释放最高潮导致后续打脸套路重复、剧情疲软。"
+    },
+    "benchmark_differentiation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "一眼看到底，前一段时间才刷到过别人做的同款短视频 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "穿书题材需在核心设定或人物关系上寻找差异化，避免与市面已有爆款高度撞梗。"
+    }
+  },
+  "type_specific_notes": "女频穿书题材高度依赖男女主的情感羁绊（宿命感）和设定的新奇度。本作的“共感”设定是个好抓手，但仅停留在物理层面，未深入到情感层面，且反派降智/下线过早，导致中后期剧情陷入套路化和水剧情。",
+  "consensus_points": [
+    "中后期剧情平淡，节奏拖沓，存在水剧情现象（小冉、千北）。",
+    "开局吸引力不足，缺乏男女主宿命感且对话冗长（贾酒、Vicki）。"
+  ],
+  "disagreement_points": [
+    "对整体质量的判断存在分歧：小冉认为“整体不错，大有进步”，而小刚认为“一眼看到底，同款短视频”，对剧本的市场新鲜度评价两极分化。"
+  ],
+  "red_flags": [
+    "反派第1集暴露，第7集被抓，高潮过早，导致后续剧情无力支撑。",
+    "第一集开局全是对话，缺乏事件钩子。",
+    "男主对女主的感情缺乏内在逻辑支撑，仅靠物理共感设定推进。",
+    "与市面已有短剧高度同质化，缺乏核心竞争力。"
+  ],
+  "green_flags": [
+    "具备“共感”这一有潜力的奇幻设定（尽管目前开发不足，但底子存在）。"
+  ]
+}

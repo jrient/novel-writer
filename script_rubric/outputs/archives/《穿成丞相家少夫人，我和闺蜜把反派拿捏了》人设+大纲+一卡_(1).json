@@ -1,0 +1,83 @@
+{
+  "title": "《穿成丞相家少夫人，我和闺蜜把反派拿捏了》人设+大纲+一卡 (1)",
+  "status": "拒",
+  "genre": "原创 / 女频",
+  "mean_score": 68.3,
+  "score_range": [
+    65,
+    70
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "和闺蜜穿书同款 —— Vicki",
+        "太像爆款了 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "设定高度同质化、直接照搬已有爆款设定的剧本会被直接否定。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "无力再评 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏新意的套路化开局无法引起责编的阅读兴趣。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "在题材严重同质化的情况下，常规的套路化人设无法提供加分项。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "跟风之作通常在节奏与冲突上也缺乏独立思考，难以脱颖而出。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "无力再评 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "整体文本质量或套路化程度严重到导致责编失去评价耐心。"
+    },
+    "payoff_satisfaction": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "照搬爆款的爽点缺乏新鲜感，无法带来真正的阅读快感。"
+    },
+    "benchmark_differentiation": {
+      "score": 1,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "太像爆款了 —— 小冉",
+        "和闺蜜穿书同款 —— Vicki"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏差异化、完全照搬对标作品（如“闺蜜穿书”类）是剧本被拒的核心原因。"
+    }
+  },
+  "type_specific_notes": "女频穿书/双女主（闺蜜）题材目前市场饱和度极高，如果没有显著的微创新或反套路，极易被判定为跟风之作而遭到淘汰。",
+  "consensus_points": [
+    "剧本高度同质化，严重缺乏原创性",
+    "直接照搬了已有爆款（闺蜜穿书类）的设定和套路"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "太像爆款了（跟风抄袭嫌疑或极度缺乏创新）",
+    "无力再评（责编产生严重的审美疲劳和阅读抗拒）",
+    "和闺蜜穿书同款（毫无差异化）"
+  ],
+  "green_flags": []
+}

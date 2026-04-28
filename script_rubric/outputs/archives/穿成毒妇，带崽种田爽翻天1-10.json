@@ -1,0 +1,94 @@
+{
+  "title": "穿成毒妇，带崽种田爽翻天1-10",
+  "status": "改",
+  "genre": "改编 / 女频",
+  "mean_score": 77.0,
+  "score_range": [
+    70,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "萌宝的真的不是我的类型 —— 山南"
+      ],
+      "evidence_from_text": [
+        "我本是顶级杀手，厌倦了刀尖舔血的日子...穿成毒妇，带崽种田爽翻天"
+      ],
+      "extracted_rule": "杀手穿越成恶毒农妇带萌宝洗白的设定在女频中属于高度套路化，缺乏新意。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "女主重生以后库库干，节奏很快 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "突然，地上的女人猛地睁开双眼，眼神从涣散怯懦瞬间变得凌厉",
+        "足尖轻挑，地上的砍刀飞入手中。刀光一闪...脖颈处瞬间裂开一道血线"
+      ],
+      "extracted_rule": "开局迅速完成穿越并以强烈的动作戏（反杀山匪）切入，能快速抓住眼球。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "女主人设还有点一会一个样子 —— 小冉"
+      ],
+      "evidence_from_text": [
+        "我本是顶级杀手...（转场对原主）放心去吧，我会替你照看孩子",
+        "（对孩子）老娘饿了，想活命就闭嘴"
+      ],
+      "extracted_rule": "顶级杀手与温柔母亲的身份转换缺乏合理铺垫，导致女主人设产生割裂感。"
+    },
+    "pacing_conflict": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "节奏很快但是没那么爽...空有节奏 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "啪！啪！反手又是两个的耳光",
+        "一脚正中刘寡妇的胸口，将其踹飞数米远",
+        "一记回旋踢正中光头李的下巴"
+      ],
+      "extracted_rule": "冲突密度极高，几乎每集都有肢体或言语冲突，节奏推进极快。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "带着你的脑瘫小妾滚远点",
+        "脸是什么东西，能吃吗？"
+      ],
+      "extracted_rule": "台词直白爽利，但带有较多现代词汇（如“脑瘫”），在古装种田背景下略显出戏。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "没那么爽，因为他们一家的遭遇没给到，所受的屈辱没有写，所以女主的动机立不住...没有情绪 —— 贾酒"
+      ],
+      "evidence_from_text": [
+        "（打李小虎）啪！啪！反手又是两个的耳光",
+        "（塞臭袜子）将那团臭袜子精准塞进了贾莹莹正喋喋不休的嘴里"
+      ],
+      "extracted_rule": "物理层面的打脸动作给得很足，但缺乏前期反派压迫的情绪铺垫，导致爽感浮于表面。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "萌宝的真的不是我的类型 —— 山南"
+      ],
+      "evidence_from_text": [
+        "这叫辣条...姐姐，亲姐姐！你教我做这个辣条吧",
+        "猎队进了深山，捅了四只熊瞎子的窝"
+      ],
+      "extracted_rule": "恶毒农妇洗白、做现代小吃（辣条）惊艳古人、糙汉猎户回归等元素与同赛道作品高度同质化。"
+    }
+  }
+}

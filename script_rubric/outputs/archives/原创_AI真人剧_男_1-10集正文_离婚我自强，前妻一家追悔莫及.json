@@ -1,0 +1,94 @@
+{
+  "title": "原创 AI真人剧 男 1-10集正文 离婚我自强，前妻一家追悔莫及",
+  "status": "改",
+  "genre": "原创 / 世情",
+  "mean_score": 71.8,
+  "score_range": [
+    70,
+    75
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这种看太多就很难评 —— 宇间",
+        "情节老套了，没啥意思 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频离婚逆袭流题材高度饱和，若无微创新极易让阅片量大的受众感到疲劳。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "到2-1的前半段都很棒 —— 贾酒",
+        "三话看下来没啥记忆点+1 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局的吸引力因人而异，但未能提供足够强烈的核心记忆点来留住所有受众。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "直到李桂香扇了宋曼一巴掌，好好的剧给整稀碎，彻底无了 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "配角的极端行为（如扇巴掌）若缺乏合理铺垫或违背人物逻辑，会瞬间破坏整体观感。"
+    },
+    "pacing_conflict": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "直到李桂香扇了宋曼一巴掌，好好的剧给整稀碎 —— 贾酒",
+        "情节老套了 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突设计不能仅靠强行制造矛盾（如突兀的肢体冲突），否则会显得刻意且老套。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "一般 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "文笔台词中规中矩，未能对老套的剧情起到挽救或提升作用。"
+    },
+    "payoff_satisfaction": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "好好的剧给整稀碎，彻底无了 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "不合理的憋屈情节会直接打断受众的爽感预期，导致弃剧。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这种看太多就很难评 —— 宇间",
+        "情节老套了，没啥意思 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在成熟赛道中缺乏差异化设计，与市面已有同类作品高度重复。"
+    }
+  },
+  "type_specific_notes": "作为男频世情/离婚逆袭剧，受众对前妻一家的打脸爽感有明确预期。如果反派的降智行为或主角的受挫情节处理不当，极易引发毒点。",
+  "consensus_points": [
+    "题材和情节过于老套，同质化严重。",
+    "剧本缺乏核心记忆点，整体表现平庸。"
+  ],
+  "disagreement_points": [
+    "对开局的评价存在分歧：贾酒认为前一集半表现很棒，而宇间认为前三话毫无记忆点。"
+  ],
+  "red_flags": [
+    "关键情节处理失误（李桂香扇宋曼巴掌）导致剧情崩盘，严重破坏观感。",
+    "情节老套，缺乏新意，容易让受众产生审美疲劳。"
+  ],
+  "green_flags": [
+    "开局部分（至2-1）在节奏或情绪铺垫上曾一度吸引部分责编。"
+  ]
+}

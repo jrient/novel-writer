@@ -1,0 +1,93 @@
+{
+  "title": "女儿考公被顶替，我一等功长跪不起1-10",
+  "status": "改",
+  "genre": "改编 / 男频",
+  "mean_score": 75.2,
+  "score_range": [
+    70,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "总感觉题材有些敏感，涉及军区，政府的还是谨慎为好 —— 小刚",
+        "20年后龙王归来，不看好 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "现实题材（考公顶替）与战神流结合虽有噱头，但极易触碰政治与军区敏感红线，且底层套路仍偏老旧。"
+    },
+    "opening_hook": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "开场就把男主底揭了 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局过早暴露主角核心底牌会严重削弱后续剧情的悬念与期待感。"
+    },
+    "character_depth": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "主角设定才四十几怎么给五十多的军区领导当班长的？ —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "角色设定必须符合基本现实逻辑，年龄与资历的倒挂会引发严重的逻辑硬伤。"
+    },
+    "pacing_conflict": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这个行，可以矛盾更大一些 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "现实向维权题材需要足够极致的矛盾冲突来推动情绪，冲突不够大则张力不足。"
+    },
+    "writing_dialogue": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "在以我军体系为原型兵王之中出现【联邦】这种词汇在我看来就很难绷，我有理由相信作者写不好 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "现实背景下的专有名词需严谨，生搬硬套架空或西式词汇会严重破坏沉浸感并暴露笔力不足。"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "可以矛盾更大一些 —— 小冉"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点的爆发依赖于前期矛盾的极致压抑，矛盾不够大直接限制了最终的爽感兑现。"
+    },
+    "benchmark_differentiation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "20年后龙王归来，不看好 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "传统的“龙王归来”套路在当前市场已显老旧，若无显著差异化容易被判定为缺乏竞争力。"
+    }
+  },
+  "type_specific_notes": "男频军旅/战神题材改编，最忌讳“悬浮感”。在借用现实社会痛点（考公顶替）时，必须保证军事常识、称呼体系（如避免使用“联邦”）和人物年龄逻辑的严谨性，否则极易引发男频受众的毒点反弹。同时需高度警惕涉军涉政的过审风险。",
+  "consensus_points": [
+    "剧本存在明显的逻辑硬伤和常识错误（如年龄倒挂、名词乱用）",
+    "题材涉及军区和政府，存在较高的敏感度风险"
+  ],
+  "disagreement_points": [
+    "对整体商业潜力的判断存在分歧：小冉认为“这个行”（80分），而山南明确表示“不看好”（73分），宇间则因细节硬伤认为“作者写不好”（70分）。"
+  ],
+  "red_flags": [
+    "出现【联邦】等与我军体系严重不符的出戏词汇",
+    "主角与配角年龄/职务设定存在明显逻辑漏洞",
+    "开局过早揭底，缺乏悬念",
+    "涉军涉政题材敏感风险"
+  ],
+  "green_flags": [
+    "核心事件（女儿考公被顶替+一等功长跪）具备一定的情绪煽动力和社会痛点共鸣基础"
+  ]
+}

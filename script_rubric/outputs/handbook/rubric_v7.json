@@ -1,0 +1,242 @@
+{
+  "version": "7",
+  "generated_at": "2026-04-24",
+  "sample_size": 56,
+  "universal_dimensions": {
+    "premise_innovation": {
+      "name_zh": "题材与设定创新度",
+      "avg_score": 5.1,
+      "avg_by_status": {
+        "拒": 4.2,
+        "改": 5.9,
+        "签": 5.3
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "opening_hook": {
+      "name_zh": "开局与钩子",
+      "avg_score": 5.1,
+      "avg_by_status": {
+        "拒": 4.7,
+        "改": 5.5,
+        "签": 5.4
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "character_depth": {
+      "name_zh": "人设立体度",
+      "avg_score": 4.7,
+      "avg_by_status": {
+        "拒": 4.2,
+        "改": 4.8,
+        "签": 6.1
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "pacing_conflict": {
+      "name_zh": "节奏与冲突密度",
+      "avg_score": 5.2,
+      "avg_by_status": {
+        "拒": 4.7,
+        "改": 5.4,
+        "签": 6.3
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "writing_dialogue": {
+      "name_zh": "文笔与台词",
+      "avg_score": 4.8,
+      "avg_by_status": {
+        "拒": 4.3,
+        "改": 4.9,
+        "签": 6.0
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "payoff_satisfaction": {
+      "name_zh": "爽点兑现",
+      "avg_score": 5.4,
+      "avg_by_status": {
+        "拒": 5.0,
+        "改": 5.5,
+        "签": 6.9
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    },
+    "benchmark_differentiation": {
+      "name_zh": "对标与差异化",
+      "avg_score": 4.6,
+      "avg_by_status": {
+        "拒": 3.4,
+        "改": 5.6,
+        "签": 5.3
+      },
+      "red_flags_sample": [
+        "整体设定和剧情走向陈旧套路，缺乏新意。",
+        "主角反击节奏过慢，导致前中期压抑",
+        "反派降智严重，台词极度脸谱化（“在江城我就是王法”）。",
+        "金手指设定过于万能，导致主角缺乏生存压力",
+        "台词充斥过时的网络流行语，出戏感极强"
+      ],
+      "green_flags_sample": [
+        "爽点兑现极快（第三集立刻实现暴富目标）。",
+        "后续剧情非常精彩，整体可看性强",
+        "女主反击果断不内耗（直接扇巴掌、要大逼兜）。",
+        "女主反击果断，第8-9集暴打造谣者的情节爽点充足且解气。",
+        "宅斗反杀爽点给足，女主清醒搞事业不拖泥带水"
+      ]
+    }
+  },
+  "type_overlays": {
+    "原创 / 萌宝": {
+      "premise_innovation": 5.0,
+      "opening_hook": 5.5,
+      "character_depth": 5.5,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 5.2,
+      "payoff_satisfaction": 5.8,
+      "benchmark_differentiation": 3.7
+    },
+    "改编 / 女频": {
+      "premise_innovation": 4.5,
+      "opening_hook": 5.2,
+      "character_depth": 4.8,
+      "pacing_conflict": 5.8,
+      "writing_dialogue": 4.7,
+      "payoff_satisfaction": 5.9,
+      "benchmark_differentiation": 4.2
+    },
+    "原创 / 男频": {
+      "premise_innovation": 5.4,
+      "opening_hook": 5.1,
+      "character_depth": 4.2,
+      "pacing_conflict": 5.5,
+      "writing_dialogue": 5.2,
+      "payoff_satisfaction": 5.5,
+      "benchmark_differentiation": 5.2
+    },
+    "原创 / 女频": {
+      "premise_innovation": 5.4,
+      "opening_hook": 4.7,
+      "character_depth": 4.5,
+      "pacing_conflict": 4.5,
+      "writing_dialogue": 4.4,
+      "payoff_satisfaction": 4.7,
+      "benchmark_differentiation": 4.8
+    },
+    "改编 / 世情": {
+      "premise_innovation": 3.0,
+      "opening_hook": 5.0,
+      "character_depth": 5.0,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 5.0,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 3.0
+    },
+    "原创 / 世情": {
+      "premise_innovation": 4.0,
+      "opening_hook": 6.0,
+      "character_depth": 4.3,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 4.7,
+      "payoff_satisfaction": 6.7,
+      "benchmark_differentiation": 3.3
+    },
+    "改编 / 男频": {
+      "premise_innovation": 6.0,
+      "opening_hook": 5.2,
+      "character_depth": 5.5,
+      "pacing_conflict": 5.2,
+      "writing_dialogue": 5.0,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 5.8
+    },
+    "原创": {
+      "premise_innovation": 8.0,
+      "opening_hook": 5.0,
+      "character_depth": 6.0,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 4.0,
+      "benchmark_differentiation": 6.0
+    }
+  }
+}

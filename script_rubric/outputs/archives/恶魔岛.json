@@ -1,0 +1,96 @@
+{
+  "title": "恶魔岛",
+  "status": "改",
+  "genre": "改编 / 男频",
+  "mean_score": 77.0,
+  "score_range": [
+    75,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "往世情那个方向有前10先是人性百态争夺物资什么的，然后卡点那个食人部落出来 —— 小冉",
+        "前期应该围绕物资啊 资源争夺写，十级之后再出现食人族 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "荒岛求生类题材需结合人性博弈与极端生存威胁（如食人族）来构建基础看点。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "前10先是人性百态争夺物资什么的，然后卡点那个食人部落出来 —— 小冉",
+        "感觉也没那么有期待感了 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "开局需以物资争夺建立基础生存危机，并在关键节点引入更强烈的外部威胁作为钩子，避免丧失期待感。"
+    },
+    "character_depth": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "人性百态争夺物资 —— 小冉",
+        "老板下线大家统一干食人族这样 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "群像塑造需在极端环境下展现人性百态与社会阶级的反转（如现实中的老板在岛上失去权力）。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "前10先是人性百态争夺物资什么的，然后卡点那个食人部落出来 —— 小冉",
+        "十级之后再出现食人族，然后老板下线大家统一干食人族这样 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突需层层递进，从前期的内部物资争夺自然过渡到中后期的外部生死存亡危机。"
+    },
+    "writing_dialogue": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这下很短剧了 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧本行文需符合短剧的下沉与直白风格。"
+    },
+    "payoff_satisfaction": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "老板下线大家统一干食人族这样 —— 宇间",
+        "感觉也没那么有期待感了 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽点来源于打破原有社会阶级（老板下线）以及主角团反杀极端外部威胁。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这下很短剧了，但是感觉也没那么有期待感了 —— 小刚"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在向标准短剧套路靠拢的同时，必须保留核心设定的差异化期待感，避免过度同质化。"
+    }
+  },
+  "type_specific_notes": "男频荒岛求生类改编，核心看点在于“物资争夺的人性博弈”与“极端环境下的阶级反转（如老板下线）”，需要明确的阶段性危机（如食人族）来推动剧情。",
+  "consensus_points": [
+    "剧本整体方向可行，具备修改基础（多位责编表示“能整”）。",
+    "前10集应聚焦于物资争夺和人性百态。",
+    "第10集左右需要引入食人族作为新的危机卡点，推动后续剧情。"
+  ],
+  "disagreement_points": [
+    "关于修改后的整体效果：小冉、47、宇间认为修改后方向明确且不错（“能整”、“确实不错”），而小刚认为虽然符合短剧套路，但丧失了期待感。"
+  ],
+  "red_flags": [
+    "剧情走向过于套路化，导致缺乏期待感。"
+  ],
+  "green_flags": [
+    "结构清晰，有明确的阶段性冲突设计（物资争夺 -> 食人族出现 -> 阶级反转与一致对外）。",
+    "整体调性已成功贴合短剧市场需求。"
+  ]
+}

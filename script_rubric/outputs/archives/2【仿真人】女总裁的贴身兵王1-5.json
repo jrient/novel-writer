@@ -1,0 +1,85 @@
+{
+  "title": "2【仿真人】女总裁的贴身兵王1-5",
+  "status": "改",
+  "genre": "改编 / 男频",
+  "mean_score": 79.5,
+  "score_range": [
+    79,
+    80
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "剧情会比较无脑 —— 帕克"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "男频兵王题材若过度依赖动作戏，往往会导致剧情设定套路化、缺乏深度创新。"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏具体评价，但对于主推打戏的剧本，开局通常需要以高强度的动作冲突作为核心钩子。"
+    },
+    "character_depth": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "剧情会比较无脑 —— 帕克"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "“无脑”剧情通常伴随人物扁平化，角色容易沦为推动动作戏的工具人。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "主推打戏 —— 帕克"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "以打戏为主推卖点能保证较高的物理冲突密度，从而维持男频受众的观看节奏。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "剧情会比较无脑 —— 帕克"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "剧情逻辑薄弱的剧本，其文笔和台词往往缺乏打磨，仅满足基本的叙事功能。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [
+        "主推打戏 —— 帕克"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "明确主推打戏能直接且高频地满足男频受众对暴力美学和战力碾压的视觉爽点需求。"
+    },
+    "benchmark_differentiation": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "做出来会向像隐身侍卫一样 —— 帕克"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "有明确的同类对标作品（如《隐身侍卫》）有助于市场定位，但也意味着差异化程度有限。"
+    }
+  },
+  "type_specific_notes": "典型的男频兵王题材，重动作轻剧情。视觉爽感和打戏质量是决定成败的关键，剧情逻辑退居次位。",
+  "consensus_points": [
+    "项目核心卖点是动作戏（打戏），剧情逻辑较弱（无脑），整体风格对标《隐身侍卫》。"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "剧情会比较无脑，可能导致非动作戏受众流失或口碑走低。"
+  ],
+  "green_flags": [
+    "主推打戏，受众定位精准，爽点直接。",
+    "有明确的对标作品，制作方向清晰。"
+  ]
+}

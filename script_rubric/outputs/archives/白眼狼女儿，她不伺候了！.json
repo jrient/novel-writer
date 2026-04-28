@@ -1,0 +1,91 @@
+{
+  "title": "白眼狼女儿，她不伺候了！",
+  "status": "改",
+  "genre": "原创 / 世情",
+  "mean_score": 72.5,
+  "score_range": [
+    70,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "没有在解说剧的基础上做创新 —— 小冉",
+        "这种看太多就很难评 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "在高度饱和的题材赛道中，缺乏微创新和差异化元素会导致严重的审美疲劳。"
+    },
+    "opening_hook": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "三话看下来没啥记忆点 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "前三集必须提供核心记忆点或强烈的情绪钩子，平淡开局无法有效留存读者。"
+    },
+    "character_depth": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这女主也太端着了 —— 贾酒",
+        "反派太无脑了，不喜欢 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "正反派人设均需避免极端扁平化：女主忌讳过度做作“端着”，反派忌讳为了推进剧情而强行降智。"
+    },
+    "pacing_conflict": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "三话看下来没啥记忆点 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "冲突设计需要有记忆点和有效推进，不能流于表面的流水账。"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [
+        "这女主也太端着了 —— 贾酒"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "台词与行为描写需贴合人物身份与情绪，避免给读者带来做作、不自然的观感。"
+    },
+    "payoff_satisfaction": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "反派太无脑了，不喜欢 —— 山南"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "爽感的建立依赖于有逻辑的反派，击败无脑反派会大幅削弱打脸的爽感与成就感。"
+    },
+    "benchmark_differentiation": {
+      "score": 2,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "没有在解说剧的基础上做创新 —— 小冉",
+        "这种看太多就很难评 —— 宇间"
+      ],
+      "evidence_from_text": [],
+      "extracted_rule": "热门对标作品的同人或跟风作必须具备明确的差异化标签，否则极易被市场淹没。"
+    }
+  },
+  "type_specific_notes": "世情/家庭伦理类（尤其是“白眼狼女儿”等亲情背叛题材）目前市场极度饱和。如果只是照搬短视频解说剧的套路，没有在人设（如女主反击的姿态需接地气而非端着）或反派智商上做升级，很难在同类竞品中脱颖而出。",
+  "consensus_points": [
+    "题材套路化严重，缺乏创新，导致读者审美疲劳",
+    "人物塑造存在明显缺陷，正反派均不讨喜"
+  ],
+  "disagreement_points": [],
+  "red_flags": [
+    "女主形象做作（太端着）",
+    "反派强行降智（太无脑）",
+    "前三集缺乏核心记忆点",
+    "严重同质化，无创新点"
+  ],
+  "green_flags": []
+}

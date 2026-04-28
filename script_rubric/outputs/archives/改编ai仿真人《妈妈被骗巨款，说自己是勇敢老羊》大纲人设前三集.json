@@ -1,0 +1,74 @@
+{
+  "title": "改编ai仿真人《妈妈被骗巨款，说自己是勇敢老羊》大纲人设前三集",
+  "status": "改",
+  "genre": "改编 / 世情",
+  "mean_score": 76.5,
+  "score_range": [
+    75,
+    78
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 3,
+      "verdict": "negative",
+      "evidence_from_reviews": [
+        "这个还蛮现实得 —— Vicki"
+      ],
+      "evidence_from_text": [
+        "陆云萝穿越成冷宫废后，靠着在冷宫种田一步步站稳脚跟，不爱宫斗爱种田盼着早日暴富，意外与陛下寂无绝相遇，为调查身份，寂无绝假扮侍卫与其共处"
+      ],
+      "extracted_rule": "冷宫种田、搞钱暴富与皇帝掉马属于极度饱和的传统网文/短剧套路，缺乏实质性创新。"
+    },
+    "opening_hook": {
+      "score": 6,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝一身白衣，腰上挂着玉佩，闭眼躺在土坑里，两个太监一人一铲子往上面填土",
+        "两太监对着银霜嘲讽时，背后陆云萝直挺挺的站起"
+      ],
+      "extracted_rule": "以“活埋诈尸”反杀和偷窥皇帝作为开局，能快速建立冲突并引出男女主相遇，但桥段设计较为常见。"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "穿越而来她最爱搞钱和事业，一心种田暴富",
+        "外表盛世白莲花，实则心机深沉，自私自利"
+      ],
+      "extracted_rule": "女主具备“爱搞钱不恋爱脑”的讨喜标签，但反派塑造停留在刻板的“盛世白莲花”工具人层面，整体偏扁平。"
+    },
+    "pacing_conflict": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "陆云萝：银霜，上，20个，一个都不能少！",
+        "银霜在一旁左右开弓扇巴掌，白慕瑶如释重负。"
+      ],
+      "extracted_rule": "冲突触发与解决极快（如第二集挑衅，第三集立刻完成打脸），符合短剧高频节奏要求。"
+    },
+    "writing_dialogue": {
+      "score": 4,
+      "verdict": "negative",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "我可以给你20个大逼兜，想试试吗？",
+        "夺少？一坛一千两？",
+        "姐姐去给你干票大的！"
+      ],
+      "extracted_rule": "台词充斥大量现代网络流行语，虽符合穿越喜剧定位，但过于直白，略显小白和出戏。"
+    },
+    "payoff_satisfaction": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "嬷嬷被一巴掌扇的躺到在地，捂着脸不敢动弹。",
+        "那就是，一万两！发财了发财了！"
+      ],
+      "extracted_rule": "遵循“受辱-反击-获利”的短剧爽点逻辑，物理打脸反派和搞钱暴富的爽感兑现及时且直接。"
+    }
+  }
+}
