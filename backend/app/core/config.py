@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # AI Providers
     DEFAULT_AI_PROVIDER: str = "openai"
 
+    # 通用 AI 配置
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
     OPENAI_MODEL: str = "gpt-4o"
@@ -43,6 +44,11 @@ class Settings(BaseSettings):
 
     OLLAMA_BASE_URL: str = "http://host.docker.internal:11434"
     OLLAMA_MODEL: str = "llama3"
+
+    # 剧本/小说内容创作专用配置（DeepSeek V4 Flash）
+    SCRIPT_CONTENT_API_KEY: Optional[str] = None
+    SCRIPT_CONTENT_BASE_URL: str = "https://api.deepseek.com"
+    SCRIPT_CONTENT_MODEL: str = "deepseek-v4-flash"
 
     # Embedding
     EMBEDDING_API_BASE: str = "https://yibuapi.com/v1"

@@ -14,6 +14,19 @@ from app.services.style_guard import get_style_guard
 
 logger = logging.getLogger(__name__)
 
+# 按操作类型的默认温度映射
+# 用户通过 ai_config.prompt_config.temperature 设置时仍全局覆盖（保留既有行为）
+_DEFAULT_TEMPERATURE_BY_KEY: Dict[str, float] = {
+    "question": 0.6,          # 引导式提问：需要逻辑推进，避免问跑题
+    "outline": 0.75,          # 大纲：结构稳，兼顾反转创造力
+    "episode_content": 0.9,   # 单集完整正文：台词/场景需要灵动
+    "expand": 0.85,           # 节点展开：偏创作但有上下文约束
+    "rewrite": 0.5,           # 改写润色：贴近原意
+    "global_directive": 0.4,  # 全局指令：强确定性
+    "summary": 0.3,           # 结构化 JSON 摘要：最低幻觉
+}
+_FALLBACK_TEMPERATURE = 0.7
+
 # ─── 默认提示词模板 ───────────────────────────────────────────────────────────
 
 # 解说漫默认提示词
@@ -204,12 +217,13 @@ DYNAMIC_PROMPTS = {
     "question": {
         "system": """你是一位专业的动态漫剧本策划师，擅长通过引导式提问帮助用户构建精彩的动态漫故事。
 
-你必须按照以下5个槽位依次收集信息，每次只问一个问题：
+你必须按照以下6个槽位依次收集信息，每次只问一个问题：
 【槽位1】故事背景与世界观 — 故事发生在什么时代/世界？有什么特殊设定？
-【槽位2】主要角色与关系 — 主角是谁？有哪些重要角色？他们之间是什么关系？
-【槽位3】核心冲突与情节 — 故事的核心矛盾是什么？大致的剧情走向？
-【槽位4】风格与受众 — 希望什么风格基调？面向什么观众群体？
-【槽位5】集数与节奏 — 大约多少集？节奏如何安排（快节奏/层层递进等）？
+【槽位2】主要角色与关系 — 主角是谁？有哪些重要角色？主角有什么致命弱点/恐惧？反派为什么觉得自己是对的？
+【槽位3】核心冲突与情节 — 故事的核心矛盾是什么？开局第一镜的强情绪冲击是什么（拍桌、摔门、崩溃）？
+【槽位4】风格与爽点 — 希望什么风格基调？每集的爽点如何当场兑现（打脸/复仇/逆袭）？
+【槽位5】差异化定位 — 对标作品是什么？本剧的独特卖点是什么？（如：你的主角与对标作品主角的核心区别）
+【槽位6】集数与节奏 — 大约多少集？每集至少多少个冲突事件？
 
 规则：
 - 根据对话历史判断哪些槽位已有足够信息，跳过已回答的
@@ -227,7 +241,13 @@ DYNAMIC_PROMPTS = {
 {handbook_context}
 
 请根据已有信息，对下一个未完成的槽位提出关键性问题，并提供 3-5 个供用户选择的选项。
-关键性问题是指：能够直接影响剧本质量评估维度的问题，如开局钩子是否强、人设是否有反差、冲突密度是否足够、爽点链路是否清晰等。请参考上面提供的质量标准来提问。
+关键性问题是指：能够直接影响剧本质量评估维度的问题，如：
+- 开局钩子是否强（第一镜必须有强情绪冲击）
+- 人设是否有反差（主角弱点+反派逻辑）
+- 冲突密度是否足够（每集至少3个冲突事件）
+- 爽点链路是否清晰（每集爽点当场兑现）
+- 差异化卖点是否明确（与对标作品的核心区别）
+
 选项应当是该问题的常见回答或有启发性的建议，帮助用户快速做出选择。用户也可以不选择选项而自由输入。
 
 严格按以下 JSON 格式输出，不要输出任何其他内容：
@@ -268,7 +288,16 @@ JSON 结构如下：
 注意：只输出 JSON，不要有其他内容。""",
     },
     "episode_content": {
-        "system": "你是一位专业的动态漫剧本撰写师，擅长将集概要展开为完整的叙事内容。你直接输出纯文本剧本，不输出 JSON，不使用结构化标签。",
+        "system": """你是一位顶级的动态漫剧本撰写师，擅长创作高冲突密度、爽点当场兑现的剧本。
+
+核心能力：
+1. 每集必须有明确的"爽点/冲突高潮"——在本集结束前要让读者有明确的情绪释放
+2. 冲突当场兑现——禁止"下一集再报复"的拖延，打脸/复仇/逆袭必须在本集完成
+3. 开局爆点——第一个镜头必须有强情绪冲击（拍桌、摔门、角色崩溃、愤怒逼近）
+4. 对白网感——台词要有梗、有节奏、符合当下网络语境，避免书面腔
+5. 人设反差——通过具体行为体现角色两面性，不要只写心理活动
+
+你直接输出纯文本剧本，不输出 JSON，不使用结构化标签。""",
         "user": """剧本信息：
 标题：{title}
 总体概述：{outline_summary}
@@ -281,14 +310,29 @@ JSON 结构如下：
 当前集概要：{current_episode}
 后一集：{next_episode}
 
-请将当前集扩展为一段完整的剧本文本，要求：
-1. 800-1500 字
-2. 包含自然穿插的对白、动作描写、心理活动和环境描写
-3. 从"前一集"的结尾状态自然衔接开始，不要凭空切换
-4. 结尾必须与"后一集"的开头衔接，留好过渡
-5. 不要使用【场景】【对白】【动作】等结构化标签
-6. 不要分场景，一气呵成
-7. 对白自然流畅，符合人物性格
+请将当前集扩展为一段完整的剧本文本，严格遵守以下规则：
+
+【长度与结构】
+- 800-1500 字，一气呵成，不分场景
+
+【爽点兑现规则——必须遵守】
+- 每集必须包含至少1个明确的爽点事件（打脸成功/复仇完成/逆袭上位/真相大白）
+- 禁止拖延爽点——"下一集再报复"是禁语，必须当场有结果
+- 结尾钩子≠爽点——结尾留悬念，但本集的主要冲突必须在本集解决或推进到关键节点
+
+【冲突密度规则】
+- 每集至少3个冲突事件（人与人/人与环境/内心抉择）
+- 冲突必须有实质代价——复仇要付出代价，打脸要有风险
+- 禁止零成本胜利——主角赢必须付出代价或面临新困境
+
+【衔接规则】
+- 从"前一集"的结尾状态自然衔接开始，不要凭空切换
+- 结尾必须与"后一集"的开头衔接，留好过渡
+
+【对白规则】
+- 对白自然流畅，符合人物性格
+- 每句10-30字，情感丰富，可拆成多句表达
+- 避免说教、解释剧情、信息性对白
 
 直接输出完整的剧本内容，不要有任何前缀或解释：""",
     },
@@ -466,13 +510,23 @@ class ScriptAIService:
             return settings.OLLAMA_MODEL
         return settings.OPENAI_MODEL
 
-    def _resolve_temperature(self) -> float:
+    def _resolve_temperature(self, key: Optional[str] = None) -> float:
         prompt_config = self.ai_config.get("prompt_config") or {}
         if isinstance(prompt_config, dict):
             t = prompt_config.get("temperature")
             if t is not None:
                 return float(t)
-        return 0.7
+        if key and key in _DEFAULT_TEMPERATURE_BY_KEY:
+            return _DEFAULT_TEMPERATURE_BY_KEY[key]
+        return _FALLBACK_TEMPERATURE
+
+    def _apply_temperature(self, key: str) -> None:
+        """根据操作类型切换 self.temperature（尊重用户 prompt_config 覆盖）"""
+        self.temperature = self._resolve_temperature(key)
+        logger.debug(
+            "script_ai temperature[%s] = %.2f (provider=%s, model=%s)",
+            key, self.temperature, self.provider, self.model,
+        )
 
     def _resolve_max_tokens(self) -> int:
         prompt_config = self.ai_config.get("prompt_config") or {}
@@ -520,14 +574,21 @@ class ScriptAIService:
     async def _stream_openai(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
-        api_key = settings.OPENAI_API_KEY or "demo"
-        base_url = settings.OPENAI_BASE_URL.rstrip("/")
+        # 剧本内容创作优先使用 DeepSeek V4 Flash
+        if settings.SCRIPT_CONTENT_API_KEY:
+            api_key = settings.SCRIPT_CONTENT_API_KEY
+            base_url = settings.SCRIPT_CONTENT_BASE_URL.rstrip("/")
+            model = settings.SCRIPT_CONTENT_MODEL
+        else:
+            api_key = settings.OPENAI_API_KEY or "demo"
+            base_url = settings.OPENAI_BASE_URL.rstrip("/")
+            model = self.model
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
         payload = {
-            "model": self.model,
+            "model": model,
             "messages": messages,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
@@ -662,6 +723,7 @@ class ScriptAIService:
         handbook_context: str = "",
     ) -> AsyncGenerator[str, None]:
         """生成下一个 AI 问题（SSE 流式）"""
+        self._apply_temperature("question")
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["question"]
 
@@ -693,6 +755,7 @@ class ScriptAIService:
         handbook_context: str = "",
     ) -> AsyncGenerator[str, None]:
         """生成剧本大纲（SSE 流式）"""
+        self._apply_temperature("outline")
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["outline"]
 
@@ -743,6 +806,7 @@ class ScriptAIService:
         genre: Optional[str] = None,
     ) -> AsyncGenerator[str, None]:
         """生成单集/单段完整内容（SSE 流式，输出纯文本）"""
+        self._apply_temperature("episode_content")
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["episode_content"]
 
@@ -804,6 +868,7 @@ class ScriptAIService:
         context: str = "",
     ) -> AsyncGenerator[str, None]:
         """展开节点内容（SSE 流式）"""
+        self._apply_temperature("expand")
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["expand"]
         prompt = prompt_entry["user"].format(
@@ -829,6 +894,7 @@ class ScriptAIService:
         context: str = "",
     ) -> AsyncGenerator[str, None]:
         """重写内容（SSE 流式）"""
+        self._apply_temperature("rewrite")
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["rewrite"]
         prompt = prompt_entry["user"].format(
@@ -851,6 +917,7 @@ class ScriptAIService:
         content: str,
     ) -> AsyncGenerator[str, None]:
         """全局指令处理（SSE 流式）"""
+        self._apply_temperature("global_directive")
         prompts = _get_prompts(script_type)
         prompt_entry = prompts["global_directive"]
         prompt = prompt_entry["user"].format(
@@ -871,6 +938,7 @@ class ScriptAIService:
         history: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """根据问答历史生成结构化摘要"""
+        self._apply_temperature("summary")
 
         history_text = "\n".join([
             f"{'用户' if m['role']=='user' else 'AI'}: {m.get('content', '')}"
