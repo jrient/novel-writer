@@ -31,6 +31,11 @@ dist/
 # Sensitive configs
 .claude/
 .omc/
+.superpowers/
+
+# Node tooling at root (superpowers/genai)
+/package.json
+/package-lock.json
 
 # 参考资料上传文件
 reference_novels/*.txt
