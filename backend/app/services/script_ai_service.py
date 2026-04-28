@@ -618,6 +618,8 @@ class ScriptAIService:
             return settings.ANTHROPIC_MODEL
         if self.provider == "ollama":
             return settings.OLLAMA_MODEL
+        if self.provider == "deepseek":
+            return settings.DEEPSEEK_PRO_MODEL
         return settings.OPENAI_MODEL
 
     def _resolve_temperature(self, key: Optional[str] = None) -> float:
@@ -684,27 +686,61 @@ class ScriptAIService:
     async def _stream_openai(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
-        # 剧本内容创作优先使用 DeepSeek V4 Flash
-        if settings.SCRIPT_CONTENT_API_KEY:
-            api_key = settings.SCRIPT_CONTENT_API_KEY
-            base_url = settings.SCRIPT_CONTENT_BASE_URL.rstrip("/")
-            model = settings.SCRIPT_CONTENT_MODEL
-        else:
-            api_key = settings.OPENAI_API_KEY or "demo"
-            base_url = settings.OPENAI_BASE_URL.rstrip("/")
-            model = self.model
+        api_key = settings.OPENAI_API_KEY or "demo"
+        base_url = settings.OPENAI_BASE_URL.rstrip("/")
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
         payload = {
-            "model": model,
+            "model": self.model,
             "messages": messages,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
             "stream": True,
         }
         async with httpx.AsyncClient(timeout=120) as client:
+            async with client.stream(
+                "POST",
+                f"{base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+            ) as resp:
+                resp.raise_for_status()
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data)
+                        delta = chunk["choices"][0]["delta"]
+                        text = delta.get("content", "")
+                        if text:
+                            yield text
+                    except (json.JSONDecodeError, KeyError, IndexError):
+                        continue
+
+    # ─── DeepSeek ───────────────────────────────────────────────────────────
+
+    async def _stream_deepseek(
+        self, messages: List[Dict[str, str]]
+    ) -> AsyncGenerator[str, None]:
+        api_key = settings.DEEPSEEK_API_KEY or settings.SCRIPT_CONTENT_API_KEY or ""
+        base_url = settings.DEEPSEEK_BASE_URL.rstrip("/")
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "stream": True,
+        }
+        async with httpx.AsyncClient(timeout=180) as client:
             async with client.stream(
                 "POST",
                 f"{base_url}/chat/completions",
@@ -816,6 +852,9 @@ class ScriptAIService:
                 yield chunk
         elif self.provider == "ollama":
             async for chunk in self._stream_ollama(messages):
+                yield chunk
+        elif self.provider == "deepseek":
+            async for chunk in self._stream_deepseek(messages):
                 yield chunk
         else:
             async for chunk in self._stream_openai(messages):

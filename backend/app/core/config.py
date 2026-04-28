@@ -45,7 +45,13 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://host.docker.internal:11434"
     OLLAMA_MODEL: str = "llama3"
 
-    # 剧本/小说内容创作专用配置（DeepSeek V4 Flash）
+    # DeepSeek
+    DEEPSEEK_API_KEY: Optional[str] = None
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    DEEPSEEK_PRO_MODEL: str = "deepseek-v4-pro"
+    DEEPSEEK_FLASH_MODEL: str = "deepseek-v4-flash"
+
+    # 剧本/小说内容创作专用配置（已迁移至 DEEPSEEK_*，保留向后兼容）
     SCRIPT_CONTENT_API_KEY: Optional[str] = None
     SCRIPT_CONTENT_BASE_URL: str = "https://api.deepseek.com"
     SCRIPT_CONTENT_MODEL: str = "deepseek-v4-flash"
