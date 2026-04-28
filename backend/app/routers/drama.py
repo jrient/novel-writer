@@ -43,6 +43,7 @@ from app.schemas.drama import (
 )
 from app.services.script_ai_service import ScriptAIService
 from app.services.handbook_provider import get_handbook
+from app.services.archive_matcher import get_archive_matcher
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -595,6 +596,25 @@ async def session_answer(
     genre = _guess_genre_from_concept(project.concept) if project.concept else ""
     handbook_context = handbook.get_question_guidance(genre)
 
+    # 中后期（用户回答 >= 5 轮）触发对标剧本查找
+    user_turn_count = sum(1 for m in history if m.get("role") == "user")
+    if user_turn_count >= 5:
+        matcher = get_archive_matcher()
+        benchmarks = matcher.find_benchmarks(genre, history, n=2)
+        if benchmarks:
+            benchmark_ctx = matcher.format_benchmark_context(benchmarks)
+            # 持久化到 session.summary 供后续大纲/正文使用
+            fetch_result = await db.execute(
+                select(ScriptSession).where(ScriptSession.project_id == project.id)
+            )
+            persist_session = fetch_result.scalar_one_or_none()
+            if persist_session:
+                updated_summary = dict(persist_session.summary or {})
+                updated_summary["benchmark_context"] = benchmark_ctx
+                persist_session.summary = updated_summary
+                await db.commit()
+            handbook_context = (handbook_context + "\n\n" + benchmark_ctx) if handbook_context else benchmark_ctx
+
     async def stream():
         full_response = ""
         async for chunk in _sse_stream(
@@ -780,6 +800,10 @@ async def session_generate_outline(
     genre = _guess_genre_from_concept(project.concept) if project.concept else ""
     handbook = get_handbook()
     handbook_context = handbook.get_question_guidance(genre)
+    # 注入对标剧本 context（问答阶段已查找时）
+    benchmark_ctx = (session.summary or {}).get("benchmark_context", "")
+    if benchmark_ctx:
+        handbook_context = (handbook_context + "\n\n" + benchmark_ctx) if handbook_context else benchmark_ctx
     ai_service = ScriptAIService(project.ai_config, project_settings=_proj_settings)
 
     async def stream():
@@ -908,6 +932,10 @@ async def session_expand_episode(
     core_conflict = summary_data.get("核心冲突", "")
     style_tone = summary_data.get("风格基调", "")
     outline_summary = session.outline_draft.get("summary", "")
+    # 注入对标剧本 context（问答阶段已查找时）
+    benchmark_ctx = summary_data.get("benchmark_context", "")
+    if benchmark_ctx:
+        outline_summary = (outline_summary + "\n\n" + benchmark_ctx) if outline_summary else benchmark_ctx
 
     _proj_settings = (project.metadata_ or {}).get("settings", {})
     genre = _guess_genre_from_concept(project.concept) if project.concept else ""
