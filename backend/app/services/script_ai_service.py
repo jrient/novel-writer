@@ -975,7 +975,7 @@ class ScriptAIService:
         prompt_entry = prompts["episode_content"]
 
         def _ep_str(ep: Optional[Dict[str, Any]], role: str = "context") -> str:
-            """role='prev'：取已生成内容的末尾作为衔接；role='next'：只传标题防止越界"""
+            """role='prev'：传开头+结尾片段，暴露已揭示背景防重复；role='next'：只传标题防止越界"""
             if not ep:
                 return "（无）"
             title = ep.get("title", "")
@@ -984,10 +984,16 @@ class ScriptAIService:
             if role == "next":
                 # 下一集只传标题，禁止传内容（防止模型提前写入下一集）
                 return f"{title}（概要保密，本集不写入）"
-            if role == "prev" and is_generated and len(content) > 400:
-                # 上一集已生成：只取末尾 300 字作为衔接线索
-                tail = content[-300:].lstrip()
-                return f"{title}（结尾片段）：…{tail}"
+            if role == "prev" and is_generated and len(content) > 600:
+                # 上一集已生成：同时传开头 400 字（含已建立的背景/闪回）+ 结尾 200 字（衔接线索）
+                # 开头片段让本集 AI 知道上集已揭示了哪些背景，从而不重复
+                head = content[:400].rstrip()
+                tail = content[-200:].lstrip()
+                return (
+                    f"{title}\n"
+                    f"【上集开头（已揭示背景，本集禁止重复）】：{head}…\n"
+                    f"【上集结尾（衔接线索）】：…{tail}"
+                )
             return f"{title}：{content}"
 
         # 判断故事阶段
