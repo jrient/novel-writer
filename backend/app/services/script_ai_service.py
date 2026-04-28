@@ -379,6 +379,98 @@ JSON 结构如下：
     },
 }
 
+# ─── 评审手册精华（v10 校准集 = 57 部编辑确认剧本） ─────────────────────────────
+# 注入到 episode_content 的 system prompt，让模型显式对齐"签约线"。
+# 同步源：script_rubric/outputs/handbook/ai_writer_prompt.compact.md
+# 修改本常量后，必须同步更新 ai_writer_prompt.compact.md 与 ai_writer_prompt.md。
+_HANDBOOK_DIGEST = """【精品剧本签约标准——必须对齐】
+
+你正在写"精品短剧"，目标分数 ≥ 78（签约线）。
+- 78+ = 签约 / 75-78 = 改稿 / <75 = 拒稿
+- 最关键三维（签 vs 拒差距最大）：爽点兑现、人设立体度、对标差异化。先押这三维。
+
+【单集硬指标（不可违反）】
+- 每集字数 400-1000，行数 15-40，单场景 ≤ 20 行
+- 对话 20-40 句，OS 占 20-30%
+- 绝大多数台词 < 15 字
+- 每集冲突 ≥ 2 次，打脸 ≥ 1 次
+- 30 秒内必有冲突；> 5 行纯描述 = 拖沓
+- 钩子结尾不能与前一集同类型
+
+【爽点兑现铁律——签 vs 拒最大差】
+- 当场兑现，禁止"下一集再报复"、"忍辱负重等时机"
+- 欲扬先抑三步法（每 10 集 ≥ 3 次）：羞辱 → 旁观补刀 → 反击打脸
+- 打脸 4 法轮换：物理 / 能力碾压 / 身份反转 / 证据信息差
+- 禁止高潮处妥协（嬷嬷代受、突然气晕、转移惩罚）
+
+【人设硬约束——签 vs 拒第二大差】
+- 主角：表面标签 × 隐藏身份 × 标志性行为；不能 5 集以上只挨打不还手
+- 反派：可脸谱化但不能降智；必须有可识别的标志动作或台词；不能第 7 集就被抓
+- 每个女性角色必须有独立功能（靠山/智囊/武力/情感冲突/搞笑），禁止"漂亮+爱主角"工具人
+
+【对标差异化——签 vs 拒第三大差】
+- 必须能一句话说清"跟对标作品的核心区别"
+- 区别必须是结构性（反向 / 跨频 / 设定颠覆），不是装饰性（颜值更高、服化更精）
+- 集齐"马甲+双强+萌宝+带球跑"已不再是优势
+
+【一票否决红线】
+1. 古装语境塞现代网络词："大逼兜/视觉污染/现场直播/金主爸爸/老铁/我靠/天啦噜/祖国大大/一分钟啊大哥/老娘"
+2. 单一场景拉扯 > 2 集
+3. 反派降智 + 重复物理攻击水字数
+4. 系统逼迫主角作恶 + OS 立牌坊（精神分裂式）
+5. "精神病人的幻想"式终极反转（欺诈观众）
+6. 触碰伦理底线 / 价值观扭曲（放弃赡养 / 反派因前世福报作恶）
+7. 男频 / 女频爽点性转混用导致两头不讨好"""
+
+
+# ─── 类型专项浮层（按 genre 注入） ─────────────────────────────────────────────
+# 同步源：ai_writer_prompt.compact.md 的"类型专项浮层"小节。
+# 关键字匹配：genre 包含某 key（或反之）即注入对应 overlay。
+_GENRE_OVERLAY_RULES: Dict[str, str] = {
+    "萌宝": """【类型专项·萌宝】
+- 萌宝必须有反差感（反向带娃 / 好赌海量 / 反萌套路），常规乖巧奶团子无市场
+- 男主前 3 集必须出场，延迟出场严重扣分
+- 女主必须有独立高光，不能因萌宝抢戏而隐形
+- 加权维度：premise_innovation、opening_hook；降权：常规元素堆砌""",
+
+    "女频": """【类型专项·女频】
+- CP 化学反应必须强，男女主前 10 集必有强宿命互动（反差人设："阳光金毛 × 阴湿大猫"）
+- 女主必须现代独立感（搞钱 / 高智 / 武力），拒绝古早小白花、依赖男主
+- 高潮禁止妥协：禁止嬷嬷代受、突然气晕、转移惩罚
+- 古装语境绝对禁止现代网络词（一票否决）
+- 加权：payoff_satisfaction、character_depth；降权：premise_innovation""",
+
+    "男频": """【类型专项·男频】
+- 极致直白爽点（物理碾压 / 数值碾压 / 一击秒杀）
+- 微创新反差优先（植物成精 / 战力=银行卡余额 / 主动猎诡）
+- 禁止古早开局："测天赋废柴 + 众人嘲笑 + 拜金女友当众分手"
+- 设定与基调必须匹配：荒诞金手指 → 轻喜，禁止强写苦大仇深
+- 反派禁止低级作恶（剪刹车线 / 口吐芬芳）
+- 主角必须主动使用金手指，禁止"被动触发保护"
+- 加权：payoff_satisfaction、premise_innovation；降权：character_depth""",
+
+    "世情": """【类型专项·世情】
+- 必须有冲击力社会议题或奇观设定（婆婆生三胎 / 72 套房 / 巨款被骗）
+- 前 3 集完成"受气-爆发-反转"闭环，禁止 8 集才爆发
+- 反派要有段位、有逻辑，禁止全员恶人 / 极端脸谱化
+- 价值观红线一票否决：禁止放弃赡养 / 反人类 / 道德沦丧
+- 直接竞品是抖音剧情号，反转力度必须超越短视频
+- 加权：pacing_conflict、payoff_satisfaction、benchmark_differentiation""",
+}
+
+
+def _resolve_genre_overlay(genre: Optional[str]) -> Optional[str]:
+    """根据 genre 字符串模糊匹配类型专项浮层。
+    支持 "原创 / 萌宝"、"改编 / 女频" 等组合形式。
+    """
+    if not genre:
+        return None
+    for key, overlay in _GENRE_OVERLAY_RULES.items():
+        if key in genre:
+            return overlay
+    return None
+
+
 # ─── 前5集特别规则（来自 script_rubric handbook 经验总结） ─────────────────────
 # 仅对 episode_index < 5 的正文生成生效，追加到 user prompt 末尾。
 _EARLY_EPISODE_RULES = """
@@ -393,7 +485,15 @@ _EARLY_EPISODE_RULES = """
 4. **禁止单一场景水字数**：同一场景/同一纠纷不能连续拉扯超过2集，必须引入新危机或升级冲突
 5. **核心卖点必须落地**：大纲/标题承诺的奇观（金手指/异能/身份反转等）必须在前3集出现，不能只做铺垫
 6. **单集至少3个冲突事件**：本集内必须有≥3个具体的冲突/对峙/反转事件，不能只写日常或背景交代
-7. **集末必须有卡点**：本集结尾必须有悬念/反转/迫在眉睫的损失，驱动观众看下一集"""
+7. **集末必须有卡点**：本集结尾必须有悬念/反转/迫在眉睫的损失，驱动观众看下一集
+
+【第 1 集额外铁律（仅 ep=1 必须同时满足 5 件套）】
+若 {ep} = 1，必须**同时**完成：
+① 5 秒内身份反差（极度弱势 + 隐藏金手指）
+② 金手指实际效果展示（演出来，不能只口头说）
+③ 反派压脸场景 ≥ 1 次
+④ 钩子结尾（10 类钩子之一：悬念/打断/危机/反转/新人物/能力/情感/反派/预告/动作）
+⑤ 通过具体行为展示主角性格（不是台词描述）"""
 
 
 def _get_prompts(script_type: str) -> Dict[str, Dict[str, str]]:
@@ -406,19 +506,29 @@ def _get_prompts(script_type: str) -> Dict[str, Dict[str, str]]:
 def _build_episode_system_prompt(
     base_system: str,
     script_type: str,
+    genre: Optional[str] = None,
 ) -> str:
     """
-    为 episode_content 构建三层 system prompt：
+    为 episode_content 构建多层 system prompt（顺序固定，下层覆盖上层语义）：
     1. 原始规则（base_system）
-    2. 反 AI 味清单（追加到末尾）
+    2. handbook digest（v10 校准集精华：评分目标 + 7 维硬指标 + 红线）
+    3. 类型专项浮层（按 genre 注入：萌宝 / 女频 / 男频 / 世情）
+    4. 反 AI 味清单（最末，作为最强约束）
     """
     from app.services.style_guard import get_style_guard
+
+    parts: List[str] = [base_system, _HANDBOOK_DIGEST]
+
+    overlay = _resolve_genre_overlay(genre)
+    if overlay:
+        parts.append(overlay)
 
     sg = get_style_guard()
     anti_slop = sg.get_anti_slop_rules()
     if anti_slop:
-        return f"{base_system}\n\n{anti_slop}"
-    return base_system
+        parts.append(anti_slop)
+
+    return "\n\n".join(p for p in parts if p)
 
 
 def _build_episode_user_prompt(
@@ -843,8 +953,8 @@ class ScriptAIService:
         prompt = prompt_entry["user"].format(**format_kwargs)
         system_prompt = prompt_entry["system"]
 
-        # 注入反 AI 味清单到 system prompt
-        system_prompt = _build_episode_system_prompt(system_prompt, script_type)
+        # 注入 handbook digest + 类型专项浮层 + 反 AI 味清单到 system prompt
+        system_prompt = _build_episode_system_prompt(system_prompt, script_type, genre=genre)
 
         # 注入范本+金句到 user prompt
         prompt = _build_episode_user_prompt(prompt, script_type, genre=genre)
