@@ -27,13 +27,13 @@ class TestAntiSlopInjection:
         assert "心理描写" in rules
 
     def test_anti_slop_rules_count(self):
-        """反 AI 味清单有 9 条"""
+        """反 AI 味清单有 10 条"""
         from app.services.style_guard import StyleGuard
 
         sg = StyleGuard()
         rules = sg.get_anti_slop_rules()
         items = re.findall(r"^\d+\.", rules, re.MULTILINE)
-        assert len(items) == 9
+        assert len(items) == 10
 
 
 class TestStyleContextInjection:
@@ -208,7 +208,7 @@ class TestHelperFunctions:
         style_ctx = temp_sg.build_style_context("dynamic")
         assert style_ctx == ""  # 确认空
 
-        with patch("app.services.style_guard.get_style_guard", return_value=temp_sg):
+        with patch("app.services.script_ai_service.get_style_guard", return_value=temp_sg):
             result = _build_episode_user_prompt("原始指令", "dynamic")
 
         assert result == "原始指令"
