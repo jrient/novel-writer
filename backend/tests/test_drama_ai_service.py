@@ -38,7 +38,7 @@ def test_generate_episode_content_prompt_has_required_placeholders():
         assert placeholder in user_prompt, f"Missing placeholder: {placeholder}"
     # 确保 prompt 要求输出纯文本而非 JSON
     assert "不输出 JSON" in system_prompt
-    assert "800-1500 字" in user_prompt
+    assert "集末卡点" in user_prompt or "场景名" in user_prompt
 
 
 def test_explanatory_episode_content_prompt_exists():
@@ -59,7 +59,7 @@ def test_explanatory_episode_content_prompt_exists():
     # 必须包含开局爆点要求
     assert "爆点" in user_prompt or "第一镜" in user_prompt
     # 必须限制对白长度和情感层次
-    assert "10-30字" in user_prompt or "情感" in user_prompt
+    assert "≤15字" in user_prompt or "情绪" in user_prompt
 
 
 def test_generate_episode_content_accepts_script_type():
