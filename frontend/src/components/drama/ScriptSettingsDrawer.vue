@@ -7,6 +7,20 @@
     size="360px"
     class="settings-drawer"
   >
+    <!-- Sync from outline button -->
+    <div class="sync-actions">
+      <el-button
+        type="primary"
+        size="small"
+        :loading="syncing"
+        @click="handleSyncFromOutline"
+      >
+        <el-icon><Refresh /></el-icon>
+        从大纲导入
+      </el-button>
+      <span class="sync-hint">从向导摘要同步角色、场景设定等</span>
+    </div>
+
     <!-- Save status indicator -->
     <div class="save-status">
       <span v-if="saving" class="saving">保存中...</span>
@@ -87,9 +101,11 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { Edit, Delete, Plus } from '@element-plus/icons-vue'
+import { Edit, Delete, Plus, Refresh } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import type { ProjectSettings, CharacterSetting } from '@/api/drama'
 import { defaultProjectSettings } from '@/api/drama'
+import { summarizeSession } from '@/api/drama'
 
 const props = defineProps<{
   visible: boolean
@@ -106,6 +122,7 @@ const emit = defineEmits<{
 // Local state to avoid mutating props directly
 const localSettings = ref<ProjectSettings>({ ...defaultProjectSettings })
 const saving = ref(false)
+const syncing = ref(false)
 const activeCollapse = ref<string[]>(['characters'])
 
 // Computed for drawer visibility
@@ -190,6 +207,42 @@ function updateCharacter(updated: CharacterSetting) {
   }
 }
 
+// Sync from outline (session summary)
+async function handleSyncFromOutline() {
+  syncing.value = true
+  try {
+    const summary = await summarizeSession(props.projectId)
+    // 同步角色
+    if (summary.主要角色?.length) {
+      localSettings.value.characters = summary.主要角色.map((char: string) => ({
+        id: crypto.randomUUID(),
+        name: char.split('：')[0] || char.split(':')[0] || char,
+        description: char,
+      }))
+    }
+    // 同步场景设定
+    if (summary.场景设定) {
+      localSettings.value.world_setting = summary.场景设定
+    }
+    // 同步风格基调
+    if (summary.风格基调) {
+      localSettings.value.tone = summary.风格基调
+    }
+    // 同步核心冲突/开局钩子
+    const anchors: string[] = []
+    if (summary.核心冲突) anchors.push(`核心冲突：${summary.核心冲突}`)
+    if (summary.开局钩子) anchors.push(`开局钩子：${summary.开局钩子}`)
+    if (anchors.length) localSettings.value.plot_anchors = anchors.join('\n')
+    saveNow()
+    ElMessage.success('已从大纲导入')
+  } catch (err) {
+    console.error('Sync from outline failed:', err)
+    ElMessage.error('同步失败，请先完成剧本向导')
+  } finally {
+    syncing.value = false
+  }
+}
+
 // Expose methods for external use
 defineExpose({
   saveNow,
@@ -200,6 +253,19 @@ defineExpose({
 <style scoped>
 .settings-drawer {
   --el-drawer-padding-primary: 16px;
+}
+
+.sync-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #E0DFDC;
+}
+
+.sync-hint {
+  font-size: 12px;
+  color: #8C8C8C;
 }
 
 .save-status {

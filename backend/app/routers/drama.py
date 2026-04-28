@@ -4,6 +4,7 @@ Project CRUD + Node CRUD + Session CRUD + AI SSE 接口
 """
 import json
 import logging
+import uuid
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
@@ -674,6 +675,52 @@ async def session_summarize(
     )
 
     session.summary = summary
+
+    # 自动同步 summary 到 project settings（Wizard → Settings）
+    _meta = project.metadata_ or {}
+    _existing_settings = _meta.get("settings", {})
+
+    # 从 summary 提取 settings 数据
+    _new_settings = {
+        "characters": _existing_settings.get("characters", []),
+        "world_setting": _existing_settings.get("world_setting", ""),
+        "tone": _existing_settings.get("tone", ""),
+        "plot_anchors": _existing_settings.get("plot_anchors", ""),
+        "persistent_directive": _existing_settings.get("persistent_directive", ""),
+    }
+
+    # 同步角色：从 summary.主要角色 提取
+    if "主要角色" in summary and summary["主要角色"]:
+        _new_settings["characters"] = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": char.split("：")[0] if "：" in char else char.split(":")[0] if ":" in char else char,
+                "description": char,
+            }
+            for char in summary["主要角色"]
+            if char
+        ]
+
+    # 同步世界设定：从 summary.场景设定 提取
+    if "场景设定" in summary and summary["场景设定"]:
+        _new_settings["world_setting"] = summary["场景设定"]
+
+    # 同步风格基调：从 summary.风格基调 提取
+    if "风格基调" in summary and summary["风格基调"]:
+        _new_settings["tone"] = summary["风格基调"]
+
+    # 同步核心冲突/开局钩子到 plot_anchors
+    _anchors = []
+    if "核心冲突" in summary and summary["核心冲突"]:
+        _anchors.append(f"核心冲突：{summary['核心冲突']}")
+    if "开局钩子" in summary and summary["开局钩子"]:
+        _anchors.append(f"开局钩子：{summary['开局钩子']}")
+    if _anchors:
+        _new_settings["plot_anchors"] = "\n".join(_anchors)
+
+    # 更新 project.metadata_
+    project.metadata_ = {**_meta, "settings": _new_settings}
+
     await db.commit()
 
     return summary

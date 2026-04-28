@@ -68,6 +68,37 @@
     <div class="workbench-main">
       <!-- Left: outline tree -->
       <aside class="sidebar-left" :style="{ width: leftWidth + 'px' }">
+        <!-- 大纲摘要 -->
+        <el-collapse v-if="dramaStore.session?.summary" class="outline-summary-collapse">
+          <el-collapse-item title="大纲摘要" name="summary">
+            <div class="summary-content">
+              <div class="summary-item" v-if="dramaStore.session.summary.故事概要">
+                <span class="summary-label">故事概要</span>
+                <span class="summary-value">{{ dramaStore.session.summary.故事概要 }}</span>
+              </div>
+              <div class="summary-item" v-if="dramaStore.session.summary.核心冲突">
+                <span class="summary-label">核心冲突</span>
+                <span class="summary-value">{{ dramaStore.session.summary.核心冲突 }}</span>
+              </div>
+              <div class="summary-item" v-if="dramaStore.session.summary.主要角色?.length">
+                <span class="summary-label">主要角色</span>
+                <div class="summary-characters">
+                  <el-tag v-for="char in dramaStore.session.summary.主要角色" :key="char" size="small" class="char-tag">
+                    {{ char }}
+                  </el-tag>
+                </div>
+              </div>
+              <div class="summary-item" v-if="dramaStore.session.summary.主角弱点">
+                <span class="summary-label">主角弱点</span>
+                <span class="summary-value">{{ dramaStore.session.summary.主角弱点 }}</span>
+              </div>
+              <div class="summary-item" v-if="dramaStore.session.summary.开局钩子">
+                <span class="summary-label">开局钩子</span>
+                <span class="summary-value">{{ dramaStore.session.summary.开局钩子 }}</span>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
         <ScriptOutlineTree
           :nodes="dramaStore.nodes"
           :script-type="dramaStore.currentProject?.script_type || 'dynamic'"
@@ -476,6 +507,7 @@ onMounted(async () => {
     await Promise.all([
       dramaStore.fetchProject(projectId.value),
       dramaStore.fetchNodes(projectId.value),
+      dramaStore.fetchSession(projectId.value),
     ])
     if (dramaStore.nodes.length && !dramaStore.currentNode) {
       dramaStore.selectNode(dramaStore.nodes[0])
@@ -567,6 +599,66 @@ onMounted(async () => {
   background: white;
   min-width: 180px;
   max-width: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+.outline-summary-collapse {
+  flex-shrink: 0;
+  border-bottom: 1px solid #E0DFDC;
+  margin-bottom: 4px;
+}
+
+.outline-summary-collapse :deep(.el-collapse-item__header) {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2C2C2C;
+  padding: 8px 12px;
+  height: 36px;
+  background: #F7F6F3;
+}
+
+.outline-summary-collapse :deep(.el-collapse-item__content) {
+  padding: 8px 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-label {
+  font-size: 11px;
+  color: #8C8C8C;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 12px;
+  color: #3C3C3C;
+  line-height: 1.5;
+}
+
+.summary-characters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.char-tag {
+  font-size: 11px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .editor-column {
