@@ -1,0 +1,57 @@
+{
+  "version": "11",
+  "generated_at": "2026-04-29",
+  "sample_size": 0,
+  "universal_dimensions": {
+    "premise_innovation": {
+      "name_zh": "题材与设定创新度",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    },
+    "opening_hook": {
+      "name_zh": "开局与钩子",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    },
+    "character_depth": {
+      "name_zh": "人设立体度",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    },
+    "pacing_conflict": {
+      "name_zh": "节奏与冲突密度",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    },
+    "writing_dialogue": {
+      "name_zh": "文笔与台词",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    },
+    "payoff_satisfaction": {
+      "name_zh": "爽点兑现",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    },
+    "benchmark_differentiation": {
+      "name_zh": "对标与差异化",
+      "avg_score": 0,
+      "avg_by_status": {},
+      "red_flags_sample": [],
+      "green_flags_sample": []
+    }
+  },
+  "type_overlays": {}
+}

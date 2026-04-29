@@ -1,0 +1,66 @@
+{
+  "title": "大明大纲+小传+全60集",
+  "status": "签",
+  "genre": "改编 / 男频",
+  "mean_score": 0.0,
+  "score_range": [
+    0,
+    0
+  ],
+  "dimensions": {
+    "premise_innovation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    },
+    "opening_hook": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    },
+    "character_depth": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    },
+    "pacing_conflict": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    },
+    "writing_dialogue": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    },
+    "payoff_satisfaction": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    },
+    "benchmark_differentiation": {
+      "score": 5,
+      "verdict": "mixed",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [],
+      "extracted_rule": "缺乏评审数据，无法评估"
+    }
+  },
+  "type_specific_notes": "该项目为男频历史/架空改编剧本，状态为已签约。由于当前缺乏具体的责编评审意见与剧本正文，无法进行深入的类型化分析与优劣势拆解。",
+  "consensus_points": [],
+  "disagreement_points": [],
+  "red_flags": [],
+  "green_flags": []
+}

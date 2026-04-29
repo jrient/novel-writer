@@ -207,6 +207,26 @@ def parse_table(
                 reviews.append(Review(reviewer=reviewer_name, score=score, comment=comment))
 
         if not reviews:
+            # 无评分记录：精品表默认视为"签"（已通过审核的剧本池），冲量表保留
+            if table_name == "精品":
+                status = "签"
+                status_source = "table_default"
+            else:
+                # 冲量表无评分无状态则跳过
+                if not (status_raw and status_raw in ("签", "改", "拒")):
+                    continue
+                status = status_raw
+                status_source = "confirmed"
+
+            out.append(ScriptRecord(
+                title=title.strip(),
+                source_type=source_type or "",
+                genre=genre or "",
+                submitter=submitter or "",
+                status=status,
+                status_source=status_source,
+                reviews=reviews,
+            ))
             continue
 
         status_source = "confirmed"
