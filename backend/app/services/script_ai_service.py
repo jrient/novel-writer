@@ -975,23 +975,31 @@ class ScriptAIService:
         prompt_entry = prompts["episode_content"]
 
         def _ep_str(ep: Optional[Dict[str, Any]], role: str = "context") -> str:
-            """role='prev'：传开头+结尾片段，暴露已揭示背景防重复；role='next'：只传标题防止越界"""
+            """role='prev'：传场景列表+结尾片段，防止任意场景被重复；role='next'：只传标题防止越界"""
+            import re as _re
             if not ep:
                 return "（无）"
             title = ep.get("title", "")
             content = ep.get("content", "")
             is_generated = ep.get("generated", False)
             if role == "next":
-                # 下一集只传标题，禁止传内容（防止模型提前写入下一集）
                 return f"{title}（概要保密，本集不写入）"
-            if role == "prev" and is_generated and len(content) > 600:
-                # 上一集已生成：同时传开头 400 字（含已建立的背景/闪回）+ 结尾 200 字（衔接线索）
-                # 开头片段让本集 AI 知道上集已揭示了哪些背景，从而不重复
-                head = content[:400].rstrip()
-                tail = content[-200:].lstrip()
+            if role == "prev" and is_generated and len(content) > 200:
+                # 提取所有场景标题行，如 "2-1 粮油店门口 日 外（闪回）"
+                scene_headers = _re.findall(r'(?m)^\s*(\d+-\d+\s+[^\n]{2,40})', content)
+                tail = content[-250:].lstrip()
+                if scene_headers:
+                    scene_list = "\n".join(f"  · {h.strip()}" for h in scene_headers[:12])
+                    return (
+                        f"{title}\n"
+                        f"【上集已覆盖场景——本集禁止重复以下任何场景或事件】：\n{scene_list}\n"
+                        f"【上集结尾（衔接线索）】：…{tail}"
+                    )
+                # 旧格式无场景标题：降级为开头+结尾片段
+                head = content[:350].rstrip()
                 return (
                     f"{title}\n"
-                    f"【上集开头（已揭示背景，本集禁止重复）】：{head}…\n"
+                    f"【上集已交代内容（本集禁止重复）】：{head}…\n"
                     f"【上集结尾（衔接线索）】：…{tail}"
                 )
             return f"{title}：{content}"
