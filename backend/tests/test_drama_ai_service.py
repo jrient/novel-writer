@@ -99,12 +99,13 @@ def test_build_episode_user_prompt_passes_genre(monkeypatch):
 
 
 def test_calc_max_tokens_for_episode_count():
-    """max_tokens 根据集数动态计算：每集约500 token，最低8000，上限32000"""
+    """max_tokens 根据集数动态计算：每集约200 token，最低8000，上限64000"""
     from app.services.script_ai_service import calc_outline_max_tokens
-    assert calc_outline_max_tokens(10) == 8000          # 10*500+1500=6500 → min floor 8000
-    assert calc_outline_max_tokens(20) == 11500         # 20*500+1500=11500
-    assert calc_outline_max_tokens(30) == 16500         # 30*500+1500=16500
-    assert calc_outline_max_tokens(250) == 32000        # capped at 32000
+    assert calc_outline_max_tokens(10) == 8000          # 10*200+1500=3500 → min floor 8000
+    assert calc_outline_max_tokens(30) == 8000          # 30*200+1500=7500 → min floor 8000
+    assert calc_outline_max_tokens(50) == 11500         # 50*200+1500=11500
+    assert calc_outline_max_tokens(300) == 61500        # 300*200+1500=61500
+    assert calc_outline_max_tokens(500) == 64000        # 500*200+1500=101500 → capped
 
 
 def test_generate_outline_accepts_episode_count():

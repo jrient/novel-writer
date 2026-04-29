@@ -268,7 +268,7 @@ DYNAMIC_PROMPTS = {
 
 请生成一份 JSON 格式的简要大纲，要求：
 1. 必须生成恰好 {episode_count} 集，不能多也不能少，覆盖故事的开端、发展、高潮、结局
-2. 每集的 content 必须包含三部分：①承接上集（本集从什么状态/情境开始，第一集写"开篇"）②本集核心剧情 ③本集结尾状态（人物处境、悬念或转折点）
+2. 每集的 content 必须为 80 字以内的一句话概要，包含：①承接上集 ②本集核心剧情 ③结尾状态（悬念或转折点）
 3. 确保相邻两集的"结尾状态"与下一集的"承接上集"严格对应，不能出现断裂
 4. 节奏合理，各阶段集数分配得当
 5. sort_order 必须从 0 开始连续递增
@@ -281,14 +281,14 @@ JSON 结构如下：
     {{
       "node_type": "episode",
       "title": "第一集：标题",
-      "content": "本集一句话概要",
+      "content": "本集一句话概要（≤80字）",
       "sort_order": 0,
       "children": []
     }}
   ]
 }}
 
-注意：只输出 JSON，不要有其他内容。""",
+注意：只输出 JSON，不要有其他内容。每集 content 严格控制在 80 字以内，不要展开详细剧情。""",
     },
     "episode_content": {
         "system": """你是一位顶级的动态漫剧本撰写师，擅长创作高冲突密度、爽点当场兑现的剧本。
@@ -566,9 +566,9 @@ def _build_episode_user_prompt(
 
 
 def calc_outline_max_tokens(episode_count: int) -> int:
-    """根据集数动态计算 outline 生成所需 max_tokens，上限 32000。
-    每集大纲约 500 token（中文 JSON + 三段内容），加 1500 token 结构开销。"""
-    return min(32000, max(8000, episode_count * 500 + 1500))
+    """根据集数动态计算 outline 生成所需 max_tokens，上限 64000。
+    每集大纲约 200 token（≤80 字概要 + JSON 开销），加 1500 token 结构开销。"""
+    return min(64000, max(8000, episode_count * 200 + 1500))
 
 
 def _build_history_text(history: List[Dict[str, Any]]) -> str:
