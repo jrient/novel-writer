@@ -123,7 +123,10 @@ JSON 结构如下：
 当前集概要：{current_episode}
 后一集开头：{next_episode}
 
-将当前集（第{episode_number}集）扩展为完整分场剧本。严格限定在本集范围内，禁止写入第{episode_number_next}集及之后的内容。
+将当前集（第{episode_number}集）扩展为完整分场剧本。严格限定在本集范围内，禁止写到下一集的事件中。
+
+【停写边界规则】
+后一集信息中给出了下一集要写什么事件。你的本集必须在该事件之前停笔——绝不提前写下一集的内容。
 
 【格式】
 每场起手：
@@ -304,7 +307,10 @@ JSON 结构如下：
 当前集概要：{current_episode}
 后一集：{next_episode}
 
-将第{episode_number}集扩展为完整分场剧本。严格限定在本集范围内，禁止写入第{episode_number_next}集及之后的内容。
+将第{episode_number}集扩展为完整分场剧本。严格限定在本集范围内，禁止写到下一集的事件中。
+
+【停写边界规则】
+后一集信息中给出了下一集要写什么事件。你的本集必须在该事件之前停笔——绝不提前写下一集的内容。
 
 【格式规范】
 每场起手：
@@ -954,7 +960,7 @@ class ScriptAIService:
         prompt_entry = prompts["episode_content"]
 
         def _ep_str(ep: Optional[Dict[str, Any]], role: str = "context") -> str:
-            """role='prev'：传场景列表+结尾片段，防止任意场景被重复；role='next'：只传标题防止越界"""
+            """role='prev'：传场景列表+结尾片段，防止任意场景被重复；role='next'：传下一集概要作为停写边界"""
             import re as _re
             if not ep:
                 return "（无）"
@@ -962,7 +968,12 @@ class ScriptAIService:
             content = ep.get("content", "")
             is_generated = ep.get("generated", False)
             if role == "next":
-                return f"{title}（概要保密，本集不写入）"
+                # 下一集传概要（不含正文），作为本集的停写边界
+                # 注意：content 可能是 outline 原文（一句话概要），不是已生成的正文
+                summary = ep.get("content", "")
+                if summary:
+                    return f"{title}（下一集概要：{summary[:150]}）\n【停写边界：本集写到上述内容之前即可，绝不要覆盖下一集的内容】"
+                return f"{title}（概要保密，写到标题相关场景即可，不要展开）"
             if role == "prev" and is_generated and len(content) > 200:
                 # 提取所有场景标题行，如 "2-1 粮油店门口 日 外（闪回）"
                 scene_headers = _re.findall(r'(?m)^\s*(\d+-\d+\s+[^\n]{2,40})', content)
