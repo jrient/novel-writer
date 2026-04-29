@@ -566,8 +566,9 @@ def _build_episode_user_prompt(
 
 
 def calc_outline_max_tokens(episode_count: int) -> int:
-    """根据集数动态计算 outline 生成所需 max_tokens，上限 32000"""
-    return min(32000, max(8000, episode_count * 150))
+    """根据集数动态计算 outline 生成所需 max_tokens，上限 32000。
+    每集大纲约 500 token（中文 JSON + 三段内容），加 1500 token 结构开销。"""
+    return min(32000, max(8000, episode_count * 500 + 1500))
 
 
 def _build_history_text(history: List[Dict[str, Any]]) -> str:
