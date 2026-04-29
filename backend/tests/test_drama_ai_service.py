@@ -56,10 +56,10 @@ def test_explanatory_episode_content_prompt_exists():
     assert "△" in user_prompt  # 动作标记
     # 必须包含场景标记格式
     assert "{episode_number}-1" in user_prompt
-    # 必须包含开局爆点要求
-    assert "爆点" in user_prompt or "第一镜" in user_prompt
-    # 必须限制对白长度和情感层次
-    assert "≤15字" in user_prompt or "情绪" in user_prompt
+    # 必须包含开局冲突要求
+    assert "强动作" in user_prompt or "强情绪" in user_prompt
+    # 必须限制对白口语化
+    assert "口语化" in user_prompt or "情绪" in user_prompt
 
 
 def test_generate_episode_content_accepts_script_type():
