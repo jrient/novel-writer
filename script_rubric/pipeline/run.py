@@ -11,7 +11,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from script_rubric.config import (
     BITABLE_RUBRIC_JSON, DRAMA_DIR, PARSED_DIR, ARCHIVES_DIR, HANDBOOK_DIR,
-    HOLDOUT_RATIO, HOLDOUT_SEED,
     BACKTEST_STATUS_ACCURACY, BACKTEST_RANGE_ACCURACY,
     BACKTEST_MAE_THRESHOLD, BACKTEST_CRITICAL_MISS_RATE,
 )
@@ -19,7 +18,7 @@ from script_rubric.pipeline.parse_bitable import parse_bitable_json
 from script_rubric.pipeline.match_texts import match_texts
 from script_rubric.pipeline.pass1_extract import extract_all, load_all_archives
 from script_rubric.pipeline.pass2_synthesize import synthesize_all
-from script_rubric.pipeline.backtest import split_holdout, run_backtest
+from script_rubric.pipeline.backtest import run_backtest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,11 +36,11 @@ async def cmd_full(args):
         logger.error("请先运行: python data/sync_bitable.py <bitable_url>")
         return
     all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    confirmed = [r for r in all_records if r.status_source == "confirmed"]
-    scored_only = [r for r in all_records if r.status_source == "score_inferred"]
+    train = [r for r in all_records if r.table_source == "精品"]
+    test = [r for r in all_records if r.table_source == "冲量"]
     logger.info(
         f"  Parsed {len(all_records)} records "
-        f"(confirmed={len(confirmed)}, score_inferred={len(scored_only)})"
+        f"(精品/train={len(train)}, 冲量/test={len(test)})"
     )
 
     logger.info("Step 2: Matching text files...")
@@ -49,41 +48,32 @@ async def cmd_full(args):
     logger.info(f"  Matched {match_result.matched}/{match_result.total} texts")
     PARSED_DIR.mkdir(parents=True, exist_ok=True)
     (PARSED_DIR / "match_report.txt").write_text(match_result.to_report(), encoding="utf-8")
-    # Save parsed records for reference
     parsed_data = [r.model_dump() for r in all_records]
     (PARSED_DIR / "scripts.json").write_text(
         json.dumps(parsed_data, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
-    logger.info("Step 3: Splitting holdout set (confirmed only)...")
-    train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
-    train = train_confirmed + scored_only
-    logger.info(
-        f"  Train: {len(train)} (confirmed={len(train_confirmed)}, "
-        f"score_inferred={len(scored_only)}), Test: {len(test)}"
-    )
-
-    confirmed_train_titles = {r.title for r in train_confirmed}
+    confirmed_titles = {r.title for r in train if r.status_source == "confirmed"}
     split_info = {
         "train_titles": [r.title for r in train],
         "test_titles": [r.title for r in test],
-        "score_inferred_titles": [r.title for r in scored_only],
+        "split_strategy": "table_based: 精品=train, 冲量=test",
     }
     (PARSED_DIR / "holdout_split.json").write_text(
         json.dumps(split_info, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    logger.info(f"Step 4: Pass 1 extraction ({len(train)} scripts)...")
+    logger.info(f"Step 3: Pass 1 extraction ({len(train)} train scripts)...")
     archives = await extract_all(train, skip_existing=not args.force)
     logger.info(f"  Extracted {len(archives)} archives")
 
     version = args.version or 1
-    logger.info(f"Step 5: Pass 2 synthesis -> handbook v{version}...")
-    await synthesize_all(archives, version=version, confirmed_titles=confirmed_train_titles)
+    logger.info(f"Step 4: Pass 2 synthesis -> handbook v{version}...")
+    await synthesize_all(archives, version=version, confirmed_titles=confirmed_titles)
     logger.info("  Handbook and rubric generated")
 
-    logger.info(f"Step 6: Backtesting on {len(test)} holdout scripts...")
+    logger.info(f"Step 5: Backtesting on {len(test)} 冲量 scripts...")
     metrics = await run_backtest(test, version=version)
     logger.info(f"  Status accuracy: {metrics.status_accuracy:.0%}")
     logger.info(f"  Range accuracy: {metrics.range_accuracy:.0%}")
@@ -112,13 +102,14 @@ async def cmd_incremental(args):
         return
 
     records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    confirmed = [r for r in records if r.status_source == "confirmed"]
+    train = [r for r in records if r.table_source == "精品"]
+    test = [r for r in records if r.table_source == "冲量"]
     match_texts(records, DRAMA_DIR)
-    logger.info(f"Total records: {len(records)} (confirmed={len(confirmed)})")
+    logger.info(f"Total records: {len(records)} (精品/train={len(train)}, 冲量/test={len(test)})")
 
     existing_archives = load_all_archives()
     existing_titles = {a.title for a in existing_archives}
-    new_records = [r for r in records if r.title not in existing_titles]
+    new_records = [r for r in train if r.title not in existing_titles]
     logger.info(f"New records: {len(new_records)}")
 
     if not new_records:
@@ -129,19 +120,19 @@ async def cmd_incremental(args):
     logger.info(f"Extracted {len(new_archives)} new archives")
 
     all_archives = existing_archives + new_archives
-    confirmed_titles = {r.title for r in confirmed}
+    train_titles = {r.title for r in train}
+    train_archives = [a for a in all_archives if a.title in train_titles]
+    confirmed_titles = {r.title for r in train if r.status_source == "confirmed"}
+
     if args.version:
         version = args.version
     else:
         existing_handbooks = list(HANDBOOK_DIR.glob("handbook_v*.md")) if HANDBOOK_DIR.exists() else []
         version = len(existing_handbooks) + 1
-    logger.info(f"Re-synthesizing handbook v{version} with {len(all_archives)} total archives...")
-    await synthesize_all(all_archives, version=version, confirmed_titles=confirmed_titles)
+    logger.info(f"Re-synthesizing handbook v{version} with {len(train_archives)} train archives...")
+    await synthesize_all(train_archives, version=version, confirmed_titles=confirmed_titles)
 
-    # Run backtest on holdout set
-    train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
-
-    logger.info(f"Step 6: Backtesting on {len(test)} holdout scripts...")
+    logger.info(f"Backtesting on {len(test)} 冲量 scripts...")
     metrics = await run_backtest(test, version=version)
     logger.info(f"  Status accuracy: {metrics.status_accuracy:.0%}")
     logger.info(f"  Range accuracy: {metrics.range_accuracy:.0%}")
@@ -173,7 +164,8 @@ async def cmd_backtest_only(args):
 
     records = parse_bitable_json(BITABLE_RUBRIC_JSON)
     match_texts(records, DRAMA_DIR)
-    _, test = split_holdout(records, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
+    test = [r for r in records if r.table_source == "冲量"]
+    logger.info(f"Test set (冲量): {len(test)} scripts")
 
     metrics = await run_backtest(test, version=version)
     logger.info(
@@ -191,27 +183,25 @@ async def cmd_pass2_only(args):
         return
 
     all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    confirmed = [r for r in all_records if r.status_source == "confirmed"]
-    scored_only = [r for r in all_records if r.status_source == "score_inferred"]
+    train = [r for r in all_records if r.table_source == "精品"]
     match_texts(all_records, DRAMA_DIR)
 
-    train_confirmed, test = split_holdout(confirmed, ratio=HOLDOUT_RATIO, seed=HOLDOUT_SEED)
-    confirmed_train_titles = {r.title for r in train_confirmed}
-    all_train_titles = confirmed_train_titles | {r.title for r in scored_only}
+    train_titles = {r.title for r in train}
+    confirmed_titles = {r.title for r in train if r.status_source == "confirmed"}
     logger.info(
-        f"Holdout split: train_confirmed={len(train_confirmed)}, "
-        f"score_inferred={len(scored_only)}, test={len(test)}"
+        f"Train (精品): {len(train)} records "
+        f"(confirmed={len(confirmed_titles)})"
     )
 
     all_archives = load_all_archives()
-    archives = [a for a in all_archives if a.title in all_train_titles]
+    archives = [a for a in all_archives if a.title in train_titles]
     skipped = len(all_archives) - len(archives)
     logger.info(
-        f"Loaded {len(all_archives)} archives, using {len(archives)} (training only); "
-        f"skipped {skipped} (test or unknown)"
+        f"Loaded {len(all_archives)} archives, using {len(archives)} (精品 only); "
+        f"skipped {skipped} (冲量 or unknown)"
     )
 
-    await synthesize_all(archives, version=version, confirmed_titles=confirmed_train_titles)
+    await synthesize_all(archives, version=version, confirmed_titles=confirmed_titles)
     logger.info("Done")
 
 

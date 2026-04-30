@@ -225,6 +225,7 @@ def parse_table(
                 submitter=submitter or "",
                 status=status,
                 status_source=status_source,
+                table_source=table_name,
                 reviews=reviews,
             ))
             continue
@@ -246,6 +247,7 @@ def parse_table(
             submitter=submitter or "",
             status=status,
             status_source=status_source,
+            table_source=table_name,
             reviews=reviews,
         ))
 

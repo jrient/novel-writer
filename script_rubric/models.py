@@ -18,6 +18,7 @@ class ScriptRecord(BaseModel):
     submitter: str
     status: str
     status_source: str = "confirmed"  # "confirmed" | "score_inferred"
+    table_source: str = ""  # "精品" | "冲量"
     reviews: list[Review] = []
     text_content: str | None = None
     text_file: str | None = None

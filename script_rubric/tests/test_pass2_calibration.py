@@ -152,6 +152,7 @@ class TestCmdPass2Filter:
             ScriptRecord(
                 title=f"T{i}", source_type="x", genre="y",
                 submitter="z", status="改",
+                table_source="精品",
                 reviews=[Review(reviewer="a", score=75)],
             )
             for i in range(5)
@@ -174,6 +175,6 @@ class TestCmdPass2Filter:
         from argparse import Namespace
         asyncio.run(run.cmd_pass2_only(Namespace(version=4)))
 
-        # split_holdout(seed=42, ratio=0.2) on 5 改-records: n_test = max(1, round(1.0)) = 1
-        assert len(captured["titles"]) == 4
-        assert len(set(captured["titles"])) == 4
+        # All 5 精品 records used as training set (no holdout split)
+        assert len(captured["titles"]) == 5
+        assert len(set(captured["titles"])) == 5
