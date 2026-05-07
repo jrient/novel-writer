@@ -54,7 +54,6 @@ async def cmd_full(args):
         encoding="utf-8",
     )
 
-    confirmed_titles = {r.title for r in train if r.status_source == "confirmed"}
     split_info = {
         "train_titles": [r.title for r in train],
         "test_titles": [r.title for r in test],
@@ -65,12 +64,16 @@ async def cmd_full(args):
     )
 
     logger.info(f"Step 3: Pass 1 extraction ({len(train)} train scripts)...")
-    archives = await extract_all(train, skip_existing=not args.force)
-    logger.info(f"  Extracted {len(archives)} archives")
+    await extract_all(train, skip_existing=not args.force)
+
+    # 载入磁盘上全部 archive 作为历史训练池（包含本轮提取 + 历史累积）
+    all_archives = load_all_archives()
+    confirmed_titles = {a.title for a in all_archives}
+    logger.info(f"  Training pool: {len(all_archives)} archives (history accumulated)")
 
     version = args.version or 1
     logger.info(f"Step 4: Pass 2 synthesis -> handbook v{version}...")
-    await synthesize_all(archives, version=version, confirmed_titles=confirmed_titles)
+    await synthesize_all(all_archives, version=version, confirmed_titles=confirmed_titles)
     logger.info("  Handbook and rubric generated")
 
     logger.info(f"Step 5: Backtesting on {len(test)} 冲量 scripts...")
@@ -112,25 +115,27 @@ async def cmd_incremental(args):
     new_records = [r for r in train if r.title not in existing_titles]
     logger.info(f"New records: {len(new_records)}")
 
-    if not new_records:
-        logger.info("No new records found. Nothing to do.")
-        return
+    if new_records:
+        new_archives = await extract_all(new_records, skip_existing=False)
+        logger.info(f"Extracted {len(new_archives)} new archives")
+        all_archives = existing_archives + new_archives
+    else:
+        all_archives = existing_archives
+        logger.info("No new records to extract; reusing existing archives")
 
-    new_archives = await extract_all(new_records, skip_existing=False)
-    logger.info(f"Extracted {len(new_archives)} new archives")
-
-    all_archives = existing_archives + new_archives
-    train_titles = {r.title for r in train}
-    train_archives = [a for a in all_archives if a.title in train_titles]
-    confirmed_titles = {r.title for r in train if r.status_source == "confirmed"}
+    # archives 是历史训练池：所有曾被 Pass1 合法提取的剧本，无论当前是否仍在 bitable
+    confirmed_titles = {a.title for a in all_archives}
 
     if args.version:
         version = args.version
     else:
         existing_handbooks = list(HANDBOOK_DIR.glob("handbook_v*.md")) if HANDBOOK_DIR.exists() else []
         version = len(existing_handbooks) + 1
-    logger.info(f"Re-synthesizing handbook v{version} with {len(train_archives)} train archives...")
-    await synthesize_all(train_archives, version=version, confirmed_titles=confirmed_titles)
+    logger.info(
+        f"Re-synthesizing handbook v{version} with {len(all_archives)} archives "
+        f"({len(existing_archives)} existing + {len(all_archives) - len(existing_archives)} new)"
+    )
+    await synthesize_all(all_archives, version=version, confirmed_titles=confirmed_titles)
 
     logger.info(f"Backtesting on {len(test)} 冲量 scripts...")
     metrics = await run_backtest(test, version=version)
@@ -178,28 +183,14 @@ async def cmd_pass2_only(args):
     version = args.version or 1
     logger.info(f"=== Pass 2 Only -> v{version} ===")
 
-    if not BITABLE_RUBRIC_JSON.exists():
-        logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
+    # archives 是历史信任的训练池（每个 archive 都是过去合法精品/冲量签的 Pass1 产物）
+    # 不再按当前 bitable 的 train_titles 过滤，避免飞书表删改导致历史训练数据丢失
+    archives = load_all_archives()
+    if not archives:
+        logger.error("没有可用 archive，请先运行 full 或 incremental")
         return
-
-    all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    train = [r for r in all_records if r.table_source == "精品"]
-    match_texts(all_records, DRAMA_DIR)
-
-    train_titles = {r.title for r in train}
-    confirmed_titles = {r.title for r in train if r.status_source == "confirmed"}
-    logger.info(
-        f"Train (精品): {len(train)} records "
-        f"(confirmed={len(confirmed_titles)})"
-    )
-
-    all_archives = load_all_archives()
-    archives = [a for a in all_archives if a.title in train_titles]
-    skipped = len(all_archives) - len(archives)
-    logger.info(
-        f"Loaded {len(all_archives)} archives, using {len(archives)} (精品 only); "
-        f"skipped {skipped} (冲量 or unknown)"
-    )
+    confirmed_titles = {a.title for a in archives}
+    logger.info(f"Training pool (archives): {len(archives)} parts (all treated as confirmed)")
 
     await synthesize_all(archives, version=version, confirmed_titles=confirmed_titles)
     logger.info("Done")

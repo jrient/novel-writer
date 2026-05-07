@@ -22,6 +22,7 @@ class ScriptRecord(BaseModel):
     reviews: list[Review] = []
     text_content: str | None = None
     text_file: str | None = None
+    docx_token: str | None = None
 
     @computed_field
     @property

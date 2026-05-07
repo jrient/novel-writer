@@ -14,12 +14,16 @@ from pathlib import Path
 
 from script_rubric.models import Review, ScriptRecord
 from script_rubric.config import MIN_SCORES_FOR_INCLUSION, SCORE_TIER_THRESHOLDS
+from data.feishu_common import extract_segments_text, extract_segments_docx_token
 
 
 EXPECTED_TABLES = {"冲量", "精品"}
 
 # 必须存在的字段名（大小写不敏感）
 REQUIRED_FIELD_NAMES = {"书名", "文本", "剧本名称", "剧本", "标题"}
+
+# 冲量表识别的状态值（来自「主管意见」字段）
+SUPERVISOR_STATUS_VALUES = {"签", "改", "拒"}
 
 
 def _normalize_field_name(name: str) -> str:
@@ -113,23 +117,32 @@ def _parse_score(val) -> int | None:
 
 
 def _parse_text(val) -> str | None:
-    """解析文本值。"""
-    if val is None:
-        return None
-    if isinstance(val, str):
-        s = val.strip()
-        return s if s else None
-    return str(val).strip() if val else None
+    """解析文本值。
+
+    支持飞书 text_field_as_array 模式下的富文本数组，自动拼接所有 text 段。
+    """
+    return extract_segments_text(val)
 
 
 def _parse_single_select(val) -> str | None:
-    """解析单选值。"""
+    """解析单选值。
+
+    兼容多选字段（list[str|dict]）：仅取第一个有效项，便于「状态」等多选字段
+    在简化语义下使用。
+    """
     if val is None:
         return None
     if isinstance(val, dict):
-        return val.get("text") or val.get("name")
+        v = val.get("text") or val.get("name")
+        return v.strip() if isinstance(v, str) and v.strip() else None
     if isinstance(val, str):
         return val.strip() if val.strip() else None
+    if isinstance(val, list):
+        for item in val:
+            picked = _parse_single_select(item)
+            if picked:
+                return picked
+        return None
     return None
 
 
@@ -183,6 +196,7 @@ def parse_table(
     genre_field = _find_field_by_name(fields, "题材分类") or _find_field_by_name(fields, "题材")
     submitter_field = _find_field_by_name(fields, "提交人")
     status_field = _find_field_by_name(fields, "状态")
+    supervisor_field = _find_field_by_name(fields, "主管意见")
     overall_score_field = _find_field_by_name(fields, "评分")
 
     out = []
@@ -192,11 +206,15 @@ def parse_table(
         title = _parse_text(title_raw) or ""
         if not title.strip():
             continue
+        docx_token = extract_segments_docx_token(title_raw)
 
         source_type = _parse_text(_get_cell_value(fields, rec, source_type_field["field_name"] if source_type_field else ""))
         genre = _parse_text(_get_cell_value(fields, rec, genre_field["field_name"] if genre_field else ""))
         submitter = _parse_text(_get_cell_value(fields, rec, submitter_field["field_name"] if submitter_field else ""))
         status_raw = _parse_single_select(_get_cell_value(fields, rec, status_field["field_name"] if status_field else ""))
+        supervisor_raw = _parse_single_select(
+            _get_cell_value(fields, rec, supervisor_field["field_name"] if supervisor_field else "")
+        )
         overall_score = _parse_score(_get_cell_value(fields, rec, overall_score_field["field_name"] if overall_score_field else ""))
 
         reviews = []
@@ -206,39 +224,30 @@ def parse_table(
             if score is not None or comment:
                 reviews.append(Review(reviewer=reviewer_name, score=score, comment=comment))
 
-        if not reviews:
-            # 无评分记录：精品表默认视为"签"（已通过审核的剧本池），冲量表保留
-            if table_name == "精品":
+        # === 状态判定 ===
+        if table_name == "冲量":
+            # 冲量表唯一权威信号是「主管意见」，仅识别 签/改/拒；
+            # 其他值（推/写/高再谈/None 等）视为 status_source=unknown，不入库
+            if supervisor_raw in SUPERVISOR_STATUS_VALUES:
+                status = supervisor_raw
+                status_source = "supervisor_opinion"
+            else:
+                continue
+        else:
+            # 精品表：保留原有逻辑（无评分→默认签；有评分→优先看状态字段，否则按均值推断）
+            if not reviews:
                 status = "签"
                 status_source = "table_default"
             else:
-                # 冲量表无评分无状态则跳过
-                if not (status_raw and status_raw in ("签", "改", "拒")):
-                    continue
-                status = status_raw
                 status_source = "confirmed"
-
-            out.append(ScriptRecord(
-                title=title.strip(),
-                source_type=source_type or "",
-                genre=genre or "",
-                submitter=submitter or "",
-                status=status,
-                status_source=status_source,
-                table_source=table_name,
-                reviews=reviews,
-            ))
-            continue
-
-        status_source = "confirmed"
-        if status_raw and status_raw in ("签", "改", "拒"):
-            status = status_raw
-        else:
-            inferred = _infer_status_from_scores(reviews)
-            if inferred is None:
-                continue
-            status = inferred
-            status_source = "score_inferred"
+                if status_raw and status_raw in ("签", "改", "拒"):
+                    status = status_raw
+                else:
+                    inferred = _infer_status_from_scores(reviews)
+                    if inferred is None:
+                        continue
+                    status = inferred
+                    status_source = "score_inferred"
 
         out.append(ScriptRecord(
             title=title.strip(),
@@ -249,6 +258,7 @@ def parse_table(
             status_source=status_source,
             table_source=table_name,
             reviews=reviews,
+            docx_token=docx_token,
         ))
 
     return out

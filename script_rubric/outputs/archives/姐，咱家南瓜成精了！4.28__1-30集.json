@@ -1,101 +1,94 @@
 {
-  "title": "姐，咱家南瓜成精了！4.28 1-30集",
+  "title": "姐，咱家南瓜成精了！",
   "status": "签",
   "genre": "原创 / 男频",
-  "mean_score": 61.4,
+  "mean_score": 64.3,
   "score_range": [
-    55,
-    65
+    60,
+    70
   ],
   "dimensions": {
     "premise_innovation": {
-      "score": 5,
-      "verdict": "mixed",
-      "evidence_from_reviews": [],
-      "evidence_from_text": [
-        "陈石头是仙农世家的唯一传人...失去记忆的陈石头在乡下种地",
-        "黄瓜VO：主人好，我是能美容养颜的白玉黄瓜 (^▽^) ！"
-      ],
-      "extracted_rule": "经典男频乡土异能种田文框架，辅以拟人化、带颜文字的神奇植物增加趣味性，但整体套路较深。"
-    },
-    "opening_hook": {
-      "score": 8,
+      "score": 6,
       "verdict": "positive",
       "evidence_from_reviews": [],
       "evidence_from_text": [
-        "王彪一脚踢开林家的大门，气势汹汹",
-        "陈石头眼中金光一闪，大量记忆碎片涌现（特效）...原来我是仙农陈家少主"
+        "黄瓜VO：主人好，我是能美容养颜的白玉黄瓜 (^▽^) ！",
+        "菠菜VO：主人，我是能苏醒瘦身的菠菜(๑•̀ㅂ•́)و✧"
       ],
-      "extracted_rule": "前三集迅速完成异能展现、反派挑衅与主角觉醒，冲突触发极快，能迅速抓住下沉市场受众。"
+      "extracted_rule": "乡野修仙结合神奇植物拟人化设定，增加趣味性和网感。"
+    },
+    "opening_hook": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "两人谦让拉扯，林秀云胸前纽扣“啪”地崩飞了（爆衣特写）",
+        "陈石头脖颈间的玉佩发出金光...陈石头脑袋上的伤口消失。陈石头（醒来）os：原来我是仙农陈家少主"
+      ],
+      "extracted_rule": "傻子男主+擦边福利+恶霸欺凌快速催化男主觉醒，是男频乡野文的经典有效开局。"
     },
     "character_depth": {
-      "score": 3,
-      "verdict": "negative",
+      "score": 4,
+      "verdict": "mixed",
       "evidence_from_reviews": [],
       "evidence_from_text": [
         "柳艳红（娇哼）：哎哟，黄瓜哪有你好用，姐姐想吃的是你",
-        "王彪：小美人儿，来吧！",
-        "沈清辞：我皮肤天生黝黑，医生说无药可治，只要你能让我变白，价钱随你开！"
+        "王彪（吼道）：陈石头，你敢欺负老子的女人，我看你是找死！"
       ],
-      "extracted_rule": "角色高度脸谱化，反派纯粹为推动冲突而降智，女性角色多为擦边或工具人属性。"
+      "extracted_rule": "角色高度脸谱化，依赖刻板印象推动剧情，反派工具人属性明显。"
     },
     "pacing_conflict": {
       "score": 8,
       "verdict": "positive",
       "evidence_from_reviews": [],
       "evidence_from_text": [
-        "王彪：玩阴的是吧？老子烧了你这菜地，看你还能玩什么花样！",
-        "陈石头：王彪，你碰她一下试试！...一根燃烧着金色火焰的荆棘藤蔓如同怒龙，破土而出！"
+        "王彪：臭傻子！给老子滚！...陈石头被王彪一脚踹倒，脑海中麦子的求救声越来越大。",
+        "王彪将打火机扔向旁边的菜地...火焰迅速蔓延，眨眼间吞没了半片菜园。"
       ],
-      "extracted_rule": "冲突密度极高，文戏与武戏交替紧凑，每集都有明确的事件推进、挑衅或打斗。"
+      "extracted_rule": "冲突密度高，打脸与新危机无缝衔接，保持观众情绪紧绷。"
     },
     "writing_dialogue": {
-      "score": 4,
-      "verdict": "negative",
-      "evidence_from_reviews": [],
-      "evidence_from_text": [
-        "王彪：妈的，臭傻子敢打我！",
-        "柳艳红：平胸妹护个傻子，真以为我稀罕"
-      ],
-      "extracted_rule": "台词直白粗暴，带有强烈的古早网文和短剧夸张感，缺乏文学修饰，略显低俗。"
-    },
-    "payoff_satisfaction": {
-      "score": 9,
-      "verdict": "positive",
-      "evidence_from_reviews": [],
-      "evidence_from_text": [
-        "南瓜藤甩开柳艳红，甩出一根苦瓜，直接塞到了王彪的嘴里...接连放了好几个臭屁",
-        "张三浑身颤抖，双手缓缓摸上头顶...秃子张真长头发了，神了！"
-      ],
-      "extracted_rule": "爽点兑现极快，打脸情节（如治病、教训恶霸）不拖泥带水，且具有很强的视觉化喜剧/爽感效果。"
-    },
-    "benchmark_differentiation": {
-      "score": 6,
+      "score": 5,
       "verdict": "mixed",
       "evidence_from_reviews": [],
       "evidence_from_text": [
-        "南瓜VO：坏蛋敢欺负主人！吃小爷一鞭！",
-        "木瓜VO：他刚刚在我们身上浇了柴油！"
+        "王彪：妈的，给脸不要脸是吧？",
+        "柳艳红：就是，别以为你是城里来的我们就怕你！"
       ],
-      "extracted_rule": "在传统的男频乡土异能赛道中，通过赋予植物二次元拟人化性格和吐槽能力形成了一定的微创新。"
+      "extracted_rule": "台词直白粗暴，符合下沉市场男频爽剧的语境，但缺乏深度和打磨。"
+    },
+    "payoff_satisfaction": {
+      "score": 8,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "南瓜藤泛起淡金色光晕，藤蔓破空抽去，正中王彪的脑门，留下一道红痕，两颗门牙掉出来",
+        "张三的头顶快速钻出无数发茬，直接变出了一头乌黑长发！"
+      ],
+      "extracted_rule": "结合植物特性的恶搞式打脸和奇效展示，提供了新颖且密集的爽点。"
+    },
+    "benchmark_differentiation": {
+      "score": 7,
+      "verdict": "positive",
+      "evidence_from_reviews": [],
+      "evidence_from_text": [
+        "南瓜VO：坏蛋敢欺负主人！吃小爷一鞭！",
+        "黄瓜VO：好疼，我的老腰诶QAQ……"
+      ],
+      "extracted_rule": "将传统金手指替换为带颜文字和吐槽属性的拟人化神奇植物，形成独特的喜剧爽感差异化。"
     }
   },
-  "type_specific_notes": "典型的男频乡土异能短剧，包含较多擦边元素（爆衣、丰胸、寡妇诱惑）和恶俗桥段，高度契合下沉市场男性受众口味。需要注意后期制作中植物拟人化特效和藤蔓打斗特效的实现成本。",
-  "consensus_points": [
-    "节奏极快，前三集即完成主角觉醒和初步打脸",
-    "爽点密集且直接，视觉化效果强",
-    "人设脸谱化严重，反派工具人属性明显",
-    "包含明显的擦边和低俗喜剧元素"
-  ],
+  "type_specific_notes": "典型的男频乡野题材，巧妙融合了植物拟人化和轻喜剧元素，擦边福利（爆衣、身材描写）穿插自然，精准契合下沉市场受众偏好。",
+  "consensus_points": [],
   "disagreement_points": [],
   "red_flags": [
-    "女性角色存在明显的擦边球描写（如爆衣特写、摸腹肌、低俗勾引）",
-    "反派行为逻辑单一，纯粹为了作恶而作恶",
-    "部分台词和惩罚方式（如吃苦瓜放屁）较为恶俗"
+    "反派降智且脸谱化严重，缺乏博弈感",
+    "台词略显粗俗，存在一定审核风险（如过度擦边或暴力）"
   ],
   "green_flags": [
-    "拟人化植物（带颜文字和VO）设定新颖有趣，能增加喜剧效果",
-    "冲突升级快，从单人挑衅到烧毁菜地，情绪调动直接有效",
-    "主角战力展示清晰，打脸不憋屈"
+    "植物拟人化设定新颖有趣，自带网感",
+    "爽点密集，节奏紧凑，打脸不拖沓",
+    "福利元素与剧情结合较好，不显生硬"
   ]
 }

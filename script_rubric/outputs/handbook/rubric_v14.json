@@ -1,0 +1,251 @@
+{
+  "version": "14",
+  "generated_at": "2026-05-07",
+  "sample_size": 107,
+  "universal_dimensions": {
+    "premise_innovation": {
+      "name_zh": "题材与设定创新度",
+      "avg_score": 5.3,
+      "avg_by_status": {
+        "改": 5.4,
+        "拒": 4.1,
+        "签": 6.5
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    },
+    "opening_hook": {
+      "name_zh": "开局与钩子",
+      "avg_score": 5.5,
+      "avg_by_status": {
+        "改": 5.1,
+        "拒": 4.5,
+        "签": 7.0
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    },
+    "character_depth": {
+      "name_zh": "人设立体度",
+      "avg_score": 5.0,
+      "avg_by_status": {
+        "改": 4.6,
+        "拒": 4.0,
+        "签": 6.6
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    },
+    "pacing_conflict": {
+      "name_zh": "节奏与冲突密度",
+      "avg_score": 5.7,
+      "avg_by_status": {
+        "改": 5.3,
+        "拒": 4.7,
+        "签": 7.4
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    },
+    "writing_dialogue": {
+      "name_zh": "文笔与台词",
+      "avg_score": 5.2,
+      "avg_by_status": {
+        "改": 4.9,
+        "拒": 4.2,
+        "签": 6.6
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    },
+    "payoff_satisfaction": {
+      "name_zh": "爽点兑现",
+      "avg_score": 5.8,
+      "avg_by_status": {
+        "改": 5.4,
+        "拒": 4.8,
+        "签": 7.6
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    },
+    "benchmark_differentiation": {
+      "name_zh": "对标与差异化",
+      "avg_score": 5.1,
+      "avg_by_status": {
+        "改": 5.1,
+        "拒": 3.4,
+        "签": 6.8
+      },
+      "red_flags_sample": [
+        "台词粗鄙，刻板印象严重",
+        "男主性格老套",
+        "频繁使用闪回（第5集、第8集）打断主线复仇节奏",
+        "反派人设过于脸谱化，缺乏智商博弈",
+        "金手指设定过于万能，导致主角缺乏生存压力"
+      ],
+      "green_flags_sample": [
+        "植物拟人化设定新颖有趣，自带网感",
+        "冲突密集且解决迅速，爽点兑现极快",
+        "评级达到A级（80分以上）标准",
+        "开篇生死危机与重生反杀无缝衔接，情绪代入感极强",
+        "被官方定性为精品参考剧本"
+      ]
+    }
+  },
+  "type_overlays": {
+    "改编 / 男频": {
+      "premise_innovation": 6.2,
+      "opening_hook": 6.2,
+      "character_depth": 6.0,
+      "pacing_conflict": 6.5,
+      "writing_dialogue": 5.8,
+      "payoff_satisfaction": 6.3,
+      "benchmark_differentiation": 6.5
+    },
+    "原创 / 萌宝": {
+      "premise_innovation": 5.8,
+      "opening_hook": 6.2,
+      "character_depth": 6.2,
+      "pacing_conflict": 5.8,
+      "writing_dialogue": 6.0,
+      "payoff_satisfaction": 6.4,
+      "benchmark_differentiation": 5.0
+    },
+    "改编 / 女频": {
+      "premise_innovation": 4.6,
+      "opening_hook": 5.6,
+      "character_depth": 5.1,
+      "pacing_conflict": 6.2,
+      "writing_dialogue": 5.0,
+      "payoff_satisfaction": 6.4,
+      "benchmark_differentiation": 4.4
+    },
+    "改编 / 世情": {
+      "premise_innovation": 4.0,
+      "opening_hook": 4.3,
+      "character_depth": 4.2,
+      "pacing_conflict": 4.3,
+      "writing_dialogue": 4.8,
+      "payoff_satisfaction": 4.2,
+      "benchmark_differentiation": 4.7
+    },
+    "原创 / 男频": {
+      "premise_innovation": 6.1,
+      "opening_hook": 5.5,
+      "character_depth": 4.9,
+      "pacing_conflict": 6.0,
+      "writing_dialogue": 5.5,
+      "payoff_satisfaction": 6.2,
+      "benchmark_differentiation": 5.8
+    },
+    "原创 / 世情": {
+      "premise_innovation": 4.1,
+      "opening_hook": 5.4,
+      "character_depth": 4.0,
+      "pacing_conflict": 4.9,
+      "writing_dialogue": 4.9,
+      "payoff_satisfaction": 5.3,
+      "benchmark_differentiation": 3.4
+    },
+    "原创 / 女频": {
+      "premise_innovation": 5.5,
+      "opening_hook": 5.0,
+      "character_depth": 4.7,
+      "pacing_conflict": 5.0,
+      "writing_dialogue": 4.8,
+      "payoff_satisfaction": 5.0,
+      "benchmark_differentiation": 5.0
+    },
+    "改编 / 世情 / 种田 / 大女主": {
+      "premise_innovation": 6.0,
+      "opening_hook": 7.0,
+      "character_depth": 6.0,
+      "pacing_conflict": 7.0,
+      "writing_dialogue": 5.0,
+      "payoff_satisfaction": 8.0,
+      "benchmark_differentiation": 5.0
+    },
+    "原创": {
+      "premise_innovation": 8.0,
+      "opening_hook": 5.0,
+      "character_depth": 6.0,
+      "pacing_conflict": 4.0,
+      "writing_dialogue": 4.0,
+      "payoff_satisfaction": 4.0,
+      "benchmark_differentiation": 6.0
+    }
+  }
+}
