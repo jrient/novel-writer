@@ -19,7 +19,7 @@ from typing import Optional
 
 logger = logging.getLogger("api_logger")
 
-DOCX_TOKEN_RE = re.compile(r"/docx/([A-Za-z0-9]+)")
+DOC_LINK_RE = re.compile(r"/(docx|wiki|docs)/([A-Za-z0-9]+)")
 HANDBOOK_VERSION_RE = re.compile(r"handbook_v(\d+)\.md$")
 
 # 解析 handbook 路径：backend/app/services/.. -> 项目根 -> script_rubric/outputs/handbook
@@ -31,16 +31,23 @@ if not _HANDBOOK_DIR.exists():
     _HANDBOOK_DIR = Path("/app/script_rubric/outputs/handbook")
 
 
-def extract_docx_token(url_or_token: str) -> Optional[str]:
-    """从飞书 docx URL 中解析 token；若已经是裸 token 也直接返回。"""
+def extract_doc_link(url_or_token: str) -> Optional[tuple[str, str]]:
+    """从飞书文档链接解析 (kind, token)。
+
+    支持：
+    - /docx/<token>  → ("docx", token)
+    - /wiki/<token>  → ("wiki", token)   wiki 节点，需 resolve 拿 docx token
+    - /docs/<token>  → ("docs", token)   旧版 doc，暂不支持，返回会在调用处报错
+    - 裸 token       → ("docx", token)   默认按 docx 处理
+    """
     if not url_or_token:
         return None
-    m = DOCX_TOKEN_RE.search(url_or_token)
+    m = DOC_LINK_RE.search(url_or_token)
     if m:
-        return m.group(1)
+        return m.group(1), m.group(2)
     s = url_or_token.strip()
     if "/" not in s and re.fullmatch(r"[A-Za-z0-9]+", s):
-        return s
+        return "docx", s
     return None
 
 
@@ -81,15 +88,35 @@ async def score_docx(url: str, force_refresh: bool = True) -> dict:
     from script_rubric.feishu.feishu_common import (
         get_tenant_access_token,
         fetch_docx_raw_content,
+        resolve_wiki_node,
     )
     from script_rubric.pipeline.fetch_docx import save_cache, load_cached
     from script_rubric.pipeline.backtest import predict_one
     from script_rubric.models import ScriptRecord
     from script_rubric.config import MODEL
 
-    docx_token = extract_docx_token(url)
-    if not docx_token:
-        raise ValueError(f"无法从输入解析 docx token：{url}")
+    parsed = extract_doc_link(url)
+    if not parsed:
+        raise ValueError(f"无法从输入解析飞书文档链接：{url}")
+    kind, raw_token = parsed
+
+    # wiki 链接：先 resolve 出真正的 docx token
+    if kind == "wiki":
+        access_token = get_tenant_access_token()
+        node = resolve_wiki_node(access_token, raw_token)
+        obj_type = node.get("obj_type")
+        if obj_type != "docx":
+            raise ValueError(
+                f"wiki 节点指向 {obj_type or '未知'}，仅支持 docx 类型；"
+                f"请直接打开该文档复制 docx 链接（URL 中是 /docx/...）"
+            )
+        docx_token = node.get("obj_token")
+        if not docx_token:
+            raise ValueError(f"wiki 节点解析失败，未拿到 obj_token")
+    elif kind == "docs":
+        raise ValueError("不支持旧版飞书文档（/docs/...），请使用新版 docx 或 wiki 链接")
+    else:
+        docx_token = raw_token
 
     # 拉正文
     content: Optional[str] = None

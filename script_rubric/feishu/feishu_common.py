@@ -178,6 +178,26 @@ def fetch_docx_raw_content(token: str, docx_token: str) -> str:
     return data.get("content", "")
 
 
+def resolve_wiki_node(token: str, wiki_token: str) -> dict:
+    """解析飞书 wiki 节点，拿到真正的 obj_token + obj_type。
+
+    wiki 链接（/wiki/<wiki_token>）背后是一个节点（node），节点指向 docx/sheet/...。
+    Returns:
+        {"obj_type": "docx" | "sheet" | ..., "obj_token": "..."}
+    """
+    data = call_get(
+        "/open-apis/wiki/v2/spaces/get_node",
+        token,
+        {"token": wiki_token, "obj_type": "wiki"},
+    )
+    node = data.get("node") or {}
+    return {
+        "obj_type": node.get("obj_type", ""),
+        "obj_token": node.get("obj_token", ""),
+        "title": node.get("title", ""),
+    }
+
+
 # === 多数据源合并 ===
 
 TITLE_FIELD_CANDIDATES = ("书名", "文本", "剧本名称", "剧本", "标题")
