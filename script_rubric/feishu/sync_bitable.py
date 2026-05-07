@@ -8,7 +8,7 @@
 
 用法:
   # 单源同步
-  python -m script_rubric.feishu.sync_bitable <bitable_url> [--out <path>] [--run-pipeline]
+  python -m script_rubric.feishu.sync_bitable <bitable_url> [--run-pipeline]
 
   # 多源管理
   python -m script_rubric.feishu.sync_bitable --add-source <url> [--name <name>]
@@ -16,19 +16,11 @@
   python -m script_rubric.feishu.sync_bitable --list-sources
   python -m script_rubric.feishu.sync_bitable --remove-source <name>
 
-输出 JSON 结构:
-  {
-    "synced_at": "...",
-    "app_token": "...",
-    "tables": [
-      {
-        "table_id": "...",
-        "table_name": "精品",
-        "fields": [...],
-        "records": [...]
-      }
-    ]
-  }
+非破坏性持久化:
+  数据真源是 script_rubric/data/bitable_records/{table_id}/{record_id}.json
+  每条记录独立成文件；同步只 add/update，从不删除已有文件。
+  bitable_rubric.json 是从 per-record 文件 rebuild 出的派生索引。
+  即使飞书源端记录消失或权限被收回，本地数据仍完整可用。
 
 凭证：仅从环境变量 FEISHU_APP_ID / FEISHU_APP_SECRET 读取，未设置则报错。
 """
@@ -37,7 +29,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import time
 from datetime import datetime
@@ -52,7 +43,11 @@ from script_rubric.feishu.feishu_common import (
     get_tenant_access_token,
     list_bitable_fields,
     list_bitable_tables,
-    merge_bitable_tables,
+)
+from script_rubric.feishu.record_store import (
+    migrate_from_legacy,
+    rebuild_index,
+    sync_table_records,
 )
 
 load_dotenv()
@@ -64,11 +59,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_OUT = PROJECT_ROOT / "script_rubric" / "data" / "bitable_rubric.json"
 HISTORY_PATH = PROJECT_ROOT / "script_rubric" / "data" / "sync_history.json"
 SOURCES_PATH = PROJECT_ROOT / "data" / "bitables.json"
-MERGE_HISTORY_PATH = PROJECT_ROOT / "data" / "merge_history.json"
 
 
 def fetch_bitable(url_or_token: str) -> dict:
-    """拉取 bitable 所有数据表。"""
+    """拉取 bitable 所有数据表（仅返回，不写盘）。"""
     app_token = extract_bitable_token(url_or_token)
     token = get_tenant_access_token()
 
@@ -88,7 +82,6 @@ def fetch_bitable(url_or_token: str) -> dict:
         records = fetch_all_bitable_records(token, app_token, table_id)
 
         # 过滤掉无 title 的空记录（占位/草稿行）
-        # 兼容 text_field_as_array 模式：title 字段可能是 str 或 list[segment]
         filtered = []
         for rec in records:
             fields_map = rec.get("fields", {})
@@ -128,15 +121,39 @@ def fetch_bitable(url_or_token: str) -> dict:
     }
 
 
-def atomic_write(data: dict, path: Path) -> None:
-    """原子写入 JSON 文件。"""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = path.with_suffix(".tmp")
-    tmp_path.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+def persist_to_store(fetched: dict) -> dict:
+    """把一次抓取得到的所有表非破坏性落入 per-record 存储。
+
+    Returns:
+        {table_name: {"new": N, "updated": M, "preserved": K}}
+    """
+    app_token = fetched.get("app_token", "")
+    stats_by_table: dict[str, dict] = {}
+    for tbl in fetched["tables"]:
+        stats = sync_table_records(
+            records=tbl["records"],
+            table_id=tbl["table_id"],
+            table_name=tbl["table_name"],
+            fields=tbl["fields"],
+            source_app_token=app_token,
+        )
+        stats_by_table[tbl["table_name"]] = stats
+    return stats_by_table
+
+
+def auto_migrate_legacy() -> None:
+    """首次运行时把旧 bitable_rubric.json 一次性迁入 per-record 存储。"""
+    from script_rubric.feishu.record_store import RECORDS_ROOT, list_table_ids
+    if list_table_ids():
+        return  # 已有 per-record 数据，跳过
+    if not DEFAULT_OUT.exists():
+        return
+    print(f"[migrate] 检测到旧 bitable_rubric.json，迁移到 per-record 存储...")
+    stats = migrate_from_legacy(DEFAULT_OUT)
+    print(
+        f"[migrate] 完成：迁移 {stats['records_migrated']} 条记录、"
+        f"{stats['tables_migrated']} 张表 meta、跳过 {stats['skipped_existing']} 条已存在"
     )
-    os.replace(tmp_path, path)
 
 
 def append_history(entry: dict, history_path: Path = HISTORY_PATH) -> None:
@@ -220,73 +237,49 @@ def cmd_sync_all(args):
         print("没有 active 的数据源，请先用 --add-source 添加")
         return
 
+    auto_migrate_legacy()
+
     print(f"=== 多源同步 ===")
     print(f"数据源: {len(active_sources)} 个")
-    print(f"输出: {DEFAULT_OUT}")
+    print(f"索引输出: {DEFAULT_OUT}")
+    print(f"持久化目录: {DEFAULT_OUT.parent / 'bitable_records'}")
 
-    existing_data = None
-    if DEFAULT_OUT.exists():
-        try:
-            existing_data = json.loads(DEFAULT_OUT.read_text(encoding="utf-8"))
-            old_total = sum(len(t["records"]) for t in existing_data.get("tables", []))
-            print(f"已有数据: {old_total} 条")
-        except (json.JSONDecodeError, Exception):
-            print("已有数据格式错误，将重新生成")
-            existing_data = None
-
+    last_app_token = ""
+    succeeded = []
     for src in active_sources:
         print(f"\n--- 拉取: {src['name']} ---")
         t0 = time.time()
         try:
-            new_data = fetch_bitable(src["url"])
+            data = fetch_bitable(src["url"])
         except Exception as e:
-            print(f"  拉取失败: {e}")
+            print(f"  拉取失败（本地数据保留不变）: {e}")
             continue
 
         elapsed = time.time() - t0
-        new_total = sum(len(t["records"]) for t in new_data["tables"])
-        print(f"  拉取耗时: {elapsed:.1f}s，共 {new_total} 条")
-
-        if existing_data:
-            merged_tables, stats = merge_bitable_tables(
-                existing_data.get("tables", []),
-                new_data["tables"],
-            )
-            existing_data["tables"] = merged_tables
-            existing_data["synced_at"] = datetime.now().isoformat()
-            existing_data["app_token"] = new_data["app_token"]
+        last_app_token = data["app_token"]
+        succeeded.append(src["name"])
+        stats_by_table = persist_to_store(data)
+        for tname, s in stats_by_table.items():
             print(
-                f"  合并: 更新 {stats['updated']} 条, "
-                f"追加 {stats['appended']} 条, 保留 {stats['retained']} 条"
+                f"  [{tname}] 新增 {s['new']} 条, 更新 {s['updated']} 条, "
+                f"本地保留（源端未拉到）{s['preserved']} 条"
             )
+        print(f"  拉取耗时: {elapsed:.1f}s")
 
-            append_merge_history({
-                "merged_at": datetime.now().isoformat(),
-                "source_name": src["name"],
-                "app_token": new_data["app_token"],
-                **stats,
-                "total_after_merge": sum(len(t["records"]) for t in merged_tables),
-            })
-        else:
-            existing_data = new_data
-            print("  首次写入")
-
-    if not existing_data:
-        print("所有数据源拉取失败")
-        return
-
-    final_total = sum(len(t["records"]) for t in existing_data["tables"])
-    atomic_write(existing_data, DEFAULT_OUT)
-    print(f"\n已保存: {DEFAULT_OUT}（共 {final_total} 条）")
+    print(f"\n[index] 从 per-record 文件 rebuild 索引...")
+    index = rebuild_index(DEFAULT_OUT, latest_app_token=last_app_token)
+    final_total = sum(len(t["records"]) for t in index["tables"])
+    print(f"已保存: {DEFAULT_OUT}（共 {final_total} 条）")
 
     append_history({
-        "synced_at": existing_data["synced_at"],
-        "app_token": existing_data["app_token"],
+        "synced_at": index["synced_at"],
+        "app_token": last_app_token,
         "mode": "multi_source",
-        "sources": [s["name"] for s in active_sources],
+        "sources_tried": [s["name"] for s in active_sources],
+        "sources_succeeded": succeeded,
         "tables": [
             {"table_name": t["table_name"], "records": len(t["records"])}
-            for t in existing_data["tables"]
+            for t in index["tables"]
         ],
         "total_records": final_total,
     })
@@ -302,21 +295,6 @@ def cmd_sync_all(args):
             print(f"pipeline 执行失败 (code={result.returncode})")
             sys.exit(result.returncode)
         print("pipeline 执行完成")
-
-
-def append_merge_history(entry: dict) -> None:
-    MERGE_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    history = []
-    if MERGE_HISTORY_PATH.exists():
-        try:
-            history = json.loads(MERGE_HISTORY_PATH.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            history = []
-    history.append(entry)
-    MERGE_HISTORY_PATH.write_text(
-        json.dumps(history, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
 
 
 def main():
@@ -350,34 +328,39 @@ def main():
         parser.print_help()
         return
 
-    print(f"=== 飞书多维表格同步 ===")
+    auto_migrate_legacy()
+
+    print(f"=== 飞书多维表格同步（单源） ===")
     print(f"URL: {args.url}")
-    print(f"输出: {args.out}")
+    print(f"索引输出: {args.out}")
 
     t0 = time.time()
     data = fetch_bitable(args.url)
     elapsed_fetch = time.time() - t0
     print(f"拉取耗时: {elapsed_fetch:.1f}s")
 
-    total_records = sum(len(t["records"]) for t in data["tables"])
-    print(f"总记录: {total_records} 条")
+    stats_by_table = persist_to_store(data)
+    for tname, s in stats_by_table.items():
+        print(
+            f"  [{tname}] 新增 {s['new']} 条, 更新 {s['updated']} 条, "
+            f"本地保留（源端未拉到）{s['preserved']} 条"
+        )
 
-    t1 = time.time()
-    atomic_write(data, args.out)
-    elapsed_write = time.time() - t1
-    print(f"写入耗时: {elapsed_write:.1f}s")
-    print(f"已保存: {args.out}")
+    print(f"\n[index] 从 per-record 文件 rebuild 索引...")
+    index = rebuild_index(args.out, latest_app_token=data["app_token"])
+    final_total = sum(len(t["records"]) for t in index["tables"])
+    print(f"已保存: {args.out}（共 {final_total} 条）")
 
     entry = {
-        "synced_at": data["synced_at"],
+        "synced_at": index["synced_at"],
         "app_token": data["app_token"],
         "mode": "single_source",
         "tables": [
             {"table_name": t["table_name"], "records": len(t["records"])}
-            for t in data["tables"]
+            for t in index["tables"]
         ],
         "elapsed_fetch": elapsed_fetch,
-        "elapsed_write": elapsed_write,
+        "total_records": final_total,
     }
     append_history(entry)
     print(f"历史已追加: {HISTORY_PATH}")
