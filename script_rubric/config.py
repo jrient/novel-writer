@@ -21,9 +21,16 @@ DRAMA_DIR = PROJECT_ROOT / "uploads" / "drama"
 # 新数据源：多维表格 JSON（由 script_rubric.feishu.sync_bitable 生成）
 BITABLE_RUBRIC_JSON = DATA_DIR / "bitable_rubric.json"
 
-API_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://yibuapi.com/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "")
-MODEL = os.getenv("RUBRIC_MODEL") or os.getenv("OPENAI_MODEL") or "claude-sonnet-4-6-20250514"
+# === LLM 配置 ===
+# 评分服务优先使用 RUBRIC_* 独立配置，便于切换模型而不影响其他 LLM 调用
+RUBRIC_BASE_URL = os.getenv("RUBRIC_BASE_URL") or os.getenv("OPENAI_BASE_URL", "https://yibuapi.com/v1")
+RUBRIC_API_KEY = os.getenv("RUBRIC_API_KEY") or os.getenv("OPENAI_API_KEY", "")
+RUBRIC_MODEL = os.getenv("RUBRIC_MODEL") or os.getenv("OPENAI_MODEL") or "claude-sonnet-4-6-20250514"
+
+# 保留旧变量名供其他模块兼容使用
+API_BASE_URL = RUBRIC_BASE_URL
+API_KEY = RUBRIC_API_KEY
+MODEL = RUBRIC_MODEL
 
 PASS1_CONCURRENCY = 5
 PASS1_MAX_RETRIES = 2
