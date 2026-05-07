@@ -1,6 +1,6 @@
 """merge_bitable_tables 单测。"""
 
-from data.feishu_common import merge_bitable_tables, _extract_record_title
+from script_rubric.feishu.feishu_common import merge_bitable_tables, _extract_record_title
 
 
 def _rec(title=None, fields=None):

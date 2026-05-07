@@ -9,7 +9,7 @@
 ```
 飞书多维表格 (冲量/精品)
        │
-       ▼  data/sync_bitable.py CLI
+       ▼  script_rubric.feishu.sync_bitable CLI
 bitable_rubric.json
        │
        ▼
@@ -60,7 +60,7 @@ script_rubric/
 ├── requirements.txt           # 独立依赖（openai/pydantic/json-repair/httpx）
 │
 ├── data/                      # 数据目录
-│   ├── bitable_rubric.json    # 飞书多维表格导出数据（由 data/sync_bitable.py 生成）
+│   ├── bitable_rubric.json    # 飞书多维表格导出数据（由 script_rubric.feishu.sync_bitable 生成）
 │   └── sync_history.json      # 同步历史记录
 │
 ├── pipeline/
@@ -101,7 +101,7 @@ data/
 
 ```bash
 # 1. 从飞书多维表格拉取数据（需要用户提供 bitable URL）
-python data/sync_bitable.py https://<TENANT>.feishu.cn/base/<APP_TOKEN>
+python -m script_rubric.feishu.sync_bitable https://<TENANT>.feishu.cn/base/<APP_TOKEN>
 
 # 2. 环境变量（.env 或 export）
 OPENAI_BASE_URL=https://yibuapi.com/v1

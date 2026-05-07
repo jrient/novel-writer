@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from data.feishu_common import fetch_docx_raw_content, get_tenant_access_token
+from script_rubric.feishu.feishu_common import fetch_docx_raw_content, get_tenant_access_token
 from script_rubric.config import DATA_DIR
 
 logger = logging.getLogger(__name__)

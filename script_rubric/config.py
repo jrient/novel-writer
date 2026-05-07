@@ -18,7 +18,7 @@ PROMPT_DIR = BASE_DIR / "prompts"
 XLSX_PATH = PROJECT_ROOT / "uploads" / "外部待审核剧本.xlsx"
 DRAMA_DIR = PROJECT_ROOT / "uploads" / "drama"
 
-# 新数据源：多维表格 JSON（由 data/sync_bitable.py 生成）
+# 新数据源：多维表格 JSON（由 script_rubric.feishu.sync_bitable 生成）
 BITABLE_RUBRIC_JSON = DATA_DIR / "bitable_rubric.json"
 
 API_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://yibuapi.com/v1")

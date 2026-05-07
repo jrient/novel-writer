@@ -33,7 +33,7 @@ async def cmd_full(args):
     logger.info("Step 1: Parsing bitable JSON (with scored expansion)...")
     if not BITABLE_RUBRIC_JSON.exists():
         logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
-        logger.error("请先运行: python data/sync_bitable.py <bitable_url>")
+        logger.error("请先运行: python -m script_rubric.feishu.sync_bitable <bitable_url>")
         return
     all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
     train = [r for r in all_records if r.table_source == "精品"]
@@ -101,7 +101,7 @@ async def cmd_incremental(args):
 
     if not BITABLE_RUBRIC_JSON.exists():
         logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
-        logger.error("请先运行: python data/sync_bitable.py <bitable_url>")
+        logger.error("请先运行: python -m script_rubric.feishu.sync_bitable <bitable_url>")
         return
 
     records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)

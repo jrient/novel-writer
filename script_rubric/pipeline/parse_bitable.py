@@ -14,7 +14,7 @@ from pathlib import Path
 
 from script_rubric.models import Review, ScriptRecord
 from script_rubric.config import MIN_SCORES_FOR_INCLUSION, SCORE_TIER_THRESHOLDS
-from data.feishu_common import extract_segments_text, extract_segments_docx_token
+from script_rubric.feishu.feishu_common import extract_segments_text, extract_segments_docx_token
 
 
 EXPECTED_TABLES = {"冲量", "精品"}
