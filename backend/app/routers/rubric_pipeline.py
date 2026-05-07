@@ -1,10 +1,11 @@
 """
 剧本评审 Pipeline API 路由
 ===========================
-手动触发 pipeline、查看运行历史和当前状态。
+手动触发 pipeline、查看运行历史和当前状态、对单个 docx 链接即时评分。
 """
+import logging
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 from app.services.rubric_pipeline_service import (
@@ -14,6 +15,8 @@ from app.services.rubric_pipeline_service import (
     check_llm_config,
 )
 from app.services.handbook_provider import get_handbook
+
+logger = logging.getLogger("api_logger")
 
 router = APIRouter(prefix="/api/v1/rubric-pipeline", tags=["剧本评审Pipeline"])
 
@@ -108,3 +111,50 @@ async def reload_handbook():
         "new_version": handbook.version,
         "reloaded": old_version != handbook.version,
     }
+
+
+# ───────────── 单本即时评分 ─────────────
+
+
+class ScoreDocxRequest(BaseModel):
+    url: str = Field(..., description="飞书 docx 链接或裸 token")
+    force_refresh: bool = Field(True, description="True 时跳过本地缓存重新拉飞书")
+
+
+class ScoreDocxResponse(BaseModel):
+    title: str
+    detected_title: str
+    predicted_score: int
+    predicted_status: str
+    dimension_scores: dict
+    comments: list[str]
+    red_flags_hit: list[str]
+    green_flags_hit: list[str]
+    handbook_version: str
+    model: str
+    docx_token: str
+    text_length: int
+
+
+@router.post("/score-docx", response_model=ScoreDocxResponse)
+async def score_docx_api(body: ScoreDocxRequest):
+    """对一个飞书 docx 链接（剧本）做即时评分。
+
+    输入：飞书 docx 链接（https://....feishu.cn/docx/<token>）或裸 token
+    输出：维度分 + 总分 + 状态判定 + 红/绿旗 + 修改建议
+    """
+    from app.services.rubric_score_service import score_docx as _score_docx
+
+    llm = check_llm_config()
+    if not llm["api_key_set"]:
+        raise HTTPException(
+            status_code=503,
+            detail="LLM API key 未配置，无法评分。请设置 OPENAI_API_KEY。",
+        )
+    try:
+        return await _score_docx(body.url, force_refresh=body.force_refresh)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.exception("score-docx 失败")
+        raise HTTPException(status_code=500, detail=f"评分失败：{e}")

@@ -22,6 +22,9 @@
           <el-button @click="$router.push('/expansion')" round>
             文本扩写
           </el-button>
+          <el-button @click="$router.push('/rubric/score')" round>
+            剧本评分
+          </el-button>
           <el-button type="primary" :icon="Plus" @click="goToWizard" round>
             新建项目
           </el-button>

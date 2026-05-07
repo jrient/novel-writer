@@ -1,0 +1,147 @@
+"""
+单本剧本即时评分服务
+=====================
+
+接受一个飞书 docx 链接，拉取正文，用最新版 handbook 跑 backtest_predict，
+返回打分 + 维度分 + 红/绿旗 + 修改建议。
+
+与 rubric_pipeline_service 的关系：
+- rubric_pipeline_service 跑全流程（同步→Pass1→Pass2→回测），输出 handbook
+- 本服务消费 handbook，做单本即时评分，无需重跑 pipeline
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from pathlib import Path
+from typing import Optional
+
+logger = logging.getLogger("api_logger")
+
+DOCX_TOKEN_RE = re.compile(r"/docx/([A-Za-z0-9]+)")
+HANDBOOK_VERSION_RE = re.compile(r"handbook_v(\d+)\.md$")
+
+# 解析 handbook 路径：backend/app/services/.. -> 项目根 -> script_rubric/outputs/handbook
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent  # backend/
+_PROJECT_ROOT = _BACKEND_ROOT.parent
+_HANDBOOK_DIR = _PROJECT_ROOT / "script_rubric" / "outputs" / "handbook"
+if not _HANDBOOK_DIR.exists():
+    # Fallback：Docker 内 /app 模式
+    _HANDBOOK_DIR = Path("/app/script_rubric/outputs/handbook")
+
+
+def extract_docx_token(url_or_token: str) -> Optional[str]:
+    """从飞书 docx URL 中解析 token；若已经是裸 token 也直接返回。"""
+    if not url_or_token:
+        return None
+    m = DOCX_TOKEN_RE.search(url_or_token)
+    if m:
+        return m.group(1)
+    s = url_or_token.strip()
+    if "/" not in s and re.fullmatch(r"[A-Za-z0-9]+", s):
+        return s
+    return None
+
+
+def find_latest_handbook() -> Optional[Path]:
+    """选最新版 handbook（按 _vN 数值最大）。"""
+    if not _HANDBOOK_DIR.exists():
+        return None
+    candidates = list(_HANDBOOK_DIR.glob("handbook_v*.md"))
+    if not candidates:
+        return None
+
+    def vnum(p: Path) -> int:
+        m = HANDBOOK_VERSION_RE.search(p.name)
+        return int(m.group(1)) if m else 0
+
+    return max(candidates, key=vnum)
+
+
+def _handbook_version_label(path: Path) -> str:
+    m = HANDBOOK_VERSION_RE.search(path.name)
+    return f"v{m.group(1)}" if m else path.stem
+
+
+async def score_docx(url: str, force_refresh: bool = True) -> dict:
+    """对一个飞书 docx 链接做即时评分。
+
+    Args:
+        url: 飞书文档链接 (https://...feishu.cn/docx/<token>) 或裸 token
+        force_refresh: True 时跳过本地 cache，强制重新拉飞书（默认 True，
+            因为剧本可能反复修改，本地 cache 可能过期）
+
+    Returns:
+        {title, predicted_score, predicted_status, dimension_scores,
+         comments, red_flags_hit, green_flags_hit, handbook_version,
+         model, docx_token, text_length}
+    """
+    # Lazy imports：script_rubric 依赖 OPENAI/FEISHU 环境变量，懒加载避免启动期失败
+    from script_rubric.feishu.feishu_common import (
+        get_tenant_access_token,
+        fetch_docx_raw_content,
+    )
+    from script_rubric.pipeline.fetch_docx import save_cache, load_cached
+    from script_rubric.pipeline.backtest import predict_one
+    from script_rubric.models import ScriptRecord
+    from script_rubric.config import MODEL
+
+    docx_token = extract_docx_token(url)
+    if not docx_token:
+        raise ValueError(f"无法从输入解析 docx token：{url}")
+
+    # 拉正文
+    content: Optional[str] = None
+    if not force_refresh:
+        content = load_cached(docx_token)
+    if content is None:
+        access_token = get_tenant_access_token()
+        content = fetch_docx_raw_content(access_token, docx_token)
+        if content:
+            save_cache(docx_token, content)
+    if not content:
+        raise ValueError("docx 正文为空")
+
+    title = next((ln.strip() for ln in content.splitlines() if ln.strip()), "未命名")
+    logger.info(f"score_docx: token={docx_token} title={title} len={len(content)}")
+
+    # handbook
+    handbook_path = find_latest_handbook()
+    if handbook_path is None:
+        raise ValueError(f"未找到 handbook 文件（{_HANDBOOK_DIR}）")
+    handbook_text = handbook_path.read_text(encoding="utf-8")
+    handbook_version = _handbook_version_label(handbook_path)
+
+    # 构造 ad-hoc record
+    record = ScriptRecord(
+        title=title,
+        source_type="",
+        genre="",
+        submitter="",
+        status="待评估",
+        status_source="ad_hoc",
+        table_source="",
+        text_content=content,
+        text_file=f"docx:{docx_token}",
+        docx_token=docx_token,
+    )
+
+    pred = await predict_one(record, handbook_text)
+    if pred is None:
+        raise ValueError("预测失败：LLM 返回不可解析的结果")
+
+    return {
+        "title": pred.title,
+        "predicted_score": pred.predicted_score,
+        "predicted_status": pred.predicted_status,
+        "dimension_scores": pred.dimension_scores,
+        "comments": pred.comments,
+        "red_flags_hit": pred.red_flags_hit,
+        "green_flags_hit": pred.green_flags_hit,
+        "handbook_version": handbook_version,
+        "model": MODEL,
+        "docx_token": docx_token,
+        "text_length": len(content),
+        "detected_title": title,
+    }

@@ -93,6 +93,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '扩写工作台', requiresAuth: true },
   },
   {
+    path: '/rubric/score',
+    name: 'RubricScore',
+    component: () => import('@/views/RubricScoreView.vue'),
+    meta: { title: '剧本评分', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },
