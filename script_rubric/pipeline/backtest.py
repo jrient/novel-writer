@@ -11,13 +11,15 @@ from script_rubric.config import (
     BACKTEST_STATUS_ACCURACY, BACKTEST_RANGE_ACCURACY,
     BACKTEST_MAE_THRESHOLD, BACKTEST_CRITICAL_MISS_RATE,
     BACKTEST_MAX_CONTENT_CHARS, BACKTEST_MIN_CONTENT_CHARS,
+    BACKTEST_CONCURRENCY, BACKTEST_N_SAMPLES, BACKTEST_TEMPERATURE,
+    SCORE_TIER_THRESHOLDS,
 )
 from script_rubric.models import ScriptRecord, PredictResult, BacktestMetrics
 from script_rubric.pipeline.llm_client import get_client, call_llm, extract_json
 
 logger = logging.getLogger(__name__)
 
-_backtest_semaphore = asyncio.Semaphore(5)
+_backtest_semaphore = asyncio.Semaphore(BACKTEST_CONCURRENCY)
 
 
 def split_holdout(
@@ -104,30 +106,80 @@ def evaluate_predictions(
     )
 
 
-MIN_CONTENT_CHARS = BACKTEST_MIN_CONTENT_CHARS
+def _score_to_status(score: int) -> str:
+    if score >= SCORE_TIER_THRESHOLDS["签"]:
+        return "签"
+    if score >= SCORE_TIER_THRESHOLDS["改"]:
+        return "改"
+    return "拒"
+
+
+def _normalize_predict_data(data: dict) -> dict:
+    """LLM 偶尔返回 float 分数，统一 round 到 int。"""
+    if isinstance(data.get("predicted_score"), float):
+        data["predicted_score"] = round(data["predicted_score"])
+    ds = data.get("dimension_scores")
+    if isinstance(ds, dict):
+        data["dimension_scores"] = {
+            k: round(v) if isinstance(v, float) else v for k, v in ds.items()
+        }
+    return data
+
+
+async def _one_sample(
+    client,
+    system_prompt: str,
+    user_prompt: str,
+    title: str,
+    temperature: float,
+    sample_idx: int,
+    n_samples: int,
+) -> PredictResult | None:
+    try:
+        raw = await call_llm(
+            client, system_prompt, user_prompt,
+            max_retries=2, temperature=temperature,
+        )
+        data = _normalize_predict_data(extract_json(raw))
+        return PredictResult.model_validate(data)
+    except Exception as e:
+        logger.error(f"Prediction failed for {title} (sample {sample_idx + 1}/{n_samples}): {e}")
+        return None
 
 
 async def predict_one(
     record: ScriptRecord,
     handbook_text: str,
-    n_samples: int = 1,
+    n_samples: int = BACKTEST_N_SAMPLES,
+    temperature: float = BACKTEST_TEMPERATURE,
 ) -> PredictResult | None:
     """对单条记录评分。
 
     Args:
-        n_samples: 多次预测求均（>1 时降低 LLM 输出抖动），分数取平均后 round，
-            状态按 SCORE_TIER_THRESHOLDS 重算，dimension/comments/flags 从首条样本取。
+        n_samples: 并发采样次数。>1 时建议同步上调 temperature，否则采样间方差 ≈ 0
+            （T=0 时 LLM 输出几乎确定，聚合无意义）。
+        temperature: LLM 采样温度。回测默认 0.0；启用多样本时建议 0.3~0.5。
 
-    空正文 / 正文过短（<MIN_CONTENT_CHARS）直接返回 None 并 warn——绝不让 LLM
-    拿空文档"评分"，避免出现 pred=0 / pred=10 的 garbage 输出污染回测指标。
+    聚合策略：predicted_score=平均后 round；status=按阈值由聚合分重算；
+    dimension_scores=逐维平均后 round；comments/flags 取首条样本。
+
+    空正文 / 正文过短（<BACKTEST_MIN_CONTENT_CHARS）直接返回 None 并 warn——
+    避免 LLM 拿空文档输出 garbage 污染回测指标。
     """
     text = (record.text_content or "").strip()
-    if len(text) < MIN_CONTENT_CHARS:
+    if len(text) < BACKTEST_MIN_CONTENT_CHARS:
         logger.warning(
-            f"skip predict: {record.title} 正文长度 {len(text)} < {MIN_CONTENT_CHARS}"
+            f"skip predict: {record.title} 正文长度 {len(text)} < {BACKTEST_MIN_CONTENT_CHARS}"
             f"（docx_token={record.docx_token}）"
         )
         return None
+
+    n_samples = max(1, n_samples)
+    if n_samples > 1 and temperature == 0.0:
+        logger.warning(
+            f"predict_one({record.title}): n_samples={n_samples} 但 temperature=0，"
+            f"采样间方差 ≈ 0，多样本聚合无效。建议上调 temperature。"
+        )
 
     template = (PROMPT_DIR / "backtest_predict.md").read_text(encoding="utf-8")
     system_prompt = "你是一位使用评审手册的剧本评审员。严格按照 JSON 格式输出。"
@@ -141,45 +193,34 @@ async def predict_one(
     )
 
     client = get_client()
-    samples: list[PredictResult] = []
-    for i in range(max(1, n_samples)):
-        try:
-            raw = await call_llm(client, system_prompt, user_prompt, max_retries=2, temperature=0.0)
-            data = extract_json(raw)
-            if isinstance(data.get("predicted_score"), float):
-                data["predicted_score"] = round(data["predicted_score"])
-            ds = data.get("dimension_scores")
-            if isinstance(ds, dict):
-                data["dimension_scores"] = {
-                    k: round(v) if isinstance(v, float) else v for k, v in ds.items()
-                }
-            samples.append(PredictResult.model_validate(data))
-        except Exception as e:
-            logger.error(f"Prediction failed for {record.title} (sample {i + 1}/{n_samples}): {e}")
-            continue
+    raw_samples = await asyncio.gather(*[
+        _one_sample(client, system_prompt, user_prompt, record.title, temperature, i, n_samples)
+        for i in range(n_samples)
+    ])
+    samples = [s for s in raw_samples if s is not None]
 
     if not samples:
         return None
     if len(samples) == 1:
         return samples[0]
 
-    # 多样本聚合：分数平均、状态按阈值重算、dimension/flags 从首条取
-    from script_rubric.config import SCORE_TIER_THRESHOLDS
-
     avg_score = round(sum(s.predicted_score for s in samples) / len(samples))
-    if avg_score >= SCORE_TIER_THRESHOLDS["签"]:
-        agg_status = "签"
-    elif avg_score >= SCORE_TIER_THRESHOLDS["改"]:
-        agg_status = "改"
-    else:
-        agg_status = "拒"
+
+    # 逐维平均（仅对所有样本都出现的维度键聚合，避免缺失维度被当作 0）
+    dim_keys = set(samples[0].dimension_scores.keys())
+    for s in samples[1:]:
+        dim_keys &= set(s.dimension_scores.keys())
+    agg_dims = {
+        k: round(sum(s.dimension_scores[k] for s in samples) / len(samples))
+        for k in dim_keys
+    }
 
     base = samples[0]
     return PredictResult(
         title=base.title,
         predicted_score=avg_score,
-        predicted_status=agg_status,
-        dimension_scores=base.dimension_scores,
+        predicted_status=_score_to_status(avg_score),
+        dimension_scores=agg_dims,
         comments=base.comments,
         red_flags_hit=base.red_flags_hit,
         green_flags_hit=base.green_flags_hit,
@@ -189,6 +230,8 @@ async def predict_one(
 async def run_backtest(
     test_records: list[ScriptRecord],
     version: int = 1,
+    n_samples: int = BACKTEST_N_SAMPLES,
+    temperature: float = BACKTEST_TEMPERATURE,
 ) -> BacktestMetrics:
     handbook_path = HANDBOOK_DIR / f"handbook_v{version}.md"
     if not handbook_path.exists():
@@ -198,7 +241,7 @@ async def run_backtest(
 
     async def _bounded_predict(record: ScriptRecord) -> PredictResult | None:
         async with _backtest_semaphore:
-            return await predict_one(record, handbook_text)
+            return await predict_one(record, handbook_text, n_samples=n_samples, temperature=temperature)
 
     tasks = [_bounded_predict(r) for r in test_records]
     results = await asyncio.gather(*tasks)

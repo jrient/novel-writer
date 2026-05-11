@@ -7,7 +7,7 @@ from pathlib import Path
 
 from script_rubric.config import (
     ARCHIVES_DIR, PROMPT_DIR, PASS1_MAX_RETRIES, DIMENSION_KEYS,
-    PASS1_MAX_CONTENT_CHARS,
+    PASS1_MAX_CONTENT_CHARS, PASS1_MAX_MISSING_DIMS_RATIO,
 )
 from script_rubric.models import ScriptRecord, ScriptArchive
 from script_rubric.pipeline.llm_client import get_client, call_llm, extract_json
@@ -78,8 +78,8 @@ def _validate_archive(archive: ScriptArchive, record: ScriptRecord) -> tuple[lis
             if not dim.evidence_from_reviews and record.reviews:
                 warnings.append(f"No review evidence for {key}")
 
-    # 超过半数维度缺失视为严重
-    if len(missing_dims) > len(DIMENSION_KEYS) // 2:
+    # 缺失维度比例超阈值视为严重
+    if len(missing_dims) > len(DIMENSION_KEYS) * PASS1_MAX_MISSING_DIMS_RATIO:
         critical.append(f"Too many missing dimensions ({len(missing_dims)}/{len(DIMENSION_KEYS)}): {missing_dims}")
     elif missing_dims:
         warnings.append(f"Missing dimensions: {missing_dims}")
@@ -115,7 +115,6 @@ async def extract_one(
         archive = ScriptArchive.model_validate(data)
         # 传播 status_source，标记此 archive 的状态是确认的还是推断的
         archive.status_source = record.status_source
-        data["status_source"] = record.status_source
 
         critical, warnings = _validate_archive(archive, record)
         if warnings:
@@ -126,7 +125,7 @@ async def extract_one(
 
         ARCHIVES_DIR.mkdir(parents=True, exist_ok=True)
         path.write_text(
-            json.dumps(data, ensure_ascii=False, indent=2),
+            archive.model_dump_json(indent=2),
             encoding="utf-8",
         )
         logger.info(f"Extracted: {record.title}")

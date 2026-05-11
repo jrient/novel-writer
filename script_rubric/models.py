@@ -4,6 +4,13 @@ from typing import Literal
 
 from pydantic import BaseModel, computed_field
 
+StatusSource = Literal[
+    "confirmed",
+    "supervisor_opinion",
+    "table_default",
+    "score_inferred",
+]
+
 
 class Review(BaseModel):
     reviewer: str
@@ -17,7 +24,7 @@ class ScriptRecord(BaseModel):
     genre: str
     submitter: str
     status: str
-    status_source: str = "confirmed"  # "confirmed" | "score_inferred"
+    status_source: StatusSource = "confirmed"
     table_source: str = ""  # "精品" | "冲量"
     reviews: list[Review] = []
     text_content: str | None = None
@@ -71,7 +78,7 @@ class ScriptArchive(BaseModel):
     disagreement_points: list[str] = []
     red_flags: list[str] = []
     green_flags: list[str] = []
-    status_source: str = "confirmed"
+    status_source: StatusSource = "confirmed"
 
 
 class PredictResult(BaseModel):

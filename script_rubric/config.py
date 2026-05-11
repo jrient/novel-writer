@@ -34,8 +34,12 @@ MODEL = RUBRIC_MODEL
 
 PASS1_CONCURRENCY = 5
 PASS1_MAX_RETRIES = 2
+PASS1_MAX_MISSING_DIMS_RATIO = 0.5  # archive 缺失维度比例超过此阈值视为严重
 MAX_ITERATE_ROUNDS = 3
 
+BACKTEST_CONCURRENCY = 5
+BACKTEST_N_SAMPLES = 1  # >1 时启用多样本聚合（请同时上调 temperature）
+BACKTEST_TEMPERATURE = 0.0
 BACKTEST_STATUS_ACCURACY = 0.70
 BACKTEST_RANGE_ACCURACY = 0.60
 BACKTEST_MAE_THRESHOLD = 8
@@ -44,7 +48,15 @@ BACKTEST_CRITICAL_MISS_RATE = 0.10
 # === 文本截断配置 ===
 PASS1_MAX_CONTENT_CHARS = 50000
 BACKTEST_MAX_CONTENT_CHARS = 30000
-BACKTEST_MIN_CONTENT_CHARS = 100
+BACKTEST_MIN_CONTENT_CHARS = 1000  # 低于此字符数视为脏数据，跳过预测
+
+# === status_source 枚举 ===
+# confirmed: 编辑确认的最终状态
+# supervisor_opinion: 主管评语推断（可信）
+# table_default: 表归属推断（精品=签，可信）
+# score_inferred: 仅根据分数区间推断（弱信任）
+STATUS_SOURCES = ("confirmed", "supervisor_opinion", "table_default", "score_inferred")
+STATUS_SOURCES_HIGH_CONF = ("confirmed", "supervisor_opinion", "table_default")
 
 MIN_SCORES_FOR_INCLUSION = 3
 SCORE_TIER_THRESHOLDS = {"签": 80, "改": 70}  # >=80 签, >=70 改, <70 拒

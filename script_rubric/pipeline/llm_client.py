@@ -26,7 +26,7 @@ async def call_llm(
     max_tokens: int = 4096,
 ) -> str:
     async with _semaphore:
-        last_error = None
+        last_error: Exception | None = None
         for attempt in range(max_retries + 1):
             try:
                 response = await client.chat.completions.create(
@@ -43,41 +43,47 @@ async def call_llm(
                 last_error = e
                 if attempt < max_retries:
                     await asyncio.sleep(2 ** attempt)
+        assert last_error is not None
         raise last_error
+
+
+def _try_load(candidate: str) -> dict | list | None:
+    """逐级尝试解析：strict json -> json_repair。任何一步异常都吞掉返回 None。"""
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError:
+        pass
+    try:
+        repaired = json_repair.loads(candidate)
+        if isinstance(repaired, (dict, list)):
+            return repaired
+    except Exception:
+        pass
+    return None
 
 
 def extract_json(text: str) -> dict | list:
     text = text.strip()
-    # 1. 尝试从 markdown code block 中提取
+    # 1. markdown code block
     match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
     if match:
-        candidate = match.group(1).strip()
-        try:
-            return json.loads(candidate)
-        except json.JSONDecodeError:
-            repaired = json_repair.loads(candidate)
-            if isinstance(repaired, (dict, list)):
-                return repaired
+        result = _try_load(match.group(1).strip())
+        if result is not None:
+            return result
     # 2. 直接解析全文
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-    # 3. 查找最外层 JSON 结构（dict 或 list）并修复
-    #    优先使用最早出现的开括号来确定顶层类型
-    candidates = []
-    for open_ch, close_ch in [("{", "}"), ("[", "]")]:
+    result = _try_load(text)
+    if result is not None:
+        return result
+    # 3. 在原文中按开括号位置定位最外层 JSON 结构
+    candidates: list[tuple[int, str]] = []
+    for open_ch, close_ch in (("{", "}"), ("[", "]")):
         start = text.find(open_ch)
         end = text.rfind(close_ch)
         if start != -1 and end != -1 and end > start:
-            candidates.append((start, open_ch, close_ch, text[start:end + 1]))
-    # 按开括号位置排序，优先尝试最外层
+            candidates.append((start, text[start:end + 1]))
     candidates.sort(key=lambda c: c[0])
-    for _start, open_ch, close_ch, candidate in candidates:
-        try:
-            return json.loads(candidate)
-        except json.JSONDecodeError:
-            repaired = json_repair.loads(candidate)
-            if isinstance(repaired, (dict, list)):
-                return repaired
+    for _start, candidate in candidates:
+        result = _try_load(candidate)
+        if result is not None:
+            return result
     raise json.JSONDecodeError("No JSON object found in response", text, 0)

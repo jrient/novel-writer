@@ -181,21 +181,24 @@ def main():
     all_raw = load_external_reviewed() + load_internal_signed()
     print(f"Loaded {len(all_raw)} raw records from data sources")
 
-    # Manual drama entries from config
-    drama_entries = []
+    # Manual entries 在 main 内只读一次，后续使用同一份配置
+    manual_config: dict = {}
     if MANUAL_ENTRIES_PATH.exists():
         manual_config = json.loads(MANUAL_ENTRIES_PATH.read_text(encoding="utf-8"))
-        for entry in manual_config.get("manual_entries", []):
-            fpath = DRAMA_DIR / entry["filename"]
-            if fpath.exists():
-                drama_entries.append({
-                    "title": entry["title"],
-                    "text_content": fpath.read_text(encoding="utf-8"),
-                    "genre": entry.get("genre", ""),
-                    "mean_score": entry.get("mean_score"),
-                    "source": "drama_manual",
-                    "excerpt_extractor": entry.get("excerpt_extractor"),
-                })
+
+    # Manual drama entries from config
+    drama_entries = []
+    for entry in manual_config.get("manual_entries", []):
+        fpath = DRAMA_DIR / entry["filename"]
+        if fpath.exists():
+            drama_entries.append({
+                "title": entry["title"],
+                "text_content": fpath.read_text(encoding="utf-8"),
+                "genre": entry.get("genre", ""),
+                "mean_score": entry.get("mean_score"),
+                "source": "drama_manual",
+                "excerpt_extractor": entry.get("excerpt_extractor"),
+            })
 
     all_raw.extend(drama_entries)
     print(f"Added {len(drama_entries)} manual drama entries")
@@ -248,10 +251,8 @@ def main():
     # Add archive quotes to dynamic pool
     dynamic_quotes.update(mine_archive_quotes())
 
-    # Load handcrafted golden quotes from config
-    if MANUAL_ENTRIES_PATH.exists():
-        manual_config = json.loads(MANUAL_ENTRIES_PATH.read_text(encoding="utf-8"))
-        explanatory_quotes.update(manual_config.get("explanatory_golden_quotes", []))
+    # Load handcrafted golden quotes from manual_config (already loaded above)
+    explanatory_quotes.update(manual_config.get("explanatory_golden_quotes", []))
 
     # Cap quote lists to 30 each
     dynamic_quotes_list = sorted(dynamic_quotes, key=len, reverse=True)[:30]

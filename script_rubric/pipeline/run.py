@@ -13,12 +13,31 @@ from script_rubric.config import (
     BITABLE_RUBRIC_JSON, DRAMA_DIR, PARSED_DIR, ARCHIVES_DIR, HANDBOOK_DIR,
     BACKTEST_STATUS_ACCURACY, BACKTEST_RANGE_ACCURACY,
     BACKTEST_MAE_THRESHOLD, BACKTEST_CRITICAL_MISS_RATE,
+    BACKTEST_N_SAMPLES, BACKTEST_TEMPERATURE,
+    STATUS_SOURCES_HIGH_CONF,
 )
+from script_rubric.models import ScriptRecord
 from script_rubric.pipeline.parse_bitable import parse_bitable_json
 from script_rubric.pipeline.match_texts import match_texts
 from script_rubric.pipeline.pass1_extract import extract_all, load_all_archives
 from script_rubric.pipeline.pass2_synthesize import synthesize_all
 from script_rubric.pipeline.backtest import run_backtest, split_holdout
+
+
+def _split_records(
+    records: list[ScriptRecord], mode: str
+) -> tuple[list[ScriptRecord], list[ScriptRecord], str]:
+    """根据 mode 划分 train/test，返回 (train, test, strategy_label)。
+
+    - table: 精品=train, 冲量=test（默认）
+    - stratified: 按 status 分层随机划分 (ratio=0.2, seed=42)
+    """
+    if mode == "stratified":
+        train, test = split_holdout(records, ratio=0.2, seed=42)
+        return train, test, "stratified: stratified_holdout(ratio=0.2, seed=42)"
+    train = [r for r in records if r.table_source == "精品"]
+    test = [r for r in records if r.table_source == "冲量"]
+    return train, test, "table_based: 精品=train, 冲量=test"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,20 +56,11 @@ async def cmd_full(args):
         return
     all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
 
-    split_mode = getattr(args, "split", "table")
-    if split_mode == "stratified":
-        train, test = split_holdout(all_records, ratio=0.2, seed=42)
-        logger.info(
-            f"  Parsed {len(all_records)} records "
-            f"(stratified split: train={len(train)}, test={len(test)})"
-        )
-    else:
-        train = [r for r in all_records if r.table_source == "精品"]
-        test = [r for r in all_records if r.table_source == "冲量"]
-        logger.info(
-            f"  Parsed {len(all_records)} records "
-            f"(table_based: 精品/train={len(train)}, 冲量/test={len(test)})"
-        )
+    train, test, strategy_label = _split_records(all_records, args.split)
+    logger.info(
+        f"  Parsed {len(all_records)} records "
+        f"({strategy_label}, train={len(train)}, test={len(test)})"
+    )
 
     logger.info("Step 2: Matching text files...")
     match_result = match_texts(all_records, DRAMA_DIR)
@@ -66,11 +76,7 @@ async def cmd_full(args):
     split_info = {
         "train_titles": [r.title for r in train],
         "test_titles": [r.title for r in test],
-        "split_strategy": f"{split_mode}: " + (
-            "stratified_holdout(ratio=0.2, seed=42)"
-            if split_mode == "stratified"
-            else "精品=train, 冲量=test"
-        ),
+        "split_strategy": strategy_label,
     }
     (PARSED_DIR / "holdout_split.json").write_text(
         json.dumps(split_info, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -82,8 +88,7 @@ async def cmd_full(args):
     # 载入磁盘上全部 archive 作为历史训练池（包含本轮提取 + 历史累积）
     all_archives = load_all_archives()
     confirmed_titles = {
-        a.title for a in all_archives
-        if a.status_source in ("confirmed", "supervisor_opinion", "table_default")
+        a.title for a in all_archives if a.status_source in STATUS_SOURCES_HIGH_CONF
     }
     inferred_count = len(all_archives) - len(confirmed_titles)
     logger.info(f"  Training pool: {len(all_archives)} archives (confirmed={len(confirmed_titles)}, inferred={inferred_count})")
@@ -94,7 +99,10 @@ async def cmd_full(args):
     logger.info("  Handbook and rubric generated")
 
     logger.info(f"Step 5: Backtesting on {len(test)} 冲量 scripts...")
-    metrics = await run_backtest(test, version=version)
+    metrics = await run_backtest(
+        test, version=version,
+        n_samples=args.n_samples, temperature=args.temperature,
+    )
     logger.info(f"  Status accuracy: {metrics.status_accuracy:.0%}")
     logger.info(f"  Range accuracy: {metrics.range_accuracy:.0%}")
     logger.info(f"  MAE: {metrics.mae:.1f}")
@@ -122,18 +130,9 @@ async def cmd_incremental(args):
         return
 
     records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    split_mode = getattr(args, "split", "table")
-    if split_mode == "stratified":
-        train, test = split_holdout(records, ratio=0.2, seed=42)
-    else:
-        train = [r for r in records if r.table_source == "精品"]
-        test = [r for r in records if r.table_source == "冲量"]
+    train, test, strategy_label = _split_records(records, args.split)
     match_texts(records, DRAMA_DIR)
-    logger.info(
-        f"Total records: {len(records)} "
-        f"({'stratified' if split_mode == 'stratified' else 'table_based'}: "
-        f"train={len(train)}, test={len(test)})"
-    )
+    logger.info(f"Total records: {len(records)} ({strategy_label}, train={len(train)}, test={len(test)})")
 
     existing_archives = load_all_archives()
     existing_titles = {a.title for a in existing_archives}
@@ -151,8 +150,7 @@ async def cmd_incremental(args):
     # archives 是历史训练池：所有曾被 Pass1 合法提取的剧本，无论当前是否仍在 bitable
     # 仅将编辑确认状态的剧本视为 confirmed，推断状态的降权
     confirmed_titles = {
-        a.title for a in all_archives
-        if a.status_source in ("confirmed", "supervisor_opinion", "table_default")
+        a.title for a in all_archives if a.status_source in STATUS_SOURCES_HIGH_CONF
     }
 
     if args.version:
@@ -167,7 +165,10 @@ async def cmd_incremental(args):
     await synthesize_all(all_archives, version=version, confirmed_titles=confirmed_titles)
 
     logger.info(f"Backtesting on {len(test)} 冲量 scripts...")
-    metrics = await run_backtest(test, version=version)
+    metrics = await run_backtest(
+        test, version=version,
+        n_samples=args.n_samples, temperature=args.temperature,
+    )
     logger.info(f"  Status accuracy: {metrics.status_accuracy:.0%}")
     logger.info(f"  Range accuracy: {metrics.range_accuracy:.0%}")
     logger.info(f"  MAE: {metrics.mae:.1f}")
@@ -201,7 +202,10 @@ async def cmd_backtest_only(args):
     test = [r for r in records if r.table_source == "冲量"]
     logger.info(f"Test set (冲量): {len(test)} scripts")
 
-    metrics = await run_backtest(test, version=version)
+    metrics = await run_backtest(
+        test, version=version,
+        n_samples=args.n_samples, temperature=args.temperature,
+    )
     logger.info(
         f"Results: status={metrics.status_accuracy:.0%}, "
         f"range={metrics.range_accuracy:.0%}, mae={metrics.mae:.1f}"
@@ -229,19 +233,29 @@ def main():
     parser = argparse.ArgumentParser(description="Script Rubric Pipeline")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    def _add_backtest_args(p):
+        p.add_argument("--n-samples", type=int, default=BACKTEST_N_SAMPLES,
+                       dest="n_samples",
+                       help="每条记录的采样次数；>1 时启用聚合（请同步上调 --temperature）")
+        p.add_argument("--temperature", type=float, default=BACKTEST_TEMPERATURE,
+                       help="LLM 采样温度；多样本聚合时建议 0.3-0.5")
+
     p_full = sub.add_parser("full", help="Full pipeline run")
     p_full.add_argument("--version", type=int, default=1)
     p_full.add_argument("--force", action="store_true", help="Re-extract existing archives")
     p_full.add_argument("--split", choices=["table", "stratified"], default="table",
                         help="Train/test split strategy: table (精品/冲量) or stratified (按状态分层随机)")
+    _add_backtest_args(p_full)
 
     p_inc = sub.add_parser("incremental", help="Incremental run with new data")
     p_inc.add_argument("--split", choices=["table", "stratified"], default="table",
                        help="Train/test split strategy")
     p_inc.add_argument("--version", type=int, default=None)
+    _add_backtest_args(p_inc)
 
     p_bt = sub.add_parser("backtest", help="Re-run backtest only")
     p_bt.add_argument("--version", type=int, default=1)
+    _add_backtest_args(p_bt)
 
     p_p2 = sub.add_parser("pass2", help="Re-run Pass 2 only")
     p_p2.add_argument("--version", type=int, default=1)
