@@ -55,8 +55,11 @@ async def _get_owned_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> AdaptationProject:
+    from sqlalchemy.orm import selectinload
     p = (await db.execute(
-        select(AdaptationProject).where(AdaptationProject.id == project_id)
+        select(AdaptationProject)
+        .where(AdaptationProject.id == project_id)
+        .options(selectinload(AdaptationProject.versions), selectinload(AdaptationProject.mappings))
     )).scalar_one_or_none()
     if not p or (p.user_id != current_user.id and not getattr(current_user, "is_superuser", False)):
         raise HTTPException(status_code=404, detail="改编项目不存在或无权访问")
@@ -127,6 +130,9 @@ async def create_project(
         status="ready", metadata_={},
     )
     db.add(p); await db.commit(); await db.refresh(p)
+    # Eager load relationships to avoid lazy-load in async context
+    from sqlalchemy.orm import selectinload
+    await db.refresh(p, attribute_names=["versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -152,7 +158,7 @@ async def create_project_upload(
         source_text=text, intent=intent, intensity=intensity,
         era_target=era_target, status="ready", metadata_={},
     )
-    db.add(p); await db.commit(); await db.refresh(p)
+    db.add(p); await db.commit(); await db.refresh(p, attribute_names=["versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -161,8 +167,11 @@ async def list_projects(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from sqlalchemy.orm import selectinload
     rows = (await db.execute(
-        select(AdaptationProject).where(AdaptationProject.user_id == current_user.id)
+        select(AdaptationProject)
+        .where(AdaptationProject.user_id == current_user.id)
+        .options(selectinload(AdaptationProject.versions), selectinload(AdaptationProject.mappings))
         .order_by(AdaptationProject.created_at.desc())
     )).scalars().all()
     return [_project_to_out(p) for p in rows]
@@ -360,11 +369,14 @@ async def get_version(
     v: AdaptationVersion = Depends(_get_owned_version),
     db: AsyncSession = Depends(get_db),
 ):
-    scenes = (await db.execute(
-        select(AdaptationSceneResult).where(AdaptationSceneResult.version_id == v.id)
-        .order_by(AdaptationSceneResult.scene_index)
-    )).scalars().all()
-    return {**_version_to_out(v), "scene_results": [_scene_to_out(s) for s in scenes]}
+    from sqlalchemy.orm import selectinload
+    # Re-query with eager loaded scene_results to avoid lazy load
+    v_full = (await db.execute(
+        select(AdaptationVersion)
+        .where(AdaptationVersion.id == v.id)
+        .options(selectinload(AdaptationVersion.scene_results))
+    )).scalar_one()
+    return {**_version_to_out(v_full), "scene_results": [_scene_to_out(s) for s in v_full.scene_results]}
 
 
 @router.get("/runs/{version_id}/stream")
