@@ -23,6 +23,7 @@ async def call_llm(
     model: str = MODEL,
     max_retries: int = 2,
     temperature: float = 0.3,
+    max_tokens: int = 4096,
 ) -> str:
     async with _semaphore:
         last_error = None
@@ -35,7 +36,7 @@ async def call_llm(
                         {"role": "user", "content": user_prompt},
                     ],
                     temperature=temperature,
-                    max_tokens=4096,
+                    max_tokens=max_tokens,
                 )
                 return response.choices[0].message.content or ""
             except Exception as e:
@@ -45,27 +46,38 @@ async def call_llm(
         raise last_error
 
 
-def extract_json(text: str) -> dict:
+def extract_json(text: str) -> dict | list:
     text = text.strip()
+    # 1. 尝试从 markdown code block 中提取
     match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
     if match:
         candidate = match.group(1).strip()
         try:
             return json.loads(candidate)
         except json.JSONDecodeError:
-            pass
+            repaired = json_repair.loads(candidate)
+            if isinstance(repaired, (dict, list)):
+                return repaired
+    # 2. 直接解析全文
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    start = text.find("{")
-    end = text.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        candidate = text[start:end + 1]
+    # 3. 查找最外层 JSON 结构（dict 或 list）并修复
+    #    优先使用最早出现的开括号来确定顶层类型
+    candidates = []
+    for open_ch, close_ch in [("{", "}"), ("[", "]")]:
+        start = text.find(open_ch)
+        end = text.rfind(close_ch)
+        if start != -1 and end != -1 and end > start:
+            candidates.append((start, open_ch, close_ch, text[start:end + 1]))
+    # 按开括号位置排序，优先尝试最外层
+    candidates.sort(key=lambda c: c[0])
+    for _start, open_ch, close_ch, candidate in candidates:
         try:
             return json.loads(candidate)
         except json.JSONDecodeError:
             repaired = json_repair.loads(candidate)
-            if isinstance(repaired, dict):
+            if isinstance(repaired, (dict, list)):
                 return repaired
     raise json.JSONDecodeError("No JSON object found in response", text, 0)

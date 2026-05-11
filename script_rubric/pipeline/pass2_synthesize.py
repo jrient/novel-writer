@@ -54,7 +54,7 @@ async def synthesize_universal(
     user_prompt = f"{header}\n\n> 注意：标记为\"评分推断\"的剧本状态未经编辑确认，仅基于评分区间推断，分析时权重应低于确认状态的剧本。\n\n{summaries}"
 
     client = get_client()
-    return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+    return await call_llm(client, system_prompt, user_prompt, max_retries=2, max_tokens=8192)
 
 
 async def synthesize_overlay(archives: list[ScriptArchive], genre: str) -> str:
@@ -64,7 +64,7 @@ async def synthesize_overlay(archives: list[ScriptArchive], genre: str) -> str:
     user_prompt = f"## {genre} 档案（{len(archives)} 部）\n\n{details}"
 
     client = get_client()
-    return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+    return await call_llm(client, system_prompt, user_prompt, max_retries=2, max_tokens=8192)
 
 
 async def synthesize_redflags(
@@ -80,7 +80,7 @@ async def synthesize_redflags(
     )
 
     client = get_client()
-    return await call_llm(client, system_prompt, user_prompt, max_retries=2)
+    return await call_llm(client, system_prompt, user_prompt, max_retries=2, max_tokens=8192)
 
 
 def _select_anchor(group: list[ScriptArchive], target_mean: float) -> ScriptArchive:

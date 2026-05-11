@@ -71,6 +71,7 @@ class ScriptArchive(BaseModel):
     disagreement_points: list[str] = []
     red_flags: list[str] = []
     green_flags: list[str] = []
+    status_source: str = "confirmed"
 
 
 class PredictResult(BaseModel):

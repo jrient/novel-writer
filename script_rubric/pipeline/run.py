@@ -18,7 +18,7 @@ from script_rubric.pipeline.parse_bitable import parse_bitable_json
 from script_rubric.pipeline.match_texts import match_texts
 from script_rubric.pipeline.pass1_extract import extract_all, load_all_archives
 from script_rubric.pipeline.pass2_synthesize import synthesize_all
-from script_rubric.pipeline.backtest import run_backtest
+from script_rubric.pipeline.backtest import run_backtest, split_holdout
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,12 +36,21 @@ async def cmd_full(args):
         logger.error("请先运行: python -m script_rubric.feishu.sync_bitable <bitable_url>")
         return
     all_records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    train = [r for r in all_records if r.table_source == "精品"]
-    test = [r for r in all_records if r.table_source == "冲量"]
-    logger.info(
-        f"  Parsed {len(all_records)} records "
-        f"(精品/train={len(train)}, 冲量/test={len(test)})"
-    )
+
+    split_mode = getattr(args, "split", "table")
+    if split_mode == "stratified":
+        train, test = split_holdout(all_records, ratio=0.2, seed=42)
+        logger.info(
+            f"  Parsed {len(all_records)} records "
+            f"(stratified split: train={len(train)}, test={len(test)})"
+        )
+    else:
+        train = [r for r in all_records if r.table_source == "精品"]
+        test = [r for r in all_records if r.table_source == "冲量"]
+        logger.info(
+            f"  Parsed {len(all_records)} records "
+            f"(table_based: 精品/train={len(train)}, 冲量/test={len(test)})"
+        )
 
     logger.info("Step 2: Matching text files...")
     match_result = match_texts(all_records, DRAMA_DIR)
@@ -57,7 +66,11 @@ async def cmd_full(args):
     split_info = {
         "train_titles": [r.title for r in train],
         "test_titles": [r.title for r in test],
-        "split_strategy": "table_based: 精品=train, 冲量=test",
+        "split_strategy": f"{split_mode}: " + (
+            "stratified_holdout(ratio=0.2, seed=42)"
+            if split_mode == "stratified"
+            else "精品=train, 冲量=test"
+        ),
     }
     (PARSED_DIR / "holdout_split.json").write_text(
         json.dumps(split_info, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -68,8 +81,12 @@ async def cmd_full(args):
 
     # 载入磁盘上全部 archive 作为历史训练池（包含本轮提取 + 历史累积）
     all_archives = load_all_archives()
-    confirmed_titles = {a.title for a in all_archives}
-    logger.info(f"  Training pool: {len(all_archives)} archives (history accumulated)")
+    confirmed_titles = {
+        a.title for a in all_archives
+        if a.status_source in ("confirmed", "supervisor_opinion", "table_default")
+    }
+    inferred_count = len(all_archives) - len(confirmed_titles)
+    logger.info(f"  Training pool: {len(all_archives)} archives (confirmed={len(confirmed_titles)}, inferred={inferred_count})")
 
     version = args.version or 1
     logger.info(f"Step 4: Pass 2 synthesis -> handbook v{version}...")
@@ -105,10 +122,18 @@ async def cmd_incremental(args):
         return
 
     records = parse_bitable_json(BITABLE_RUBRIC_JSON, include_scored=True)
-    train = [r for r in records if r.table_source == "精品"]
-    test = [r for r in records if r.table_source == "冲量"]
+    split_mode = getattr(args, "split", "table")
+    if split_mode == "stratified":
+        train, test = split_holdout(records, ratio=0.2, seed=42)
+    else:
+        train = [r for r in records if r.table_source == "精品"]
+        test = [r for r in records if r.table_source == "冲量"]
     match_texts(records, DRAMA_DIR)
-    logger.info(f"Total records: {len(records)} (精品/train={len(train)}, 冲量/test={len(test)})")
+    logger.info(
+        f"Total records: {len(records)} "
+        f"({'stratified' if split_mode == 'stratified' else 'table_based'}: "
+        f"train={len(train)}, test={len(test)})"
+    )
 
     existing_archives = load_all_archives()
     existing_titles = {a.title for a in existing_archives}
@@ -124,7 +149,11 @@ async def cmd_incremental(args):
         logger.info("No new records to extract; reusing existing archives")
 
     # archives 是历史训练池：所有曾被 Pass1 合法提取的剧本，无论当前是否仍在 bitable
-    confirmed_titles = {a.title for a in all_archives}
+    # 仅将编辑确认状态的剧本视为 confirmed，推断状态的降权
+    confirmed_titles = {
+        a.title for a in all_archives
+        if a.status_source in ("confirmed", "supervisor_opinion", "table_default")
+    }
 
     if args.version:
         version = args.version
@@ -203,8 +232,12 @@ def main():
     p_full = sub.add_parser("full", help="Full pipeline run")
     p_full.add_argument("--version", type=int, default=1)
     p_full.add_argument("--force", action="store_true", help="Re-extract existing archives")
+    p_full.add_argument("--split", choices=["table", "stratified"], default="table",
+                        help="Train/test split strategy: table (精品/冲量) or stratified (按状态分层随机)")
 
     p_inc = sub.add_parser("incremental", help="Incremental run with new data")
+    p_inc.add_argument("--split", choices=["table", "stratified"], default="table",
+                       help="Train/test split strategy")
     p_inc.add_argument("--version", type=int, default=None)
 
     p_bt = sub.add_parser("backtest", help="Re-run backtest only")

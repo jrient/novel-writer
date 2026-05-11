@@ -20,6 +20,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "script_rubric" / "data" / "parsed"
 OUTPUT_DIR = PROJECT_ROOT / "script_rubric" / "outputs"
 CONFIG_PATH = PROJECT_ROOT / "script_rubric" / "config" / "theme_classification.yaml"
+MANUAL_ENTRIES_PATH = PROJECT_ROOT / "script_rubric" / "config" / "manual_entries.json"
 ARCHIVES_DIR = OUTPUT_DIR / "archives"
 DRAMA_DIR = PROJECT_ROOT / "drama"
 
@@ -180,26 +181,21 @@ def main():
     all_raw = load_external_reviewed() + load_internal_signed()
     print(f"Loaded {len(all_raw)} raw records from data sources")
 
-    # Manual drama files (not in either JSON source)
+    # Manual drama entries from config
     drama_entries = []
-    huangzi_path = DRAMA_DIR / "动态漫：皇子.txt"
-    if huangzi_path.exists():
-        drama_entries.append({
-            "title": "动态漫：皇子",
-            "text_content": huangzi_path.read_text(encoding="utf-8"),
-            "genre": "男频",
-            "mean_score": 80.0,
-            "source": "drama_manual",
-        })
-    maiyoulian_path = DRAMA_DIR / "解说漫：买榴莲.txt"
-    if maiyoulian_path.exists():
-        drama_entries.append({
-            "title": "解说漫：买榴莲",
-            "text_content": maiyoulian_path.read_text(encoding="utf-8"),
-            "genre": "世情",
-            "mean_score": None,
-            "source": "drama_manual",
-        })
+    if MANUAL_ENTRIES_PATH.exists():
+        manual_config = json.loads(MANUAL_ENTRIES_PATH.read_text(encoding="utf-8"))
+        for entry in manual_config.get("manual_entries", []):
+            fpath = DRAMA_DIR / entry["filename"]
+            if fpath.exists():
+                drama_entries.append({
+                    "title": entry["title"],
+                    "text_content": fpath.read_text(encoding="utf-8"),
+                    "genre": entry.get("genre", ""),
+                    "mean_score": entry.get("mean_score"),
+                    "source": "drama_manual",
+                    "excerpt_extractor": entry.get("excerpt_extractor"),
+                })
 
     all_raw.extend(drama_entries)
     print(f"Added {len(drama_entries)} manual drama entries")
@@ -226,7 +222,7 @@ def main():
             continue
 
         # Excerpt extraction
-        if rec["title"] == "解说漫：买榴莲":
+        if rec.get("excerpt_extractor") == "maiyoulian":
             excerpt = extract_maiyoulian_excerpt(rec["text_content"])
         else:
             excerpt = extract_first_scene(rec["text_content"])
@@ -252,16 +248,10 @@ def main():
     # Add archive quotes to dynamic pool
     dynamic_quotes.update(mine_archive_quotes())
 
-    # Handcrafted 买榴莲 quotes for explanatory (narration style — different voice)
-    explanatory_quotes.update([
-        "快递员敲门的时候，我正烧得浑身骨头缝都在疼。",
-        "门刚拉开一条缝。一股浓烈到令人作呕的味道，瞬间冲进鼻腔。",
-        "我扶着门框的手指骨节泛白，指甲死死抠进木头里。",
-        "字字句句，像淬了毒的针，扎进我高烧脆弱的神经里。",
-        "高烧让我浑身发冷，心却比这温度更冷。",
-        "哀莫大于心死。原来就是这种感觉。",
-        "没有愤怒的咆哮，没有歇斯底里的哭喊。只有一种极其清晰的、冷彻骨髓的平静。",
-    ])
+    # Load handcrafted golden quotes from config
+    if MANUAL_ENTRIES_PATH.exists():
+        manual_config = json.loads(MANUAL_ENTRIES_PATH.read_text(encoding="utf-8"))
+        explanatory_quotes.update(manual_config.get("explanatory_golden_quotes", []))
 
     # Cap quote lists to 30 each
     dynamic_quotes_list = sorted(dynamic_quotes, key=len, reverse=True)[:30]

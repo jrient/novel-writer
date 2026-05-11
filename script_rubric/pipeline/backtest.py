@@ -10,11 +10,14 @@ from script_rubric.config import (
     BACKTEST_DIR, PROMPT_DIR, HANDBOOK_DIR,
     BACKTEST_STATUS_ACCURACY, BACKTEST_RANGE_ACCURACY,
     BACKTEST_MAE_THRESHOLD, BACKTEST_CRITICAL_MISS_RATE,
+    BACKTEST_MAX_CONTENT_CHARS, BACKTEST_MIN_CONTENT_CHARS,
 )
 from script_rubric.models import ScriptRecord, PredictResult, BacktestMetrics
 from script_rubric.pipeline.llm_client import get_client, call_llm, extract_json
 
 logger = logging.getLogger(__name__)
+
+_backtest_semaphore = asyncio.Semaphore(5)
 
 
 def split_holdout(
@@ -101,29 +104,86 @@ def evaluate_predictions(
     )
 
 
+MIN_CONTENT_CHARS = BACKTEST_MIN_CONTENT_CHARS
+
+
 async def predict_one(
     record: ScriptRecord,
     handbook_text: str,
+    n_samples: int = 1,
 ) -> PredictResult | None:
+    """对单条记录评分。
+
+    Args:
+        n_samples: 多次预测求均（>1 时降低 LLM 输出抖动），分数取平均后 round，
+            状态按 SCORE_TIER_THRESHOLDS 重算，dimension/comments/flags 从首条样本取。
+
+    空正文 / 正文过短（<MIN_CONTENT_CHARS）直接返回 None 并 warn——绝不让 LLM
+    拿空文档"评分"，避免出现 pred=0 / pred=10 的 garbage 输出污染回测指标。
+    """
+    text = (record.text_content or "").strip()
+    if len(text) < MIN_CONTENT_CHARS:
+        logger.warning(
+            f"skip predict: {record.title} 正文长度 {len(text)} < {MIN_CONTENT_CHARS}"
+            f"（docx_token={record.docx_token}）"
+        )
+        return None
+
     template = (PROMPT_DIR / "backtest_predict.md").read_text(encoding="utf-8")
     system_prompt = "你是一位使用评审手册的剧本评审员。严格按照 JSON 格式输出。"
-    user_prompt = template.replace("{handbook}", handbook_text)
-    user_prompt = user_prompt.replace("{title}", record.title)
-    user_prompt = user_prompt.replace("{source_type}", record.source_type)
-    user_prompt = user_prompt.replace("{genre}", record.genre)
-    user_prompt = user_prompt.replace(
-        "{text_content}",
-        record.text_content[:30000] if record.text_content else "正文缺失",
+    user_prompt = (
+        template
+        .replace("{handbook}", handbook_text)
+        .replace("{title}", record.title)
+        .replace("{source_type}", record.source_type)
+        .replace("{genre}", record.genre)
+        .replace("{text_content}", text[:BACKTEST_MAX_CONTENT_CHARS])
     )
 
     client = get_client()
-    try:
-        raw = await call_llm(client, system_prompt, user_prompt, max_retries=2, temperature=0.0)
-        data = extract_json(raw)
-        return PredictResult.model_validate(data)
-    except Exception as e:
-        logger.error(f"Prediction failed for {record.title}: {e}")
+    samples: list[PredictResult] = []
+    for i in range(max(1, n_samples)):
+        try:
+            raw = await call_llm(client, system_prompt, user_prompt, max_retries=2, temperature=0.0)
+            data = extract_json(raw)
+            if isinstance(data.get("predicted_score"), float):
+                data["predicted_score"] = round(data["predicted_score"])
+            ds = data.get("dimension_scores")
+            if isinstance(ds, dict):
+                data["dimension_scores"] = {
+                    k: round(v) if isinstance(v, float) else v for k, v in ds.items()
+                }
+            samples.append(PredictResult.model_validate(data))
+        except Exception as e:
+            logger.error(f"Prediction failed for {record.title} (sample {i + 1}/{n_samples}): {e}")
+            continue
+
+    if not samples:
         return None
+    if len(samples) == 1:
+        return samples[0]
+
+    # 多样本聚合：分数平均、状态按阈值重算、dimension/flags 从首条取
+    from script_rubric.config import SCORE_TIER_THRESHOLDS
+
+    avg_score = round(sum(s.predicted_score for s in samples) / len(samples))
+    if avg_score >= SCORE_TIER_THRESHOLDS["签"]:
+        agg_status = "签"
+    elif avg_score >= SCORE_TIER_THRESHOLDS["改"]:
+        agg_status = "改"
+    else:
+        agg_status = "拒"
+
+    base = samples[0]
+    return PredictResult(
+        title=base.title,
+        predicted_score=avg_score,
+        predicted_status=agg_status,
+        dimension_scores=base.dimension_scores,
+        comments=base.comments,
+        red_flags_hit=base.red_flags_hit,
+        green_flags_hit=base.green_flags_hit,
+    )
 
 
 async def run_backtest(
@@ -136,7 +196,11 @@ async def run_backtest(
 
     handbook_text = handbook_path.read_text(encoding="utf-8")
 
-    tasks = [predict_one(r, handbook_text) for r in test_records]
+    async def _bounded_predict(record: ScriptRecord) -> PredictResult | None:
+        async with _backtest_semaphore:
+            return await predict_one(record, handbook_text)
+
+    tasks = [_bounded_predict(r) for r in test_records]
     results = await asyncio.gather(*tasks)
     predictions = [p for p in results if p is not None]
 

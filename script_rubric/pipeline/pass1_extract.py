@@ -7,6 +7,7 @@ from pathlib import Path
 
 from script_rubric.config import (
     ARCHIVES_DIR, PROMPT_DIR, PASS1_MAX_RETRIES, DIMENSION_KEYS,
+    PASS1_MAX_CONTENT_CHARS,
 )
 from script_rubric.models import ScriptRecord, ScriptArchive
 from script_rubric.pipeline.llm_client import get_client, call_llm, extract_json
@@ -43,8 +44,8 @@ def _build_user_prompt(record: ScriptRecord) -> str:
     parts.append("## 剧本正文")
     if record.text_content:
         content = record.text_content
-        if len(content) > 50000:
-            content = content[:50000] + "\n\n[正文过长，已截断至前50000字]"
+        if len(content) > PASS1_MAX_CONTENT_CHARS:
+            content = content[:PASS1_MAX_CONTENT_CHARS] + f"\n\n[正文过长，已截断至前{PASS1_MAX_CONTENT_CHARS}字]"
         parts.append(content)
     else:
         parts.append("正文缺失，仅基于元数据和评语分析。evidence_from_text 请留空。")
@@ -60,18 +61,34 @@ def _archive_path(title: str) -> Path:
     return ARCHIVES_DIR / f"{_slug(title)}.json"
 
 
-def _validate_archive(archive: ScriptArchive, record: ScriptRecord) -> list[str]:
-    issues = []
+def _validate_archive(archive: ScriptArchive, record: ScriptRecord) -> tuple[list[str], list[str]]:
+    """验证 archive 质量，返回 (critical_issues, warnings)。
+
+    critical_issues: 严重问题，应 reject 该 archive
+    warnings: 轻微问题，可接受但需记录
+    """
+    critical = []
+    warnings = []
+    missing_dims = []
     for key in DIMENSION_KEYS:
         if key not in archive.dimensions:
-            issues.append(f"Missing dimension: {key}")
+            missing_dims.append(key)
         else:
             dim = archive.dimensions[key]
             if not dim.evidence_from_reviews and record.reviews:
-                issues.append(f"No review evidence for {key}")
+                warnings.append(f"No review evidence for {key}")
+
+    # 超过半数维度缺失视为严重
+    if len(missing_dims) > len(DIMENSION_KEYS) // 2:
+        critical.append(f"Too many missing dimensions ({len(missing_dims)}/{len(DIMENSION_KEYS)}): {missing_dims}")
+    elif missing_dims:
+        warnings.append(f"Missing dimensions: {missing_dims}")
+
+    # 确认状态的剧本 archive 状态不一致视为严重
     if record.status_source == "confirmed" and archive.status != record.status:
-        issues.append(f"Status mismatch: archive={archive.status}, record={record.status}")
-    return issues
+        critical.append(f"Status mismatch: archive={archive.status}, record={record.status}")
+
+    return critical, warnings
 
 
 async def extract_one(
@@ -92,13 +109,20 @@ async def extract_one(
         raw = await call_llm(
             client, system_prompt, user_prompt,
             max_retries=PASS1_MAX_RETRIES,
+            max_tokens=8192,
         )
         data = extract_json(raw)
         archive = ScriptArchive.model_validate(data)
+        # 传播 status_source，标记此 archive 的状态是确认的还是推断的
+        archive.status_source = record.status_source
+        data["status_source"] = record.status_source
 
-        issues = _validate_archive(archive, record)
-        if issues:
-            logger.warning(f"Validation issues for {record.title}: {issues}")
+        critical, warnings = _validate_archive(archive, record)
+        if warnings:
+            logger.warning(f"Validation warnings for {record.title}: {warnings}")
+        if critical:
+            logger.error(f"Rejecting archive for {record.title}: {critical}")
+            return None
 
         ARCHIVES_DIR.mkdir(parents=True, exist_ok=True)
         path.write_text(
