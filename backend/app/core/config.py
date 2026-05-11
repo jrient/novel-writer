@@ -71,6 +71,14 @@ class Settings(BaseSettings):
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
 
+    # 改编模块配置
+    ADAPTATION_MAX_CHARS: int = 200_000
+    ADAPTATION_REWRITE_CONCURRENCY: int = 5
+    ADAPTATION_PER_SCENE_TIMEOUT_SEC: int = 90
+    ADAPTATION_EXTRACT_MODEL: Optional[str] = None
+    ADAPTATION_REWRITE_MODEL: Optional[str] = None
+    ADAPTATION_STALE_RUN_CLEANUP_AGE_SEC: int = 3600
+
     # AI Context Limits
     AI_CONTEXT_CHARACTER_LIMIT: int = 10
     AI_CONTEXT_WORLDBUILDING_LIMIT: int = 10
