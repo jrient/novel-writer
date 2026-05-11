@@ -2,7 +2,7 @@
 
 一个为小说创作者设计的智能写作辅助工具，提供文风分析、AI续写、章节管理等功能。
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/your-repo/novel-writer)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](https://github.com/your-repo/novel-writer)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## 技术栈
@@ -106,6 +106,20 @@ docker compose up -d --build
 - ✅ 章节导出 (TXT/Markdown)
 - ✅ 整书导出
 
+### 剧本改编系统 (v1.4.0)
+
+- ✅ 剧本导入 (TXT/DOCX/Markdown)
+- ✅ AI 自动抽取实体表 (人名/地名/道具/时代术语)
+- ✅ 实体映射编辑 + 锁定行 + AI 建议替换
+- ✅ 三档改编强度 (替换/润色/重铸)
+- ✅ 按场切分 (正则优先 + LLM fallback + 纯数字行 fallback)
+- ✅ 并发分场改写 (asyncio.Semaphore 限流)
+- ✅ SSE 实时进度推送
+- ✅ 场列表 + Diff 对比 + 手动编辑
+- ✅ 单场/全场重跑
+- ✅ 多版本管理
+- ✅ 一键导出 (TXT/DOCX)
+
 ## 项目结构
 
 ```
@@ -127,6 +141,10 @@ novel-writer/
 │   │   ├── routers/        # API 路由
 │   │   ├── services/       # 业务逻辑
 │   │   │   ├── ai_service.py
+│   │   │   ├── adaptation_pipeline.py    # 改编流水线
+│   │   │   ├── adaptation_llm_service.py # 改编 LLM 服务
+│   │   │   ├── adaptation_splitter.py    # 场切分
+│   │   │   ├── adaptation_event_bus.py   # SSE 事件总线
 │   │   │   └── providers/  # AI Provider 抽象
 │   │   └── utils/          # 工具函数
 │   └── tests/              # 单元测试

@@ -60,7 +60,7 @@ export interface AdaptationProject {
   mappings: MappingEntry[]
 }
 
-const base = '/api/v1/adaptation'
+const base = '/adaptation'
 
 export const adaptationApi = {
   list: () => request.get<AdaptationProject[]>(`${base}/projects`),
@@ -90,6 +90,6 @@ export const adaptationApi = {
   patchScene: (vid: number, idx: number, rewritten: string) =>
     request.patch<SceneResult>(`${base}/runs/${vid}/scenes/${idx}`, {rewritten_scene_text: rewritten}),
   exportUrl: (vid: number, format: 'txt' | 'docx') =>
-    `${base}/runs/${vid}/export?format=${format}`,
-  streamUrl: (vid: number) => `${base}/runs/${vid}/stream`,
+    `/api/v1/adaptation/runs/${vid}/export?format=${format}`,
+  streamUrl: (vid: number) => `/api/v1/adaptation/runs/${vid}/stream`,
 }
