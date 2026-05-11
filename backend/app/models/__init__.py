@@ -26,6 +26,11 @@ from app.models.script_session import ScriptSession
 from app.models.expansion_project import ExpansionProject
 from app.models.expansion_segment import ExpansionSegment
 
+from app.models.adaptation_project import AdaptationProject
+from app.models.adaptation_mapping_entry import AdaptationMappingEntry
+from app.models.adaptation_version import AdaptationVersion
+from app.models.adaptation_scene_result import AdaptationSceneResult
+
 __all__ = [
     "User", "Invitation",
     "Project", "Chapter", "ChapterVersion", "Character", "WorldbuildingEntry",
@@ -33,4 +38,5 @@ __all__ = [
     "Note", "StoryEvent", "Plotline", "TokenUsage",
     "ScriptProject", "ScriptNode", "ScriptNodeVersion", "ScriptSession",
     "ExpansionProject", "ExpansionSegment",
+    "AdaptationProject", "AdaptationMappingEntry", "AdaptationVersion", "AdaptationSceneResult",
 ]
