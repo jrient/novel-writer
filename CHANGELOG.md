@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-05-11
+
+### Added
+- 剧本改编模块：导入剧本后改人名/地名/道具/时代背景，剧情节奏不变
+  - 三档改编强度（替换/润色/重铸）
+  - AI 自动抽实体表 + 用户编辑 + 锁定行
+  - 按场切分（正则优先 LLM fallback）
+  - 并发分场改写 + SSE 进度推送
+  - 场列表 + 抽屉 diff + 手改 + 单场/全场重跑
+  - 多版本管理 + 一键导出 txt/docx
+
 ## [1.3.0] - 2026-03-18
 
 ### Added
