@@ -40,8 +40,13 @@ from app.services.scheduled_task import start_scheduler, stop_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理：启动时初始化数据库、启动定时任务"""
+    """应用生命周期管理：启动时初始化数据库、启动定时任务、清理 stale 改编"""
     await init_db()
+    # 清理上次运行残留的改编 running 状态
+    from app.core.database import async_session
+    from app.services.adaptation_recovery import cleanup_stale_runs
+    async with async_session() as session:
+        await cleanup_stale_runs(session, max_age_sec=settings.ADAPTATION_STALE_RUN_CLEANUP_AGE_SEC)
     await start_scheduler()
     yield
     await stop_scheduler()
