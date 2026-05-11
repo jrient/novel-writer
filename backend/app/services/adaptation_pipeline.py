@@ -53,13 +53,14 @@ class AdaptationPipeline:
                 AdaptationMappingEntry.project_id == project.id
             )
         )).scalars().all()
-        existing_origins = {r.original_text: r for r in existing_rows}
+        seen = {r.original_text for r in existing_rows}
 
         order = max((r.order_index for r in existing_rows), default=-1) + 1
         for ent in data.get("entities", []):
             text = ent.get("text", "").strip()
-            if not text or text in existing_origins:
+            if not text or text in seen:
                 continue
+            seen.add(text)
             self.db.add(AdaptationMappingEntry(
                 project_id=project.id,
                 entity_type=ent.get("type", "other"),

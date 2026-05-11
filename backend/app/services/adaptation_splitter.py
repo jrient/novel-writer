@@ -14,6 +14,11 @@ _PATTERNS = [
     re.compile(r"^\s*\d+\.\s*[内外]景", re.MULTILINE),
 ]
 
+_LOOSE_PATTERNS = [
+    re.compile(r"^\s*\d{1,3}\s*$", re.MULTILINE),
+]
+_LOOSE_MIN_MATCHES = 3
+
 
 @dataclass
 class SceneBoundary:
@@ -28,6 +33,13 @@ def _collect_match_starts(text: str) -> list[int]:
     for pat in _PATTERNS:
         for m in pat.finditer(text):
             starts.add(m.start())
+    if len(starts) < 2:
+        loose: set[int] = set()
+        for pat in _LOOSE_PATTERNS:
+            for m in pat.finditer(text):
+                loose.add(m.start())
+        if len(loose) >= _LOOSE_MIN_MATCHES:
+            starts = loose
     return sorted(starts)
 
 
