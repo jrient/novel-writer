@@ -99,6 +99,24 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '剧本评分', requiresAuth: true },
   },
   {
+    path: '/adaptation',
+    name: 'AdaptationList',
+    component: () => import('@/views/AdaptationListView.vue'),
+    meta: { title: '剧本改编', requiresAuth: true },
+  },
+  {
+    path: '/adaptation/create',
+    name: 'AdaptationCreate',
+    component: () => import('@/views/AdaptationCreateView.vue'),
+    meta: { title: '新建剧本改编', requiresAuth: true },
+  },
+  {
+    path: '/adaptation/workbench/:id',
+    name: 'AdaptationWorkbench',
+    component: () => import('@/views/AdaptationWorkbenchView.vue'),
+    meta: { title: '剧本改编工作台', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },

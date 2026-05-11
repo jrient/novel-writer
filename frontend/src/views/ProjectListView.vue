@@ -25,6 +25,9 @@
           <el-button @click="$router.push('/rubric/score')" round>
             剧本评分
           </el-button>
+          <el-button @click="$router.push('/adaptation')" round>
+            剧本改编
+          </el-button>
           <el-button type="primary" :icon="Plus" @click="goToWizard" round>
             新建项目
           </el-button>

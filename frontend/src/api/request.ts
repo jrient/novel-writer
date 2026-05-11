@@ -205,6 +205,9 @@ export const request = {
   put<T>(url: string, data?: object, config?: object): Promise<T> {
     return instance.put(url, data, config) as Promise<T>
   },
+  patch<T>(url: string, data?: object, config?: object): Promise<T> {
+    return instance.patch(url, data, config) as Promise<T>
+  },
   delete<T>(url: string, config?: object): Promise<T> {
     return instance.delete(url, config) as Promise<T>
   },
