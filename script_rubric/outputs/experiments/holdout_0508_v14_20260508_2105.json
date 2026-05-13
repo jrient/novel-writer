@@ -1,0 +1,283 @@
+{
+  "handbook_version": 14,
+  "app_token": "IXbHb8BiuaCjutsu2eJcDBL6nCf",
+  "tables": {
+    "冲量": {
+      "raw": 68,
+      "parsed": 27,
+      "by_source": {
+        "supervisor_opinion": 27
+      },
+      "by_status": {
+        "签": 8,
+        "改": 19
+      }
+    },
+    "精品": {
+      "raw": 187,
+      "parsed": 29,
+      "by_source": {
+        "table_default": 24,
+        "confirmed": 5
+      },
+      "by_status": {
+        "签": 24,
+        "改": 4,
+        "拒": 1
+      }
+    }
+  },
+  "n_holdout": 20,
+  "n_failed_predict": 1,
+  "status_accuracy": 0.85,
+  "critical_miss_rate": 0.0,
+  "confusion_matrix": {
+    "签": {
+      "改": 2,
+      "签": 0,
+      "拒": 0
+    },
+    "改": {
+      "改": 17,
+      "签": 0,
+      "拒": 0
+    },
+    "拒": {
+      "改": 1,
+      "签": 0,
+      "拒": 0
+    }
+  },
+  "rows": [
+    {
+      "title": "ai仿真人《枕边蛇影》1-40集完本",
+      "table": "冲量",
+      "actual_status": "签",
+      "predicted_status": "改",
+      "predicted_score": 78,
+      "actual_mean": null,
+      "status_hit": false,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "幻梦双姝（幻梦双输）",
+      "table": "冲量",
+      "actual_status": "签",
+      "predicted_status": null,
+      "predicted_score": null,
+      "actual_mean": null,
+      "status_hit": false,
+      "fail": true
+    },
+    {
+      "title": "牛岛夜涩",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 72,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "锁匠修改版",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 76,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "诡饺（两版）",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 76,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "文道40",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 76,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "豪门媳妇被骂叛徒遗女，却不知我父亲是英雄V1（一卡）-原创-拂晓 (1)",
+      "table": "冲量",
+      "actual_status": "签",
+      "predicted_status": "改",
+      "predicted_score": 70,
+      "actual_mean": null,
+      "status_hit": false,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "给儿媳做了十年保姆，我再嫁顶豪白月光+一卡",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 78,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "《流水线女工，养子竟是首富》一卡正文",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 75,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "【原创】《室友要神仙水，我拿出大宝她破防了》一卡",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 76,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "《村里招工不给名额，我挖井卖水成村里首富》一卡",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 78,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "【剧本前十集】全村养猪，赶走我又跪求我回来",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 75,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "被狗咬反遭网暴，我领养三条退伍犬让爱狗人士跪了！",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 74,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "AI仿真人改编《神叨闺蜜》大纲人设前三",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 76,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "ai仿真人《拼夕夕小公主》人设大纲前三集(4)",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 72,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "改编ai仿真人《我送白莲花老公赴死》人设大纲三集",
+      "table": "冲量",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 75,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "改编Ai真人剧《谋妃千岁》大纲小传前三集",
+      "table": "精品",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 75,
+      "actual_mean": 80.0,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "改编ai真人剧《重生之小三疯了我笑了》人设大纲+前三集",
+      "table": "精品",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 77,
+      "actual_mean": 72.7,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "改编ai仿真人剧本《我在冷宫忙种田》人设大纲十集",
+      "table": "精品",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 75,
+      "actual_mean": null,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "恶魔岛",
+      "table": "精品",
+      "actual_status": "拒",
+      "predicted_status": "改",
+      "predicted_score": 71,
+      "actual_mean": 77.5,
+      "status_hit": false,
+      "critical_miss": false,
+      "fail": false
+    },
+    {
+      "title": "2【仿真人】女总裁的贴身兵王1-5",
+      "table": "精品",
+      "actual_status": "改",
+      "predicted_status": "改",
+      "predicted_score": 76,
+      "actual_mean": 80.0,
+      "status_hit": true,
+      "critical_miss": false,
+      "fail": false
+    }
+  ]
+}
