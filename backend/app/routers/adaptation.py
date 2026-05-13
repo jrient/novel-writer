@@ -26,7 +26,7 @@ from app.schemas.adaptation import (
     VersionDetailOut, SceneResultOut,
 )
 from app.services.adaptation_pipeline import AdaptationPipeline
-from app.services.adaptation_llm_service import get_default_service
+from app.services.adaptation_llm_service import get_default_service, _strip_code_fence
 from app.services.adaptation_event_bus import event_bus
 from app.services.file_parser import FileParser
 
@@ -272,19 +272,56 @@ async def suggest_mappings(
 
     svc = get_default_service()
     prompt = (
-        f"你是剧本改编助手。新时代/世界设定：{p.era_target or '未指定'}；"
+        f"你是剧本改编的「去识别化」命名师。新时代/世界设定：{p.era_target or '未指定'}；"
         f"改编意图：{p.intent or '未指定'}。\n"
-        "为下列原词建议一个合适的新名称，输出严格 JSON：[{\"original\": \"...\", \"replacement\": \"...\"}]\n"
+        "\n"
+        "【核心目标】为下列原词生成新名称，要让读者**无法第一时间联想到原作**。\n"
+        "\n"
+        "【强制规避规则（任一违反都视为失败）】\n"
+        "1. 字面零重叠：新名禁止包含原名中的任何一个汉字（含姓、名、字、号、地名用字）。\n"
+        "2. 音近规避：禁止与原名出现同音字、同声母+同韵母、或谐音变体（例：张→章/掌/仉 均禁）。\n"
+        "3. 结构错位：原名两字则新名优先三字，原名三字可换为两字或四字；原名为叠字（婷婷/朵朵）禁止用叠字结构。\n"
+        "4. 姓氏全换：人物姓氏必须更换为完全不同的姓；不得整批沿用原姓系列。\n"
+        "5. 意译过近规避：地名/道具/时代词不得使用近义替换（长安→永安、剑→刃 这类一眼可猜的禁止）。\n"
+        "\n"
+        "【按类型生成指引】\n"
+        "- person：保留原人物的性别气质/辈分/民族隐含特征（如果有），但用全新的字组合；姓与名都换。\n"
+        "- place：按新时代/地域风格重新命名，避免照搬原地名的方位字（东/西/南/北）或地貌字（山/水/江/河）若与原名相同。\n"
+        "- prop：按新时代背景给出功能相当但名称迥异的物件（如古剑→战术匕首；玉佩→定制胸针）。\n"
+        "- era_term：用新时代背景下的对应术语，但不沿用原词任何汉字。\n"
+        "\n"
+        "【输出格式】严格 JSON，禁止任何解释或前后缀：\n"
+        "[{\"original\": \"...\", \"replacement\": \"...\"}]\n"
+        "\n"
+        "【待处理原词】\n"
         + json.dumps([{"original": t.original_text, "type": t.entity_type} for t in targets], ensure_ascii=False)
     )
     raw = await svc.provider.complete(prompt, model=svc.extract_model)
+    sugg: dict[str, str] = {}
     try:
-        sugg = {item["original"]: item["replacement"] for item in json.loads(raw)}
-    except Exception:
-        sugg = {}
+        cleaned = _strip_code_fence(raw)
+        sugg = {item["original"]: item["replacement"] for item in json.loads(cleaned)}
+    except Exception as e:
+        logger.warning("suggest_mappings 解析失败：%s; raw=%s", e, (raw or "")[:200])
+    overlapped: list[tuple[str, str, str]] = []
     for t in targets:
-        if t.original_text in sugg and not t.locked:
-            t.replacement_text = sugg[t.original_text]
+        new_name = (sugg.get(t.original_text) or "").strip()
+        if not new_name or t.locked:
+            continue
+        if new_name == t.original_text:
+            # 完全相同毫无替换价值，跳过让用户手动处理
+            continue
+        overlap = set(t.original_text) & set(new_name)
+        if overlap:
+            # 仅记录提示，不丢弃；让用户在 UI 上自行调整或锁定
+            overlapped.append((t.original_text, new_name, "".join(sorted(overlap))))
+        t.replacement_text = new_name
+    if overlapped:
+        logger.info(
+            "suggest_mappings 保留 %d 条字面重叠建议（请人工复核）：%s",
+            len(overlapped),
+            "; ".join(f"{o}→{n}(重叠:{ov})" for o, n, ov in overlapped),
+        )
     await db.commit()
     rows = (await db.execute(
         select(AdaptationMappingEntry).where(AdaptationMappingEntry.project_id == p.id)
