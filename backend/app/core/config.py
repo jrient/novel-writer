@@ -77,6 +77,9 @@ class Settings(BaseSettings):
     ADAPTATION_PER_SCENE_TIMEOUT_SEC: int = 90
     ADAPTATION_EXTRACT_MODEL: Optional[str] = None
     ADAPTATION_REWRITE_MODEL: Optional[str] = None
+    # 单次 LLM 调用 max_tokens 上限。reasoning 模型常需 1~2 万 token 给思考过程，
+    # 太小会导致 finish_reason=length / content 为空。
+    ADAPTATION_MAX_TOKENS: int = 64_000
     ADAPTATION_STALE_RUN_CLEANUP_AGE_SEC: int = 3600
 
     # AI Context Limits

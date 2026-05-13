@@ -12,6 +12,9 @@ _PATTERNS = [
     re.compile(r"^\s*第[一二三四五六七八九十百千\d]+场", re.MULTILINE),
     re.compile(r"^\s*INT\.|^\s*EXT\.", re.MULTILINE),
     re.compile(r"^\s*\d+\.\s*[内外]景", re.MULTILINE),
+    # 中文剧本常见的"集-场"格式：1-1、2-3、12-1，后面常跟 日/外 或 内/外 描述
+    # 用 [ \t　] 而非 \s（避免吃掉行首换行导致 m.start() 落在上一行末）
+    re.compile(r"^[ \t　]*\d+[-－—]\d+(?:[ \t　]|[^\d\-－—])", re.MULTILINE),
 ]
 
 _LOOSE_PATTERNS = [
