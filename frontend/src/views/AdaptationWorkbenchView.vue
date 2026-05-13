@@ -19,7 +19,22 @@
       <span>{{ progress.done }} / {{ progress.total }} 场完成（失败 {{ progress.failed }}）</span>
     </div>
 
-    <el-table :data="scenes" size="small" @row-click="openDrawer">
+    <el-empty
+      v-if="!versions.length"
+      :description="`已切 ${project?.scene_boundaries?.length ?? 0} 场 · ${project?.mappings?.length ?? 0} 条映射`"
+    >
+      <template #default>
+        <div class="empty-hint">
+          <p>还没有生成改编版本。点击下方按钮开始首次改写：</p>
+          <el-button type="primary" :loading="running" @click="onFullRun">
+            开始改写（全场）
+          </el-button>
+          <p class="empty-sub">改写完成前可关闭页面，再次进入会自动续显进度。</p>
+        </div>
+      </template>
+    </el-empty>
+
+    <el-table v-else :data="scenes" size="small" @row-click="openDrawer">
       <el-table-column label="#" width="60" prop="scene_index" />
       <el-table-column label="状态" width="100">
         <template #default="{row}">
@@ -242,4 +257,7 @@ onUnmounted(closeSSE)
 .scene-text { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.6; }
 .delta-warn { color: #e6a23c; font-weight: 600; }
 .drawer-foot { display: flex; align-items: center; }
+.empty-hint { text-align: center; }
+.empty-hint p { margin: 8px 0; color: #606266; }
+.empty-sub { font-size: 12px; color: #909399; }
 </style>
