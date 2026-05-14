@@ -216,6 +216,7 @@ class AdaptationPipeline:
                     prev_scene_summary=prev_summary,
                     character_traits=traits,
                     extra_prompt=extra_prompt,
+                    scene_title=scene.scene_title,
                 ),
                 timeout=settings.ADAPTATION_PER_SCENE_TIMEOUT_SEC,
             )

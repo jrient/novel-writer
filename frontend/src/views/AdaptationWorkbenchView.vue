@@ -107,10 +107,23 @@ const progress = computed(() => ({
   failed: scenes.value.filter(s => s.status === 'failed').length,
 }))
 
-const diffHtml = computed(() => {
-  if (!active.value) return ''
-  const orig = (active.value.original_scene_text || '').split('\n')
-  const cur = (active.value.rewritten_scene_text || '').split('\n')
+function lineSim(a: string, b: string): number {
+  if (a === b) return 1
+  if (!a || !b) return 0
+  const counts = new Map<string, number>()
+  for (const ch of a) counts.set(ch, (counts.get(ch) || 0) + 1)
+  let inter = 0
+  for (const ch of b) {
+    const n = counts.get(ch) || 0
+    if (n > 0) { inter++; counts.set(ch, n - 1) }
+  }
+  return inter / Math.max(a.length, b.length)
+}
+
+// m*n 超过该阈值时回退到朴素逐行 diff，避免在大场（几百行 × 几百行）上卡顿
+const LCS_CELL_LIMIT = 10000
+
+function naiveDiff(orig: string[], cur: string[]): string {
   const max = Math.max(orig.length, cur.length)
   let html = ''
   for (let i = 0; i < max; i++) {
@@ -122,6 +135,53 @@ const diffHtml = computed(() => {
       if (c) html += `<span style="color:#67c23a">+ ${escape(c)}</span>\n`
     }
   }
+  return html
+}
+
+const diffHtml = computed(() => {
+  if (!active.value) return ''
+  const orig = (active.value.original_scene_text || '').split('\n')
+  const cur = (active.value.rewritten_scene_text || '').split('\n')
+  const m = orig.length, n = cur.length
+  // 大场回退到朴素 diff，避免 O(m·n·L) 卡死页面
+  if (m * n > LCS_CELL_LIMIT) return naiveDiff(orig, cur)
+
+  // 字符重合度 ≥0.30 视作"同一行的改写"，做 LCS 对齐
+  const SIM = 0.30
+  // 预计算 sim 矩阵：每对 (i,j) 只跑一次 lineSim，DP 与 traceback 共享
+  const sim: boolean[][] = Array.from({ length: m }, () => new Array(n).fill(false))
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      sim[i][j] = lineSim(orig[i], cur[j]) >= SIM
+    }
+  }
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0))
+  for (let i = m - 1; i >= 0; i--) {
+    for (let j = n - 1; j >= 0; j--) {
+      dp[i][j] = sim[i][j]
+        ? dp[i + 1][j + 1] + 1
+        : Math.max(dp[i + 1][j], dp[i][j + 1])
+    }
+  }
+  let html = ''
+  let i = 0, j = 0
+  while (i < m && j < n) {
+    if (sim[i][j]) {
+      if (orig[i] === cur[j]) {
+        html += `  ${escape(orig[i])}\n`
+      } else {
+        html += `<span style="color:#f56c6c">- ${escape(orig[i])}</span>\n`
+        html += `<span style="color:#67c23a">+ ${escape(cur[j])}</span>\n`
+      }
+      i++; j++
+    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+      html += `<span style="color:#f56c6c">- ${escape(orig[i])}</span>\n`; i++
+    } else {
+      html += `<span style="color:#67c23a">+ ${escape(cur[j])}</span>\n`; j++
+    }
+  }
+  while (i < m) html += `<span style="color:#f56c6c">- ${escape(orig[i++])}</span>\n`
+  while (j < n) html += `<span style="color:#67c23a">+ ${escape(cur[j++])}</span>\n`
   return html
 })
 

@@ -2,9 +2,17 @@
 import asyncio
 import json
 import logging
+import re
 from datetime import datetime
 from io import BytesIO
 from typing import List, Optional
+
+_SCENE_TITLE_PATTERNS = [
+    re.compile(r"^\d+[-－—]\d+"),                # 1-1, 2-3
+    re.compile(r"^场\s*\d+"),                    # 场1
+    re.compile(r"^第[一二三四五六七八九十百千\d]+场"),  # 第一场
+]
+_CHAR_NAME_PATTERN = re.compile(r"([一-鿿]{2,4})(?:（|Vo|OS|：)")
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
@@ -504,7 +512,30 @@ async def export_run(
         select(AdaptationSceneResult).where(AdaptationSceneResult.version_id == v.id)
         .order_by(AdaptationSceneResult.scene_index)
     )).scalars().all()
-    parts = [s.rewritten_scene_text or s.original_scene_text for s in scenes]
+
+    def _ensure_header(text: str, title: Optional[str], scene_index: int) -> str:
+        """确保改写结果以场号标题行+人物列表行开头；缺失则由代码兜底拼接。"""
+        if not text:
+            return text
+        first_line = text.split("\n", 1)[0].strip()
+        if any(p.search(first_line) for p in _SCENE_TITLE_PATTERNS):
+            return text
+        header = title or f"场{scene_index + 1}"
+        char_names: list[str] = []
+        for m in _CHAR_NAME_PATTERN.finditer(text):
+            name = m.group(1)
+            if name and name not in char_names:
+                char_names.append(name)
+        character_line = f"人物：{' '.join(char_names)}" if char_names else ""
+        parts = [header]
+        if character_line:
+            parts.append(character_line)
+        return "\n".join(parts) + "\n" + text
+
+    parts = [
+        _ensure_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
+        for s in scenes
+    ]
 
     if format == "txt":
         text = "\n\n".join(parts)
@@ -513,13 +544,23 @@ async def export_run(
             headers={"Content-Disposition": f"attachment; filename=adaptation_v{v.version_no}.txt"},
         )
 
-    # docx
+    # docx: 标题已在正文中，无需额外加 heading
     from docx import Document
     doc = Document()
     for s in scenes:
-        if s.scene_title:
-            doc.add_heading(s.scene_title, level=2)
-        doc.add_paragraph(s.rewritten_scene_text or s.original_scene_text)
+        content = _ensure_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
+        for line in content.split("\n"):
+            line_stripped = line.strip()
+            if not line_stripped:
+                continue
+            if any(p.search(line_stripped) for p in _SCENE_TITLE_PATTERNS):
+                doc.add_heading(line_stripped, level=2)
+            elif line_stripped.startswith("人物："):
+                p = doc.add_paragraph(line_stripped)
+                for run in p.runs:
+                    run.bold = True
+            else:
+                doc.add_paragraph(line_stripped)
     buf = BytesIO()
     doc.save(buf); buf.seek(0)
     return StreamingResponse(
