@@ -51,7 +51,12 @@
       </el-table-column>
       <el-table-column label="" width="100">
         <template #default="{row}">
-          <el-button link size="small" @click.stop="quickRerun(row)">重跑</el-button>
+          <el-button
+            link size="small"
+            :loading="rerunningIdx === row.scene_index"
+            :disabled="rerunningIdx !== null && rerunningIdx !== row.scene_index"
+            @click.stop="quickRerun(row)"
+          >重跑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -98,6 +103,7 @@ const active = ref<SceneResult | null>(null)
 const editing = ref('')
 const extraPrompt = ref('')
 const rerunning = ref(false)
+const rerunningIdx = ref<number | null>(null)
 const tab = ref('new')
 let es: EventSource | null = null
 
@@ -272,23 +278,46 @@ function openDrawer(row: SceneResult) {
   drawerVisible.value = true
 }
 
-async function onRerun() {
-  if (!active.value || !currentVid.value) return
-  rerunning.value = true
+function _humanErr(e: any): string {
+  const detail = e?.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  return e?.message || '请求失败'
+}
+
+async function _rerunOne(target: SceneResult, prompt?: string) {
+  if (!currentVid.value) return
+  rerunningIdx.value = target.scene_index
+  ElMessage.info(`正在改写场 ${target.scene_index + 1}，请稍候…`)
   try {
-    const r = await adaptationApi.rerunScene(currentVid.value, active.value.scene_index, extraPrompt.value || undefined) as any
-    active.value = r
-    editing.value = r.rewritten_scene_text || ''
+    const r = await adaptationApi.rerunScene(currentVid.value, target.scene_index, prompt) as any
     const idx = scenes.value.findIndex(s => s.scene_index === r.scene_index)
     if (idx >= 0) scenes.value[idx] = r
-    ElMessage.success('单场已重跑')
+    if (active.value?.scene_index === r.scene_index) {
+      active.value = r
+      editing.value = r.rewritten_scene_text || ''
+    }
+    if (r.status === 'failed') {
+      ElMessage.error(`场 ${r.scene_index + 1} 改写失败：${r.error || '未知错误'}`)
+    } else {
+      ElMessage.success(`场 ${r.scene_index + 1} 已重跑完成`)
+    }
+  } catch (e: any) {
+    ElMessage.error(`重跑失败：${_humanErr(e)}`)
+  } finally {
+    rerunningIdx.value = null
+  }
+}
+
+async function onRerun() {
+  if (!active.value) return
+  rerunning.value = true
+  try {
+    await _rerunOne(active.value, extraPrompt.value || undefined)
   } finally { rerunning.value = false }
 }
 
 async function quickRerun(row: SceneResult) {
-  if (!currentVid.value) return
-  active.value = row
-  await onRerun()
+  await _rerunOne(row)
 }
 
 async function onSaveManual() {
