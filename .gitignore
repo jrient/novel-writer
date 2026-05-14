@@ -42,3 +42,6 @@ reference_novels/*.txt
 reference_novels/*.epub
 reference_novels/*.md
 !reference_novels/README.md
+
+# 误放入的无关原型（dungeon-game / game 静态页）
+/novel-writer/

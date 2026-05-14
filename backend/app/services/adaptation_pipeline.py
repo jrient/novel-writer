@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import select, func
@@ -182,7 +182,7 @@ class AdaptationPipeline:
             version.status = "failed"
         else:
             version.status = "partial"
-        version.completed_at = datetime.utcnow()
+        version.completed_at = datetime.now(timezone.utc)
         version.stats = {
             "total_scenes": len(scenes),
             "succeeded": succeeded,
@@ -254,7 +254,7 @@ class AdaptationPipeline:
         )
         edits = list(scene.manual_edits or [])
         edits.append({
-            "type": "rerun", "at": datetime.utcnow().isoformat(),
+            "type": "rerun", "at": datetime.now(timezone.utc).isoformat(),
             "prompt": extra_prompt, "before": before, "after": scene.rewritten_scene_text,
         })
         scene.manual_edits = edits

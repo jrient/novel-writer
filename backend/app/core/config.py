@@ -1,6 +1,6 @@
 import secrets as _secrets
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
 
 
@@ -88,9 +88,7 @@ class Settings(BaseSettings):
     AI_MAX_TOKENS_DEFAULT: int = 4000
     AI_MAX_TOKENS_STREAM: int = 8000
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()
