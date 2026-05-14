@@ -259,3 +259,7 @@ class AdaptationPipeline:
         })
         scene.manual_edits = edits
         await self.db.commit()
+        # commit 后 SQLAlchemy 会把 server-side onupdate 列（updated_at）标记 expired，
+        # 路由层随后访问该属性会触发同步 lazy load 进而 MissingGreenlet。显式 refresh
+        # 一次把全部列重新水合回 instance。
+        await self.db.refresh(scene)

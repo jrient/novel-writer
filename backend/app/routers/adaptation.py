@@ -497,6 +497,8 @@ async def patch_scene(
     scene.rewritten_scene_text = payload.rewritten_scene_text
     scene.status = "manual_edited"
     await db.commit()
+    # 让 server-side onupdate 列重新水合，避免 _scene_to_out 触发同步 lazy load
+    await db.refresh(scene)
     return _scene_to_out(scene)
 
 
