@@ -91,5 +91,8 @@ export const adaptationApi = {
     request.patch<SceneResult>(`${base}/runs/${vid}/scenes/${idx}`, {rewritten_scene_text: rewritten}),
   exportUrl: (vid: number, format: 'txt' | 'docx') =>
     `/api/v1/adaptation/runs/${vid}/export?format=${format}`,
-  streamUrl: (vid: number) => `/api/v1/adaptation/runs/${vid}/stream`,
+  getStreamTicket: (vid: number) =>
+    request.post<{ticket: string}>(`${base}/runs/${vid}/stream/ticket`),
+  streamUrl: (vid: number, ticket: string) =>
+    `/api/v1/adaptation/runs/${vid}/stream?ticket=${encodeURIComponent(ticket)}`,
 }

@@ -229,10 +229,18 @@ async function loadVersion() {
 
 watch(currentVid, loadVersion)
 
-function connectSSE() {
+async function connectSSE() {
   if (!currentVid.value) return
   closeSSE()
-  es = new EventSource(adaptationApi.streamUrl(currentVid.value))
+  let ticket: string
+  try {
+    const r = await adaptationApi.getStreamTicket(currentVid.value) as any
+    ticket = r.ticket
+  } catch (e) {
+    // 拿不到 ticket（鉴权失败等）就直接放弃订阅，loadVersion 会兜底轮询
+    return
+  }
+  es = new EventSource(adaptationApi.streamUrl(currentVid.value, ticket))
   es.onmessage = ev => {
     if (!ev.data) return
     let payload: any

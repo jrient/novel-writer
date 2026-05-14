@@ -101,3 +101,27 @@ def verify_token(token: str, token_type: str = "access") -> Optional[int]:
     if user_id is None:
         return None
     return int(user_id)
+
+
+def create_sse_ticket(user_id: int, resource_id: int, ttl_seconds: int = 30) -> str:
+    """颁发一次性 SSE 短票据：浏览器 EventSource 不能带 Authorization 头，
+    所以单独签发 30 秒寿命的 JWT 走 query 参数。
+    payload 绑定 (sub=user_id, rid=resource_id, type='sse')，由消费端校验。
+    """
+    expire = datetime.utcnow() + timedelta(seconds=ttl_seconds)
+    return jwt.encode(
+        {"sub": str(user_id), "rid": int(resource_id),
+         "exp": expire, "type": "sse"},
+        settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM,
+    )
+
+
+def verify_sse_ticket(token: str, expected_resource_id: int) -> Optional[int]:
+    """校验 SSE 票据；通过返回 user_id，否则 None。要求 rid 与路径一致。"""
+    payload = decode_token(token)
+    if not payload or payload.get("type") != "sse":
+        return None
+    if int(payload.get("rid", -1)) != int(expected_resource_id):
+        return None
+    sub = payload.get("sub")
+    return int(sub) if sub is not None else None

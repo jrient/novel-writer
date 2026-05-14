@@ -14,13 +14,14 @@ _SCENE_TITLE_PATTERNS = [
 ]
 _CHAR_NAME_PATTERN = re.compile(r"([一-鿿]{2,4})(?:（|Vo|OS|：)")
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.security import create_sse_ticket, verify_sse_ticket
 from app.models.user import User
 from app.models.adaptation_project import AdaptationProject
 from app.models.adaptation_mapping_entry import AdaptationMappingEntry
@@ -424,13 +425,28 @@ async def get_version(
     return {**_version_to_out(v_full), "scene_results": [_scene_to_out(s) for s in v_full.scene_results]}
 
 
+@router.post("/runs/{version_id}/stream/ticket")
+async def create_stream_ticket(
+    v: AdaptationVersion = Depends(_get_owned_version),
+    current_user: User = Depends(get_current_user),
+):
+    """为后续 EventSource 拉流颁发一次性短票据（5s 内有效）。
+
+    浏览器原生 EventSource 无法附加 Authorization 头，因此把鉴权下沉到这一步：
+    先用主 token POST 此接口拿 ticket，再用 ?ticket=… 拉 /stream。
+    """
+    return {"ticket": create_sse_ticket(current_user.id, v.id)}
+
+
 @router.get("/runs/{version_id}/stream")
-async def stream_run(v: AdaptationVersion = Depends(_get_owned_version)):
-    sub = event_bus.subscribe(v.id)
+async def stream_run(version_id: int, ticket: str = Query(...)):
+    if verify_sse_ticket(ticket, version_id) is None:
+        raise HTTPException(401, "ticket 无效或已过期")
+    sub = event_bus.subscribe(version_id)
 
     async def gen():
         try:
-            yield "data: " + json.dumps({"event": "subscribed", "version_id": v.id}) + "\n\n"
+            yield "data: " + json.dumps({"event": "subscribed", "version_id": version_id}) + "\n\n"
             while True:
                 try:
                     payload = await asyncio.wait_for(sub.queue.get(), timeout=15.0)
