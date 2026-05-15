@@ -199,7 +199,10 @@ async def update_project(
 ):
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(p, k, v)
-    await db.commit(); await db.refresh(p)
+    await db.commit()
+    # refresh 不带 attribute_names 会让 _get_owned_project 预加载的 versions /
+    # mappings 关系过期，_project_to_out 再访问触发 N+1 lazy load。显式重水合。
+    await db.refresh(p, attribute_names=["versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -223,7 +226,7 @@ async def extract(
         await pipe.extract(p)
     except Exception as e:
         raise HTTPException(502, f"实体抽取失败：{e}")
-    await db.refresh(p)
+    await db.refresh(p, attribute_names=["versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -234,7 +237,7 @@ async def split(
 ):
     pipe = AdaptationPipeline(db=db, llm=get_default_service())
     await pipe.split(p)
-    await db.refresh(p)
+    await db.refresh(p, attribute_names=["versions", "mappings"])
     return _project_to_out(p)
 
 
