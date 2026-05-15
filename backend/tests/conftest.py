@@ -1,14 +1,15 @@
-"""
-测试配置
-使用内存数据库和依赖覆盖
-"""
-import pytest
-import asyncio
-from typing import AsyncGenerator
-from unittest.mock import patch
+"""测试配置
 
-import sys
+- SQLite 内存库
+- pytest-asyncio auto mode（见 pytest.ini），由 pytest-asyncio 自行管理事件循环
+- client fixture 自动注入 get_db / get_current_user 覆盖，免去逐用例传 token
+"""
 import os
+import sys
+from typing import AsyncGenerator
+
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -19,14 +20,6 @@ from app.core.database import Base
 
 # 使用内存数据库进行测试
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """创建事件循环"""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="function")
@@ -43,8 +36,9 @@ async def test_engine():
 
     yield engine
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    # 注意：in-memory sqlite + StaticPool 下 dispose() 即销毁库；
+    # 显式 drop_all 在 dispose 前做会触发"事件循环已关闭"竞态，故省略。
+    await engine.dispose()
 
 
 @pytest.fixture(scope="function")
@@ -69,26 +63,53 @@ def override_get_db(db_session: AsyncSession):
 
 
 @pytest.fixture
-async def client(db_session: AsyncSession, override_get_db):
-    """创建测试客户端"""
-    from fastapi.testclient import TestClient
-    from app.main import app
-    from app.core.database import get_db
+async def sample_user(db_session: AsyncSession):
+    """测试用户，用作 client 鉴权 + sample_project 所有者。"""
+    from app.models.user import User
 
-    app.dependency_overrides[get_db] = override_get_db
-
-    with TestClient(app) as c:
-        yield c
-
-    app.dependency_overrides.clear()
+    user = User(
+        username="tester",
+        email="tester@example.com",
+        hashed_password="x",
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
 
 
 @pytest.fixture
-async def sample_project(db_session: AsyncSession):
-    """创建示例项目"""
+async def client(db_session: AsyncSession, override_get_db, sample_user):
+    """注入 db + 已登录用户的 TestClient。
+
+    不进入 with 块以跳过 lifespan startup —— 否则 APScheduler 全局单例
+    会绑死第一个测试的 event loop，第二个测试调用即 'Event loop is closed'。
+    init_db / scheduler 在测试里都不需要：表由 test_engine fixture create_all，
+    定时任务被显式覆盖的 db / current_user 旁路。
+    """
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.core.database import get_db
+    from app.routers.auth import get_current_user
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = lambda: sample_user
+
+    c = TestClient(app)
+    try:
+        yield c
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def sample_project(db_session: AsyncSession, sample_user):
+    """创建示例项目（归属 sample_user）。"""
     from app.models.project import Project
 
     project = Project(
+        owner_id=sample_user.id,
         title="测试小说",
         genre="玄幻",
         description="这是一个测试用的小说项目",
