@@ -88,7 +88,11 @@ async def update_project(
             setattr(project, key, value)
 
         await db.commit()
-        await db.refresh(project)
+        # refresh 会让 chapters 关系过期 → Pydantic 序列化时同步懒加载 →
+        # MissingGreenlet。改用显式 selectinload 重查，行为对齐 create_project。
+        project = await db.scalar(
+            select(Project).where(Project.id == project.id).options(selectinload(Project.chapters))
+        )
         return project
     except Exception as e:
         await db.rollback()
