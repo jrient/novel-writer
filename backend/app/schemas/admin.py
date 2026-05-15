@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 import re
 
 
@@ -41,8 +41,7 @@ class AdminUserResponse(BaseModel):
     total_tokens: int = 0
     has_api_key: bool = False  # 是否已生成 API Key
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminUserUpdate(BaseModel):
@@ -95,8 +94,7 @@ class TokenUsageRecord(BaseModel):
     total_tokens: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserTokenSummary(BaseModel):
@@ -158,8 +156,7 @@ class AdminProjectResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminProjectListResponse(BaseModel):

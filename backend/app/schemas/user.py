@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 import re
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class UserBase(BaseModel):
@@ -50,8 +50,7 @@ class UserResponse(UserBase):
     created_at: datetime
     last_login_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
@@ -91,8 +90,7 @@ class InvitationResponse(BaseModel):
     created_by: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OAuthAuthorize(BaseModel):
