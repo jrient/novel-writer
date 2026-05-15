@@ -5,7 +5,9 @@ import json
 import secrets
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from app.core.datetime_utils import utcnow_naive
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
@@ -95,8 +97,8 @@ async def get_current_user(
         if user and user.is_active:
             # 节流更新最后使用时间（避免高并发下的频繁写库）
             if not user.api_key_last_used_at or \
-               (datetime.utcnow() - user.api_key_last_used_at).total_seconds() > 300:
-                user.api_key_last_used_at = datetime.utcnow()
+               (utcnow_naive() - user.api_key_last_used_at).total_seconds() > 300:
+                user.api_key_last_used_at = utcnow_naive()
                 await db.commit()
             return user
 
@@ -144,7 +146,7 @@ async def register(
     if invitation.is_used:
         raise HTTPException(status_code=400, detail="邀请码已被使用")
 
-    if invitation.expires_at and invitation.expires_at < datetime.utcnow():
+    if invitation.expires_at and invitation.expires_at < utcnow_naive():
         raise HTTPException(status_code=400, detail="邀请码已过期")
 
     # 检查用户名和邮箱是否已存在
@@ -170,7 +172,7 @@ async def register(
     # 标记邀请码已使用
     invitation.is_used = True
     invitation.used_by = user.id
-    invitation.used_at = datetime.utcnow()
+    invitation.used_at = utcnow_naive()
 
     await db.commit()
     await db.refresh(user)
@@ -223,7 +225,7 @@ async def login(
         raise HTTPException(status_code=400, detail="用户已被禁用")
 
     # 更新最后登录时间
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = utcnow_naive()
     await db.commit()
 
     # 生成令牌
@@ -272,7 +274,7 @@ async def login_json(
         raise HTTPException(status_code=400, detail="用户已被禁用")
 
     # 更新最后登录时间
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = utcnow_naive()
     await db.commit()
 
     # 生成令牌
@@ -402,7 +404,7 @@ async def create_invitations(
     expires_at = None
 
     if invitation_data.expires_days:
-        expires_at = datetime.utcnow() + timedelta(days=invitation_data.expires_days)
+        expires_at = utcnow_naive() + timedelta(days=invitation_data.expires_days)
 
     for _ in range(invitation_data.count):
         code = secrets.token_urlsafe(16)[:16].upper()
@@ -543,7 +545,7 @@ async def github_callback(
         raise HTTPException(status_code=400, detail="用户已被禁用")
 
     # 更新最后登录时间
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = utcnow_naive()
     await db.commit()
     await db.refresh(user)
 
@@ -666,7 +668,7 @@ async def wechat_callback(
         raise HTTPException(status_code=400, detail="用户已被禁用")
 
     # 更新最后登录时间
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = utcnow_naive()
     await db.commit()
     await db.refresh(user)
 

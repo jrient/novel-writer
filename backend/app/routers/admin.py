@@ -3,7 +3,9 @@
 """
 from typing import Optional
 import secrets
-from datetime import datetime
+from datetime import timedelta
+
+from app.core.datetime_utils import utcnow_naive
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, or_
@@ -281,7 +283,7 @@ async def delete_user(
     if user.deleted_at is not None:
         raise HTTPException(status_code=400, detail="用户已被删除")
 
-    user.deleted_at = datetime.utcnow()
+    user.deleted_at = utcnow_naive()
     user.is_active = False
     await db.commit()
     return {"detail": "用户已删除"}
@@ -320,7 +322,7 @@ async def generate_api_key(
     # 生成 64 字符的 API Key
     api_key = secrets.token_urlsafe(48)
     user.api_key = api_key
-    user.api_key_created_at = datetime.utcnow()
+    user.api_key_created_at = utcnow_naive()
     await db.commit()
 
     return ApiKeyResponse(api_key=api_key)
@@ -375,8 +377,7 @@ async def get_token_usage_stats(
     db: AsyncSession = Depends(get_db),
 ):
     """获取 Token 使用统计（按提供商、按用户汇总）"""
-    from datetime import datetime, timedelta
-    since = datetime.utcnow() - timedelta(days=days)
+    since = utcnow_naive() - timedelta(days=days)
 
     base_filter = TokenUsage.created_at >= since
 
@@ -498,9 +499,8 @@ async def get_daily_token_usage(
     db: AsyncSession = Depends(get_db),
 ):
     """获取每日 Token 使用趋势数据"""
-    from datetime import datetime, timedelta
     from sqlalchemy import cast, Date
-    since = datetime.utcnow() - timedelta(days=days)
+    since = utcnow_naive() - timedelta(days=days)
 
     result = await db.execute(
         select(

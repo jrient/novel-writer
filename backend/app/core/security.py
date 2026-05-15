@@ -2,13 +2,14 @@
 安全工具模块 - JWT Token 和密码处理
 """
 import threading
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional, Set
 
 from jose import jwt, JWTError
 import bcrypt
 
 from app.core.config import settings
+from app.core.datetime_utils import utcnow_naive
 
 # Token 黑名单（内存存储，重启后清空 — 可接受，因为 token 也会过期）
 _token_blacklist: Set[str] = set()
@@ -54,9 +55,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     """创建访问令牌"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = utcnow_naive() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = utcnow_naive() + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     to_encode.update({"exp": expire, "type": "access"})
@@ -69,7 +70,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def create_refresh_token(data: dict) -> str:
     """创建刷新令牌"""
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = utcnow_naive() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(
         to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
@@ -108,7 +109,7 @@ def create_sse_ticket(user_id: int, resource_id: int, ttl_seconds: int = 30) -> 
     所以单独签发 30 秒寿命的 JWT 走 query 参数。
     payload 绑定 (sub=user_id, rid=resource_id, type='sse')，由消费端校验。
     """
-    expire = datetime.utcnow() + timedelta(seconds=ttl_seconds)
+    expire = utcnow_naive() + timedelta(seconds=ttl_seconds)
     return jwt.encode(
         {"sub": str(user_id), "rid": int(resource_id),
          "exp": expire, "type": "sse"},

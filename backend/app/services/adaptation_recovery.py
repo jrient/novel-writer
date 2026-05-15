@@ -1,5 +1,7 @@
 """服务启动时清理悬挂的 running 状态。"""
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from app.core.datetime_utils import utcnow_naive
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +11,7 @@ from app.models.adaptation_version import AdaptationVersion
 
 
 async def cleanup_stale_runs(db: AsyncSession, max_age_sec: int) -> int:
-    cutoff = datetime.utcnow() - timedelta(seconds=max_age_sec)
+    cutoff = utcnow_naive() - timedelta(seconds=max_age_sec)
     stale_versions = (await db.execute(
         select(AdaptationVersion).where(
             AdaptationVersion.status == "running",

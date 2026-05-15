@@ -3,7 +3,7 @@ import asyncio
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from app.core.datetime_utils import utcnow_naive
 from io import BytesIO
 from typing import List, Optional
 
@@ -506,7 +506,7 @@ async def patch_scene(
         raise HTTPException(404, "scene 不存在")
     edits = list(scene.manual_edits or [])
     edits.append({
-        "type": "manual", "at": datetime.now(timezone.utc).isoformat(),
+        "type": "manual", "at": utcnow_naive().isoformat(),
         "before": scene.rewritten_scene_text, "after": payload.rewritten_scene_text,
     })
     scene.manual_edits = edits

@@ -1,8 +1,9 @@
 """启动恢复 hook 测试。"""
 import pytest
-from datetime import datetime, timedelta
+from datetime import timedelta
 from sqlalchemy import select
 
+from app.core.datetime_utils import utcnow_naive
 from app.models.adaptation_project import AdaptationProject
 from app.models.adaptation_version import AdaptationVersion
 from app.models.adaptation_scene_result import AdaptationSceneResult
@@ -25,7 +26,7 @@ async def test_cleanup_marks_old_running_as_failed(db_session, test_user):
     db_session.add(p); await db_session.flush()
     old = AdaptationVersion(
         project_id=p.id, version_no=1, status="running", triggered_by="full_run",
-        created_at=datetime.utcnow() - timedelta(hours=2),
+        created_at=utcnow_naive() - timedelta(hours=2),
     )
     fresh = AdaptationVersion(
         project_id=p.id, version_no=2, status="running", triggered_by="full_run",
