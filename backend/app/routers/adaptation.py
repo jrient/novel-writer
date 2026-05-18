@@ -141,7 +141,7 @@ async def create_project(
     db.add(p); await db.commit(); await db.refresh(p)
     # Eager load relationships to avoid lazy-load in async context
     from sqlalchemy.orm import selectinload
-    await db.refresh(p, attribute_names=["versions", "mappings"])
+    await db.refresh(p, attribute_names=["updated_at", "versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -167,7 +167,7 @@ async def create_project_upload(
         source_text=text, intent=intent, intensity=intensity,
         era_target=era_target, status="ready", metadata_={},
     )
-    db.add(p); await db.commit(); await db.refresh(p, attribute_names=["versions", "mappings"])
+    db.add(p); await db.commit(); await db.refresh(p, attribute_names=["updated_at", "versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -202,7 +202,7 @@ async def update_project(
     await db.commit()
     # refresh 不带 attribute_names 会让 _get_owned_project 预加载的 versions /
     # mappings 关系过期，_project_to_out 再访问触发 N+1 lazy load。显式重水合。
-    await db.refresh(p, attribute_names=["versions", "mappings"])
+    await db.refresh(p, attribute_names=["updated_at", "versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -226,7 +226,7 @@ async def extract(
         await pipe.extract(p)
     except Exception as e:
         raise HTTPException(502, f"实体抽取失败：{e}")
-    await db.refresh(p, attribute_names=["versions", "mappings"])
+    await db.refresh(p, attribute_names=["updated_at", "versions", "mappings"])
     return _project_to_out(p)
 
 
@@ -237,7 +237,7 @@ async def split(
 ):
     pipe = AdaptationPipeline(db=db, llm=get_default_service())
     await pipe.split(p)
-    await db.refresh(p, attribute_names=["versions", "mappings"])
+    await db.refresh(p, attribute_names=["updated_at", "versions", "mappings"])
     return _project_to_out(p)
 
 

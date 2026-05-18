@@ -45,3 +45,6 @@ reference_novels/*.md
 
 # 误放入的无关原型（dungeon-game / game 静态页）
 /novel-writer/
+
+# CodeGraph 本地索引产物（机器本地，工具自管理）
+.codegraph/
