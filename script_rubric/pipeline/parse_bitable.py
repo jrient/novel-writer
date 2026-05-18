@@ -9,12 +9,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from pathlib import Path
 
 from script_rubric.models import Review, ScriptRecord
 from script_rubric.config import MIN_SCORES_FOR_INCLUSION, SCORE_TIER_THRESHOLDS
 from script_rubric.feishu.feishu_common import extract_segments_text, extract_segments_docx_token
+
+logger = logging.getLogger(__name__)
 
 
 EXPECTED_TABLES = {"冲量", "精品"}
@@ -179,9 +182,12 @@ def parse_table(
         ValueError: 表名不在 EXPECTED_TABLES，或未找到评分人/标题字段
     """
     if table_name not in EXPECTED_TABLES:
-        raise ValueError(
-            f"表名「{table_name}」不在预期集合 {EXPECTED_TABLES}，请确认 URL 是否正确"
+        logger.warning(
+            "跳过表「%s」（不在 backtest 可消费集合 %s）。"
+            "如该表用于其他用途（如「内部本」做项目追踪），属预期；否则检查 URL/allowlist。",
+            table_name, sorted(EXPECTED_TABLES),
         )
+        return []
 
     reviewer_pairs = _extract_reviewer_pairs(fields)
     if not reviewer_pairs:
