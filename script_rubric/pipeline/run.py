@@ -191,7 +191,7 @@ async def cmd_incremental(args):
 
 async def cmd_backtest_only(args):
     version = args.version or 1
-    logger.info(f"=== Backtest Only (v{version}) ===")
+    logger.info(f"=== Backtest Only (v{version}, split={args.split}) ===")
 
     if not BITABLE_RUBRIC_JSON.exists():
         logger.error(f"数据文件不存在: {BITABLE_RUBRIC_JSON}")
@@ -199,8 +199,33 @@ async def cmd_backtest_only(args):
 
     records = parse_bitable_json(BITABLE_RUBRIC_JSON)
     match_texts(records, DRAMA_DIR)
-    test = [r for r in records if r.table_source == "冲量"]
-    logger.info(f"Test set (冲量): {len(test)} scripts")
+
+    if args.split == "labeled":
+        # Labeled-only Test Set：仅取「精品」中同时具备 mean_score(ground truth) 与 text_file 的记录
+        # 用于绕开「冲量表无数字打分」的设计陷阱（aafc5f3 引入的 silent failure mode）
+        # 同 title 多源去重：按 mean_score 降序保留每个 title 的一份（多源时取分高的版本）
+        candidates = [
+            r for r in records
+            if r.table_source == "精品" and r.mean_score is not None and r.text_file
+        ]
+        seen: dict[str, ScriptRecord] = {}
+        for r in sorted(candidates, key=lambda x: x.mean_score, reverse=True):
+            seen.setdefault(r.title, r)
+        test = list(seen.values())
+        logger.info(
+            f"Test set (labeled, 精品 with mean_score+text_file, deduped by title): "
+            f"{len(test)} scripts (from {len(candidates)} raw)"
+        )
+    elif args.split == "stratified":
+        _train, test = split_holdout(records, ratio=0.2, seed=42)
+        logger.info(f"Test set (stratified, ratio=0.2 seed=42): {len(test)} scripts")
+    else:
+        test = [r for r in records if r.table_source == "冲量"]
+        logger.info(f"Test set (table=冲量, legacy): {len(test)} scripts")
+
+    if not test:
+        logger.error("Test set 为空，终止 backtest")
+        return
 
     metrics = await run_backtest(
         test, version=version,
@@ -255,6 +280,10 @@ def main():
 
     p_bt = sub.add_parser("backtest", help="Re-run backtest only")
     p_bt.add_argument("--version", type=int, default=1)
+    p_bt.add_argument(
+        "--split", choices=["table", "stratified", "labeled"], default="labeled",
+        help="Test set 选择：labeled(默认,精品里有 ground truth) / stratified(分层holdout) / table(legacy 仅冲量)",
+    )
     _add_backtest_args(p_bt)
 
     p_p2 = sub.add_parser("pass2", help="Re-run Pass 2 only")
