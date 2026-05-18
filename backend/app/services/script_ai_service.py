@@ -510,17 +510,27 @@ def _build_episode_system_prompt(
     """
     为 episode_content 构建多层 system prompt（顺序固定，下层覆盖上层语义）：
     1. 原始规则（base_system）
-    2. handbook digest（v10 校准集精华：评分目标 + 7 维硬指标 + 红线）
-    3. 类型专项浮层（按 genre 注入：萌宝 / 女频 / 男频 / 世情）
-    4. 反 AI 味清单（最末，作为最强约束）
+    2. handbook digest（v10 校准集精华：评分目标 + 7 维硬指标 + 红线）—— **硬编码校准基线，不动**
+    3. 类型专项浮层（按 genre 注入：萌宝 / 女频 / 男频 / 世情）—— 同上，硬编码校准
+    4. HandbookProvider 动态红线（v14+）—— 跟随 handbook 文件版本自动同步
+    5. 反 AI 味清单（最末，作为最强约束）
+
+    设计：硬编码 _HANDBOOK_DIGEST/overlay 是过去人工校准的精华，直接替换为动态加载存在
+    退化风险（见 memory: rubric-pipeline-status-v14）。改为"硬编码校准 + 动态红线补充"
+    叠加模式：升级 handbook 文件即可新增红线约束，不破坏原校准。
     """
     from app.services.style_guard import get_style_guard
+    from app.services.handbook_provider import build_handbook_red_flags_block
 
     parts: List[str] = [base_system, _HANDBOOK_DIGEST]
 
     overlay = _resolve_genre_overlay(genre)
     if overlay:
         parts.append(overlay)
+
+    dynamic_red = build_handbook_red_flags_block(genre=None)
+    if dynamic_red:
+        parts.append(dynamic_red)
 
     sg = get_style_guard()
     anti_slop = sg.get_anti_slop_rules()

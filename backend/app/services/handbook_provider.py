@@ -143,26 +143,33 @@ class HandbookProvider:
 
     @staticmethod
     def _extract_dimension_tips(section: str) -> str:
-        """从通用规律部分提取每个维度的量化锚点和可执行建议"""
+        """从通用规律部分提取每个维度的量化锚点和可执行建议。
+
+        兼容两种 handbook 维度标题格式：
+        - v10: `## 1. Word (中文名)`     —— level-2，单词英文
+        - v14: `### 1. Word Word（中文名）` —— level-3，多词英文，全角括号
+        """
         tips = []
-        # Find each dimension block (supports both Chinese and English parentheses)
-        dim_pattern = re.compile(r"## \d+\. \w+\s*[\(（][^）)]+[\)）]\s*\n(.*?)(?=## \d+\. |\Z)", re.DOTALL)
+        # 维度标题：## 或 ###；编号；英文（可能多词，含空格 & 字符）；中文括号（半角/全角）
+        dim_pattern = re.compile(
+            r"#{2,3} \d+\. [A-Za-z][\w &/]*\s*[\(（][^）)]+[\)）]\s*\n(.*?)(?=#{2,3} \d+\. [A-Za-z]|\Z)",
+            re.DOTALL,
+        )
+        header_re = re.compile(r"#{2,3} \d+\. [\w &/]+\s*[\(（]([^）)]+)[\)）]")
         for m in dim_pattern.finditer(section):
             block = m.group(1)
-            # Extract key info: 量化锚点 + 可执行建议
             anchor = ""
-            am = re.search(r"\*\*量化锚点\*\*\s*\n(.*?)(?=\n\*\*可执行建议\*\*|\Z)", block, re.DOTALL)
+            am = re.search(r"\*\*量化锚点[:：]?\*\*\s*\n(.*?)(?=\n\*\*可执行建议[:：]?\*\*|\Z)", block, re.DOTALL)
             if am:
                 anchor = am.group(1).strip()
             advice = ""
-            adm = re.search(r"\*\*可执行建议\*\*\s*\n(.*?)(?=\n\*\*|\Z)", block, re.DOTALL)
+            adm = re.search(r"\*\*可执行建议[:：]?\*\*\s*\n(.*?)(?=\n\*\*|\Z)", block, re.DOTALL)
             if adm:
                 advice = adm.group(1).strip()
             if anchor or advice:
-                # Get dimension name (handle Chinese parentheses)
-                header_match = re.match(r"## \d+\. (\w+)\s*[\(（]([^）)]+)[\)）]", m.group(0))
+                header_match = header_re.match(m.group(0))
                 if header_match:
-                    dim_name = header_match.group(2).strip()
+                    dim_name = header_match.group(1).strip()
                     tips.append(f"【{dim_name}】")
                     if anchor:
                         tips.append(f"  {anchor}")
@@ -211,42 +218,91 @@ class HandbookProvider:
 
     @staticmethod
     def _extract_red_flags(section: str) -> str:
-        """提取地雷清单，精简为条目列表"""
-        flags = []
-        # Extract from 高频拒稿原因
-        freq = re.search(r"### 一、 高频拒稿原因 TOP \d+\s*\n(.*?)(?=---|\n###)", section, re.DOTALL)
+        """提取地雷清单，精简为条目列表。
+
+        兼容两种 handbook 子标题格式：
+        - v10: `### 🏆 一、 高频拒稿原因 TOP N`、`### 二、 致命组合`、`### 四、 一句话地雷清单`
+        - v14: `### 1. 高频拒稿原因 TOP N`、`### 2. 致命组合`（无"一句话地雷清单"小节）
+        """
+        flags: list[str] = []
+
+        # ── 高频拒稿原因 ─────────────────────────────────────────
+        # 兼容："### 🏆 一、 高频拒稿原因 TOP 10" / "### 1. 高频拒稿原因 TOP 10"
+        freq = re.search(
+            r"###\s*(?:[^\n]*?(?:一、|1\.))\s*高频拒稿原因\s*TOP\s*\d+[^\n]*\n(.*?)(?=\n---|\n### |\Z)",
+            section,
+            re.DOTALL,
+        )
         if freq:
-            for line in freq.group(1).strip().split("\n"):
-                line = line.strip()
-                # Keep numbered items and bold headers
-                if re.match(r"^\d+\.", line):
+            # 提取 **N. xxx**  形式的粗体编号行；同时兼容裸 "1. xxx" 行
+            for raw in freq.group(1).split("\n"):
+                line = raw.strip()
+                if not line:
+                    continue
+                # 粗体编号行："**3. 反派降智...**"
+                m = re.match(r"^\*\*(\d+\.\s*.+?)\*\*\s*$", line)
+                if m:
+                    flags.append(m.group(1).strip())
+                    continue
+                # 兼容裸编号行（v10 旧排版）："1. xxx"
+                if re.match(r"^\d+\.\s+", line) and not line.startswith("*"):
                     flags.append(line)
-                elif line.startswith("**") and line.endswith("**"):
-                    flags[-1] = flags[-1].replace(line, line.strip("*"))
 
-        # Extract from 致命组合
-        fatal = re.search(r"### 二、 致命组合", section, re.DOTALL)
+        # ── 致命组合 ─────────────────────────────────────────────
+        fatal = re.search(
+            r"###\s*(?:[^\n]*?(?:二、|2\.))\s*致命组合[^\n]*\n(.*?)(?=\n---|\n### |\Z)",
+            section,
+            re.DOTALL,
+        )
         if fatal:
-            block = re.search(r"(.*?)---", fatal.group(), re.DOTALL)
-            if block:
-                for line in block.group(1).strip().split("\n"):
-                    line = line.strip()
-                    if line and not line.startswith("###"):
-                        flags.append(line)
+            # 提取 "**💣 致命组合一：xxx（原理）**" 形式的粗体标题行
+            for raw in fatal.group(1).split("\n"):
+                line = raw.strip()
+                if not line.startswith("**") or not line.endswith("**"):
+                    continue
+                stripped = line.strip("*").strip()
+                if stripped:
+                    flags.append(stripped)
 
-        # Extract from 一句话地雷清单
-        one_liner = re.search(r"### 四、 一句话地雷清单\s*\n(.*?)(?=---|\Z)", section, re.DOTALL)
+        # ── 一句话地雷清单（v10 才有，v14 已合并到高频拒稿） ─────
+        one_liner = re.search(
+            r"###\s*(?:[^\n]*?(?:四、|4\.))\s*一句话地雷清单\s*\n(.*?)(?=\n---|\n### |\Z)",
+            section,
+            re.DOTALL,
+        )
         if one_liner:
-            for line in one_liner.group(1).strip().split("\n"):
-                line = line.strip()
+            for raw in one_liner.group(1).split("\n"):
+                line = raw.strip()
                 if re.match(r"^\d+\.", line):
-                    # Remove leading number
-                    line = re.sub(r"^\d+\.\s*", "", line)
-                    # Remove "绝对不要" prefix for brevity
-                    line = line.replace("绝对不要", "不要")
+                    line = re.sub(r"^\d+\.\s*", "", line).replace("绝对不要", "不要")
                     flags.append(line)
 
         return "\n".join(flags).strip()
+
+
+def build_handbook_red_flags_block(genre: Optional[str] = None) -> str:
+    """构造可注入 writing/rewriting prompt 的 handbook 片段（红线 + 可选类型专项）。
+
+    - 当 handbook 已加载：返回带版本标注的负向约束块
+    - 当 handbook 未加载或解析为空：返回空串（调用方应优雅降级）
+
+    设计取向：只注入"必须避免的红线"和"类型专项"，**不注入** universal_rules
+    （那是描述性规律，注入到生成 prompt 会让模型困惑）。
+    """
+    hb = get_handbook()
+    parts: list[str] = []
+    red = hb.get_red_flags()
+    if red:
+        parts.append(
+            f"【评审手册 {hb.version} · 必须避免的红线/雷点】\n{red}"
+        )
+    if genre:
+        overlay = hb.get_genre_overlay(genre)
+        if overlay:
+            parts.append(
+                f"【评审手册 {hb.version} · 类型专项 · {genre}】\n{overlay}"
+            )
+    return "\n\n".join(parts)
 
 
 # Module-level singleton, loaded on import

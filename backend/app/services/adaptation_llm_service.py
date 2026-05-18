@@ -313,12 +313,29 @@ class AdaptationLLMService:
             for t in character_traits
         ) or "(无)"
 
+    @staticmethod
+    def _build_handbook_block() -> str:
+        """获取 script_rubric handbook 的负向约束块（v14+）。
+        改编流水线只注入红线、不注入 universal_rules / genre overlay：
+        - 改编不强分类（用户场景跨类型）
+        - universal_rules 是描述性规律，不适合做改写硬约束
+        失败时返回空串，prompt 优雅降级。
+        """
+        try:
+            from app.services.handbook_provider import build_handbook_red_flags_block
+            return build_handbook_red_flags_block(genre=None)
+        except Exception as e:
+            logger.warning("handbook 注入失败，按无 handbook 继续: %s", e)
+            return ""
+
     def _build_single_pass_prompt(
         self, body: str, scene_text: str, intent, era_target, mappings, character_traits, prev_scene_summary, extra_prompt, scene_title=None,
     ) -> str:
         mapping_block = self._build_mapping_block(mappings)
         traits_block = self._build_traits_block(character_traits)
         title_hint = f"\n【本场标题（场号标题行据此填写，实体名按映射表替换）】\n{scene_title}" if scene_title else ""
+        handbook = self._build_handbook_block()
+        handbook_section = f"\n\n{handbook}" if handbook else ""
         return f"""你是剧本改编工程师。任务：在保剧情节奏不变的前提下，改写以下单场。
 
 【强度规则】
@@ -343,7 +360,7 @@ class AdaptationLLMService:
 {prev_scene_summary or "(本场为首场)"}
 
 【额外要求】
-{extra_prompt or "(无)"}
+{extra_prompt or "(无)"}{handbook_section}
 
 【原文场内容】
 {scene_text}
@@ -422,6 +439,8 @@ class AdaptationLLMService:
         ) if scene_beats else "(无)"
 
         title_hint = f"\n【本场标题（场号标题行据此填写，实体名按映射表替换）】\n{scene_title}" if scene_title else ""
+        handbook = self._build_handbook_block()
+        handbook_section = f"\n\n{handbook}" if handbook else ""
         pass2_prompt = f"""你是资深剧本改编师。根据下面的「剧情骨架」和「金句」，重新创作本场剧本。
 
 **关键：你没有原文可以参照，你必须根据骨架从零创作剧本。**
@@ -460,7 +479,7 @@ class AdaptationLLMService:
 {prev_scene_summary or "(本场为首场)"}
 
 【额外要求】
-{extra_prompt or "(无)"}
+{extra_prompt or "(无)"}{handbook_section}
 
 直接输出创作好的本场剧本，不要解释或前后缀。"""
 

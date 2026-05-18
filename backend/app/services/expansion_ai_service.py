@@ -468,6 +468,17 @@ class ExpansionAIService:
         else:
             system_prompt = system_prompt.format(style_instructions="")
 
+        # 追加 script_rubric handbook 红线（扩写出来的文本至少不踩明确红线）。
+        # 不注入 genre overlay：扩写本身不强分类，且 universal_rules 是描述性规律，
+        # 注入到生成 prompt 会让模型困惑——只用负向约束最稳。
+        try:
+            from app.services.handbook_provider import build_handbook_red_flags_block
+            red_block = build_handbook_red_flags_block(genre=None)
+            if red_block:
+                system_prompt = f"{system_prompt}\n\n{red_block}"
+        except Exception as e:
+            logger.warning("handbook 红线注入失败，按无 handbook 继续: %s", e)
+
         # 用户提示词
         prompt = EXPAND_USER_PROMPT.format(
             summary=summary,
