@@ -37,12 +37,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from script_rubric.feishu.feishu_common import (
-    extract_bitable_token,
     extract_segments_text,
     fetch_all_bitable_records,
     get_tenant_access_token,
     list_bitable_fields,
     list_bitable_tables,
+    resolve_url_to_bitable_app_token,
 )
 from script_rubric.feishu.record_store import (
     migrate_from_legacy,
@@ -52,7 +52,7 @@ from script_rubric.feishu.record_store import (
 
 load_dotenv()
 
-EXPECTED_TABLES = {"冲量", "精品"}
+EXPECTED_TABLES = {"冲量", "精品"}  # 缺省 allowlist；可被每源 source.tables 覆盖
 
 # 路径锚点
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -61,10 +61,19 @@ HISTORY_PATH = PROJECT_ROOT / "script_rubric" / "data" / "sync_history.json"
 SOURCES_PATH = PROJECT_ROOT / "data" / "bitables.json"
 
 
-def fetch_bitable(url_or_token: str) -> dict:
-    """拉取 bitable 所有数据表（仅返回，不写盘）。"""
-    app_token = extract_bitable_token(url_or_token)
+def fetch_bitable(url_or_token: str, tables_allowlist: set[str] | None = None) -> dict:
+    """拉取 bitable 所有数据表（仅返回，不写盘）。
+
+    Args:
+        url_or_token: bitable /base/ URL、wiki /wiki/ URL、或裸 app_token。
+            wiki 链接背后必须是 bitable 类型节点。
+        tables_allowlist: 只拉取这些表名；None 时回退到 EXPECTED_TABLES。
+            注意：高级权限模式下，list_tables 可能"假成功"返回空数组，
+            此时 allowlist 不会触发任何拉取；调用方应检查 RuntimeError 提示。
+    """
     token = get_tenant_access_token()
+    app_token = resolve_url_to_bitable_app_token(url_or_token, token)
+    allowlist = tables_allowlist if tables_allowlist is not None else EXPECTED_TABLES
 
     tables_meta = list_bitable_tables(token, app_token)
     tables_data = []
@@ -73,8 +82,8 @@ def fetch_bitable(url_or_token: str) -> dict:
         table_id = tbl["table_id"]
         table_name = tbl.get("name", table_id)
 
-        if table_name not in EXPECTED_TABLES:
-            print(f"  跳过表「{table_name}」（不在预期集合）")
+        if table_name not in allowlist:
+            print(f"  跳过表「{table_name}」（不在 allowlist {sorted(allowlist)}）")
             continue
 
         print(f"  拉取表「{table_name}」...")
@@ -109,9 +118,10 @@ def fetch_bitable(url_or_token: str) -> dict:
 
     if not tables_data:
         raise RuntimeError(
-            f"未找到任何有效数据表（预期 {EXPECTED_TABLES}）。"
-            f"请检查 URL 是否正确，或确认表格是否启用了高级权限。"
-            f"实际表名: {[t.get('name') for t in tables_meta]}"
+            f"未找到任何有效数据表（allowlist={sorted(allowlist)}）。"
+            f"实际表名: {[t.get('name') for t in tables_meta]}。"
+            f"如果 list_tables 返回空数组，多半是 base 开启了高级权限但未给当前 app 配权 "
+            f"（症状：app_info 200、list_tables 200 items=[]、list_fields 403 code=1254302）。"
         )
 
     return {
@@ -249,8 +259,11 @@ def cmd_sync_all(args):
     for src in active_sources:
         print(f"\n--- 拉取: {src['name']} ---")
         t0 = time.time()
+        src_allowlist = set(src["tables"]) if isinstance(src.get("tables"), list) else None
+        if src_allowlist is not None:
+            print(f"  allowlist (per-source): {sorted(src_allowlist)}")
         try:
-            data = fetch_bitable(src["url"])
+            data = fetch_bitable(src["url"], tables_allowlist=src_allowlist)
         except Exception as e:
             print(f"  拉取失败（本地数据保留不变）: {e}")
             continue

@@ -56,6 +56,49 @@ def extract_bitable_token(url_or_token: str) -> str:
     raise ValueError(f"无法从输入解析 bitable token: {url_or_token}")
 
 
+def extract_wiki_token(url: str) -> str | None:
+    """从 wiki URL 解析 wiki node token。
+
+    支持: https://xxx.feishu.cn/wiki/<wiki_token>[?...]
+    返回 None 表示这不是 wiki URL（让调用方走 bitable 解析）。
+    """
+    match = re.search(r"/wiki/([A-Za-z0-9]+)", url)
+    return match.group(1) if match else None
+
+
+def resolve_url_to_bitable_app_token(url_or_token: str, access_token: str) -> str:
+    """统一入口：把 /base/、/wiki/、或裸 token 都解析成 bitable app_token。
+
+    解析顺序：
+      1. /base/<token>  → 直接返回 token
+      2. /wiki/<token>  → resolve_wiki_node 拿到 obj_token（要求 obj_type=bitable）
+      3. 裸 token       → 视为 app_token 直接返回
+
+    Raises:
+        ValueError: 若 wiki 节点指向的不是 bitable 类型。
+    """
+    if "/base/" in url_or_token:
+        return extract_bitable_token(url_or_token)
+
+    wiki_token = extract_wiki_token(url_or_token)
+    if wiki_token:
+        node = resolve_wiki_node(access_token, wiki_token)
+        obj_type = node.get("obj_type", "")
+        if obj_type != "bitable":
+            raise ValueError(
+                f"wiki 节点指向的不是 bitable（obj_type={obj_type!r}，title={node.get('title')!r}）"
+            )
+        obj_token = node.get("obj_token", "")
+        if not obj_token:
+            raise ValueError(f"wiki 节点解析失败：未拿到 obj_token (node={node})")
+        return obj_token
+
+    if "/" not in url_or_token:
+        return url_or_token
+
+    raise ValueError(f"无法识别的 URL/token 格式: {url_or_token}")
+
+
 def call_get(endpoint: str, token: str, params: dict | None = None) -> dict:
     """通用 GET 请求封装，自动处理错误码。"""
     url = f"{BASE_URL}{endpoint}"
