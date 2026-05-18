@@ -73,8 +73,14 @@ def evaluate_predictions(
             if range_hit:
                 range_hits += 1
 
-        mae = abs(pred.predicted_score - (actual.mean_score or 0))
-        abs_errors.append(mae)
+        # 仅在 ground truth 存在时计算 MAE；冲量表等无 reviewer 打分的记录不参与
+        # （历史上 `actual.mean_score or 0` 把 None silently fallback 成 0，
+        #  导致 test set 全无打分时 MAE 算出 56.9 这种垃圾数字 → 误判 handbook 退化）
+        if actual.mean_score is not None:
+            mae = abs(pred.predicted_score - actual.mean_score)
+            abs_errors.append(mae)
+        else:
+            mae = None
 
         is_critical = (
             (pred.predicted_status == "签" and actual.status == "拒")
@@ -273,7 +279,7 @@ def generate_report(metrics: BacktestMetrics, version: int) -> str:
         "## 总览",
         f"- 状态命中率: {metrics.status_accuracy:.0%} [{status_ok}] (阈值 >={BACKTEST_STATUS_ACCURACY:.0%})",
         f"- 区间命中率: {metrics.range_accuracy:.0%} [{range_ok}] (阈值 >={BACKTEST_RANGE_ACCURACY:.0%})",
-        f"- 分数 MAE: {metrics.mae:.1f} [{mae_ok}] (阈值 <={BACKTEST_MAE_THRESHOLD})",
+        f"- 分数 MAE: {metrics.mae:.1f} [{mae_ok}] (阈值 <={BACKTEST_MAE_THRESHOLD}, 基于 {sum(1 for d in metrics.details if d.get('mae') is not None)}/{metrics.total} 条有 ground truth)",
         f"- 严重误判率: {metrics.critical_miss_rate:.0%} [{crit_ok}] (阈值 <={BACKTEST_CRITICAL_MISS_RATE:.0%})",
         "",
         "## 逐条明细",
@@ -284,9 +290,10 @@ def generate_report(metrics: BacktestMetrics, version: int) -> str:
     for d in metrics.details:
         range_str = f"[{d['actual_range'][0]},{d['actual_range'][1]}]" if d.get("actual_range") else "N/A"
         hit = "Y" if d["status_hit"] else "N"
+        actual_mean_str = f"{d['actual_mean']:.1f}" if d.get("actual_mean") is not None else "N/A"
         lines.append(
             f"| {d['title'][:20]} | {d['actual_status']} | {d['predicted_status']} "
-            f"| {d['actual_mean']} | {d['predicted_score']} | {range_str} | {hit} |"
+            f"| {actual_mean_str} | {d['predicted_score']} | {range_str} | {hit} |"
         )
 
     failures = [d for d in metrics.details if not d["status_hit"]]
