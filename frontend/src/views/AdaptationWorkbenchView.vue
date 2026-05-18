@@ -9,6 +9,12 @@
       </div>
       <div class="right">
         <el-button :loading="running" @click="onFullRun">全场重跑</el-button>
+        <el-button
+          type="primary" plain
+          :loading="scoring"
+          :disabled="!currentVid || running"
+          @click="onScore"
+        >评分</el-button>
         <el-button @click="onExport('txt')">导出 .txt</el-button>
         <el-button @click="onExport('docx')">导出 .docx</el-button>
       </div>
@@ -81,6 +87,72 @@
         </div>
       </template>
     </el-drawer>
+
+    <el-dialog
+      v-model="scoreDialog"
+      title="剧本评分"
+      width="780px"
+      :close-on-click-modal="false"
+    >
+      <div v-if="scoreResult" class="score-result">
+        <div class="score-head">
+          <div class="score-num">
+            <span class="score-val">{{ scoreResult.predicted_score }}</span>
+            <span class="score-sep">/ 100</span>
+          </div>
+          <div class="score-meta">
+            <el-tag :type="statusTagType(scoreResult.predicted_status)" effect="dark">
+              {{ scoreResult.predicted_status }}
+            </el-tag>
+            <span class="score-hand">handbook {{ scoreResult.handbook_version }} · {{ scoreResult.model }}</span>
+          </div>
+        </div>
+
+        <h4 class="score-section-title">维度分</h4>
+        <div class="score-dims">
+          <div v-for="(val, key) in scoreResult.dimension_scores" :key="key" class="dim-row">
+            <span class="dim-name">{{ dimLabel(String(key)) }}</span>
+            <el-progress
+              :percentage="Math.min(100, (Number(val) || 0) * 10)"
+              :stroke-width="10"
+              :show-text="false"
+              :color="dimColor(Number(val))"
+              style="flex: 1; margin: 0 12px"
+            />
+            <span class="dim-val">{{ val }}</span>
+          </div>
+        </div>
+
+        <template v-if="scoreResult.red_flags_hit && scoreResult.red_flags_hit.length">
+          <h4 class="score-section-title">命中红线</h4>
+          <ul class="score-flags red">
+            <li v-for="(f, i) in scoreResult.red_flags_hit" :key="i">{{ f }}</li>
+          </ul>
+        </template>
+
+        <template v-if="scoreResult.green_flags_hit && scoreResult.green_flags_hit.length">
+          <h4 class="score-section-title">亮点</h4>
+          <ul class="score-flags green">
+            <li v-for="(f, i) in scoreResult.green_flags_hit" :key="i">{{ f }}</li>
+          </ul>
+        </template>
+
+        <template v-if="scoreResult.comments && scoreResult.comments.length">
+          <h4 class="score-section-title">修改建议</h4>
+          <ol class="score-comments">
+            <li v-for="(c, i) in scoreResult.comments" :key="i">{{ c }}</li>
+          </ol>
+        </template>
+      </div>
+      <div v-else-if="scoring" class="score-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>正在调用 handbook 评分，通常需要 30~60 秒…</span>
+      </div>
+      <template #footer>
+        <el-button @click="scoreDialog = false">关闭</el-button>
+        <el-button type="primary" :loading="scoring" @click="onScore">重新评分</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -88,7 +160,9 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 import { adaptationApi, type AdaptationProject, type AdaptationVersion, type SceneResult } from '@/api/adaptation'
+import type { ScoreDocxResponse } from '@/api/rubric'
 
 const route = useRoute()
 const projectId = Number(route.params.id)
@@ -105,7 +179,34 @@ const extraPrompt = ref('')
 const rerunning = ref(false)
 const rerunningIdx = ref<number | null>(null)
 const tab = ref('new')
+const scoring = ref(false)
+const scoreDialog = ref(false)
+const scoreResult = ref<ScoreDocxResponse | null>(null)
 let es: EventSource | null = null
+
+const _DIM_LABELS: Record<string, string> = {
+  premise_innovation: '题材创新',
+  opening_hook: '开局钩子',
+  character_depth: '人设立体',
+  pacing_conflict: '节奏冲突',
+  writing_dialogue: '文笔对白',
+  payoff_satisfaction: '爽点兑现',
+  benchmark_differentiation: '对标差异',
+}
+function dimLabel(key: string): string {
+  return _DIM_LABELS[key] || key
+}
+function dimColor(val: number): string {
+  if (val >= 8) return '#67c23a'
+  if (val >= 6) return '#e6a23c'
+  return '#f56c6c'
+}
+function statusTagType(status: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === '签') return 'success'
+  if (status === '改') return 'warning'
+  if (status === '拒') return 'danger'
+  return 'info'
+}
 
 const progress = computed(() => ({
   total: scenes.value.length,
@@ -342,6 +443,22 @@ function onExport(fmt: 'txt' | 'docx') {
   window.open(adaptationApi.exportUrl(currentVid.value, fmt), '_blank')
 }
 
+async function onScore() {
+  if (!currentVid.value || scoring.value) return
+  scoring.value = true
+  scoreDialog.value = true
+  scoreResult.value = null
+  try {
+    const r = await adaptationApi.scoreRun(currentVid.value)
+    scoreResult.value = r as unknown as ScoreDocxResponse
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || e?.message || '评分失败')
+    scoreDialog.value = false
+  } finally {
+    scoring.value = false
+  }
+}
+
 onMounted(async () => { await loadProject(); await loadVersion() })
 onUnmounted(closeSSE)
 </script>
@@ -357,4 +474,43 @@ onUnmounted(closeSSE)
 .empty-hint { text-align: center; }
 .empty-hint p { margin: 8px 0; color: #606266; }
 .empty-sub { font-size: 12px; color: #909399; }
+
+.score-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+.score-num { display: flex; align-items: baseline; }
+.score-val { font-size: 44px; font-weight: 600; color: #303133; line-height: 1; }
+.score-sep { margin-left: 6px; font-size: 14px; color: #909399; }
+.score-meta { display: flex; flex-direction: column; gap: 6px; }
+.score-hand { font-size: 12px; color: #909399; }
+
+.score-section-title {
+  margin: 20px 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  border-left: 3px solid #409eff;
+  padding-left: 8px;
+}
+.score-dims { display: flex; flex-direction: column; gap: 8px; }
+.dim-row { display: flex; align-items: center; font-size: 13px; }
+.dim-name { width: 88px; color: #606266; }
+.dim-val { width: 32px; text-align: right; color: #303133; font-weight: 600; }
+
+.score-flags { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7; }
+.score-flags.red li { color: #f56c6c; }
+.score-flags.green li { color: #67c23a; }
+.score-comments { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7; color: #606266; }
+
+.score-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 12px;
+  color: #909399;
+  justify-content: center;
+}
 </style>

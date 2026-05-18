@@ -71,6 +71,85 @@ def _handbook_version_label(path: Path) -> str:
     return f"v{m.group(1)}" if m else path.stem
 
 
+async def _score_text_core(
+    *,
+    content: str,
+    title: str,
+    docx_token: str = "",
+    text_file_hint: str = "",
+) -> dict:
+    """评分核心：拿到纯文本与标题后，构造 ScriptRecord → predict_one → 标准化返回。
+    供 score_docx（飞书拉取）与 score_text（直接文本输入）共用。
+    """
+    from script_rubric.pipeline.backtest import predict_one
+    from script_rubric.models import ScriptRecord
+    from script_rubric.config import MODEL
+
+    handbook_path = find_latest_handbook()
+    if handbook_path is None:
+        raise ValueError(f"未找到 handbook 文件（{_HANDBOOK_DIR}）")
+    handbook_text = handbook_path.read_text(encoding="utf-8")
+    handbook_version = _handbook_version_label(handbook_path)
+
+    record = ScriptRecord(
+        title=title,
+        source_type="",
+        genre="",
+        submitter="",
+        status="待评估",
+        status_source="ad_hoc",
+        table_source="",
+        text_content=content,
+        text_file=text_file_hint or (f"docx:{docx_token}" if docx_token else "ad_hoc"),
+        docx_token=docx_token,
+    )
+
+    pred = await predict_one(record, handbook_text)
+    if pred is None:
+        raise ValueError("预测失败：LLM 返回不可解析的结果")
+
+    return {
+        "title": pred.title,
+        "predicted_score": pred.predicted_score,
+        "predicted_status": pred.predicted_status,
+        "dimension_scores": pred.dimension_scores,
+        "comments": pred.comments,
+        "red_flags_hit": pred.red_flags_hit,
+        "green_flags_hit": pred.green_flags_hit,
+        "handbook_version": handbook_version,
+        "model": MODEL,
+        "docx_token": docx_token,
+        "text_length": len(content),
+        "detected_title": title,
+    }
+
+
+async def score_text(text: str, title: str) -> dict:
+    """对一段纯文本剧本做即时评分（跳过飞书拉取）。
+
+    用于 adaptation 改编工作台一键评分等场景：把数据库里多场拼接出来的
+    完整剧本直接送评分，免去导出 docx 上传飞书的中间步骤。
+
+    Args:
+        text: 剧本全文（已拼接好所有场，含场号标题行）
+        title: 项目标题，作为 ScriptRecord.title 使用
+
+    Returns:
+        与 score_docx 同 schema（docx_token 为空串）
+    """
+    if not text or not text.strip():
+        raise ValueError("剧本内容为空，无法评分")
+    if not title:
+        title = "未命名"
+    logger.info(f"score_text: title={title} len={len(text)}")
+    return await _score_text_core(
+        content=text,
+        title=title,
+        docx_token="",
+        text_file_hint="adaptation",
+    )
+
+
 async def score_docx(url: str, force_refresh: bool = True) -> dict:
     """对一个飞书 docx 链接做即时评分。
 
@@ -91,9 +170,6 @@ async def score_docx(url: str, force_refresh: bool = True) -> dict:
         resolve_wiki_node,
     )
     from script_rubric.pipeline.fetch_docx import save_cache, load_cached
-    from script_rubric.pipeline.backtest import predict_one
-    from script_rubric.models import ScriptRecord
-    from script_rubric.config import MODEL
 
     parsed = extract_doc_link(url)
     if not parsed:
@@ -133,42 +209,4 @@ async def score_docx(url: str, force_refresh: bool = True) -> dict:
     title = next((ln.strip() for ln in content.splitlines() if ln.strip()), "未命名")
     logger.info(f"score_docx: token={docx_token} title={title} len={len(content)}")
 
-    # handbook
-    handbook_path = find_latest_handbook()
-    if handbook_path is None:
-        raise ValueError(f"未找到 handbook 文件（{_HANDBOOK_DIR}）")
-    handbook_text = handbook_path.read_text(encoding="utf-8")
-    handbook_version = _handbook_version_label(handbook_path)
-
-    # 构造 ad-hoc record
-    record = ScriptRecord(
-        title=title,
-        source_type="",
-        genre="",
-        submitter="",
-        status="待评估",
-        status_source="ad_hoc",
-        table_source="",
-        text_content=content,
-        text_file=f"docx:{docx_token}",
-        docx_token=docx_token,
-    )
-
-    pred = await predict_one(record, handbook_text)
-    if pred is None:
-        raise ValueError("预测失败：LLM 返回不可解析的结果")
-
-    return {
-        "title": pred.title,
-        "predicted_score": pred.predicted_score,
-        "predicted_status": pred.predicted_status,
-        "dimension_scores": pred.dimension_scores,
-        "comments": pred.comments,
-        "red_flags_hit": pred.red_flags_hit,
-        "green_flags_hit": pred.green_flags_hit,
-        "handbook_version": handbook_version,
-        "model": MODEL,
-        "docx_token": docx_token,
-        "text_length": len(content),
-        "detected_title": title,
-    }
+    return await _score_text_core(content=content, title=title, docx_token=docx_token)

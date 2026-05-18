@@ -1,4 +1,5 @@
 import request from './request'
+import type { ScoreDocxResponse } from './rubric'
 
 export type EntityType = 'person' | 'place' | 'prop' | 'era_term' | 'other'
 
@@ -95,4 +96,7 @@ export const adaptationApi = {
     request.post<{ticket: string}>(`${base}/runs/${vid}/stream/ticket`),
   streamUrl: (vid: number, ticket: string) =>
     `/api/v1/adaptation/runs/${vid}/stream?ticket=${encodeURIComponent(ticket)}`,
+  /** 用 script_rubric handbook 对当前版本拼接出来的全剧本做即时评分 */
+  scoreRun: (vid: number) =>
+    request.post<ScoreDocxResponse>(`${base}/runs/${vid}/score`),
 }

@@ -48,6 +48,43 @@ def _word_count(text: str) -> int:
     return len(re.findall(r"[一-鿿]", text)) + len(re.findall(r"[a-zA-Z]+", text))
 
 
+def _ensure_scene_header(text: str, title: Optional[str], scene_index: int) -> str:
+    """确保改写结果以场号标题行+人物列表行开头；缺失则由代码兜底拼接。
+
+    供导出与评分共用：评分时也保留场号让 LLM 能正确识别节奏密度。
+    """
+    if not text:
+        return text
+    first_line = text.split("\n", 1)[0].strip()
+    if any(p.search(first_line) for p in _SCENE_TITLE_PATTERNS):
+        return text
+    header = title or f"场{scene_index + 1}"
+    char_names: list[str] = []
+    for m in _CHAR_NAME_PATTERN.finditer(text):
+        name = m.group(1)
+        if name and name not in char_names:
+            char_names.append(name)
+    character_line = f"人物：{' '.join(char_names)}" if char_names else ""
+    parts = [header]
+    if character_line:
+        parts.append(character_line)
+    return "\n".join(parts) + "\n" + text
+
+
+async def _compose_run_full_text(db: AsyncSession, version_id: int) -> str:
+    """拼接某个改编版本的全部场为一段完整剧本文本（按 scene_index 排序，
+    优先用 rewritten_scene_text，缺失回退 original_scene_text，统一补场号头）。"""
+    scenes = (await db.execute(
+        select(AdaptationSceneResult).where(AdaptationSceneResult.version_id == version_id)
+        .order_by(AdaptationSceneResult.scene_index)
+    )).scalars().all()
+    parts = [
+        _ensure_scene_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
+        for s in scenes
+    ]
+    return "\n\n".join(p for p in parts if p)
+
+
 def _parse_file(content: bytes, filename: str) -> str:
     """按文件扩展名分发解析。"""
     fname = filename.lower()
@@ -534,27 +571,8 @@ async def export_run(
         .order_by(AdaptationSceneResult.scene_index)
     )).scalars().all()
 
-    def _ensure_header(text: str, title: Optional[str], scene_index: int) -> str:
-        """确保改写结果以场号标题行+人物列表行开头；缺失则由代码兜底拼接。"""
-        if not text:
-            return text
-        first_line = text.split("\n", 1)[0].strip()
-        if any(p.search(first_line) for p in _SCENE_TITLE_PATTERNS):
-            return text
-        header = title or f"场{scene_index + 1}"
-        char_names: list[str] = []
-        for m in _CHAR_NAME_PATTERN.finditer(text):
-            name = m.group(1)
-            if name and name not in char_names:
-                char_names.append(name)
-        character_line = f"人物：{' '.join(char_names)}" if char_names else ""
-        parts = [header]
-        if character_line:
-            parts.append(character_line)
-        return "\n".join(parts) + "\n" + text
-
     parts = [
-        _ensure_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
+        _ensure_scene_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
         for s in scenes
     ]
 
@@ -569,7 +587,7 @@ async def export_run(
     from docx import Document
     doc = Document()
     for s in scenes:
-        content = _ensure_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
+        content = _ensure_scene_header(s.rewritten_scene_text or s.original_scene_text, s.scene_title, s.scene_index)
         for line in content.split("\n"):
             line_stripped = line.strip()
             if not line_stripped:
@@ -589,3 +607,39 @@ async def export_run(
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f"attachment; filename=adaptation_v{v.version_no}.docx"},
     )
+
+
+@router.post("/runs/{version_id}/score")
+async def score_run(
+    v: AdaptationVersion = Depends(_get_owned_version),
+    db: AsyncSession = Depends(get_db),
+):
+    """对当前改编版本做 script_rubric 即时评分。
+
+    拼接 version 下所有 scene_results（rewritten 优先，缺失回退 original）为完整
+    剧本文本，调用 rubric_score_service.score_text，返回评分+维度+红绿旗+建议。
+
+    与 /api/v1/rubric-pipeline/score-docx 同 schema，前端可复用同一渲染逻辑。
+    """
+    from app.services.rubric_score_service import score_text as _score_text
+    from app.services.rubric_pipeline_service import check_llm_config
+
+    llm = check_llm_config()
+    if not llm["api_key_set"]:
+        raise HTTPException(503, "LLM API key 未配置，无法评分。请设置 OPENAI_API_KEY。")
+
+    full_text = await _compose_run_full_text(db, v.id)
+    if not full_text.strip():
+        raise HTTPException(400, "当前版本无可用场内容，无法评分")
+
+    p = (await db.execute(
+        select(AdaptationProject).where(AdaptationProject.id == v.project_id)
+    )).scalar_one()
+
+    try:
+        return await _score_text(text=full_text, title=p.title or "改编剧本")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        logger.exception("adaptation /score 失败")
+        raise HTTPException(500, f"评分失败：{e}")
