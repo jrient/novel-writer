@@ -107,3 +107,121 @@ class TestDedupByBook:
         assert len(winners) == 1
         assert skipped == 1
         assert dropped == []
+
+
+import json
+from pathlib import Path
+
+import pytest
+
+from script_rubric.feishu.record_store import rebuild_index, save_record, save_table_meta
+
+
+@pytest.fixture
+def temp_records_root(tmp_path, monkeypatch):
+    """临时 RECORDS_ROOT，避免污染真实数据。"""
+    fake_root = tmp_path / "bitable_records"
+    fake_root.mkdir()
+    monkeypatch.setattr("script_rubric.feishu.record_store.RECORDS_ROOT", fake_root)
+    return fake_root
+
+
+def _write_record(root, table_id, table_name, record_id, title, synced_at, app_token="app_x"):
+    """直接落盘一条 per-record 文件，绕过 sync 流程。"""
+    tdir = root / table_id
+    tdir.mkdir(exist_ok=True)
+    meta = tdir / "_meta.json"
+    if not meta.exists():
+        meta.write_text(json.dumps({
+            "table_id": table_id,
+            "table_name": table_name,
+            "fields": [{"field_name": "书名"}],
+            "_updated_at": synced_at,
+            "_source_app_token": app_token,
+        }, ensure_ascii=False), encoding="utf-8")
+    rec_path = tdir / f"{record_id}.json"
+    rec_path.write_text(json.dumps({
+        "record_id": record_id,
+        "fields": {"书名": title},
+        "_record_id": record_id,
+        "_synced_at": synced_at,
+        "_source_app_token": app_token,
+    }, ensure_ascii=False), encoding="utf-8")
+
+
+class TestRebuildIndexDedup:
+    def test_dedup_keeps_latest_across_table_ids(self, temp_records_root, tmp_path):
+        _write_record(temp_records_root, "tid_old", "精品", "r1", "某书", "2026-05-01T10:00:00")
+        _write_record(temp_records_root, "tid_new", "精品", "r2", "某书", "2026-05-18T10:00:00")
+
+        out = tmp_path / "out.json"
+        index = rebuild_index(out, latest_app_token="app_x")
+
+        precision_tables = [t for t in index["tables"] if t["table_name"] == "精品"]
+        assert len(precision_tables) == 1
+        records = precision_tables[0]["records"]
+        assert len(records) == 1
+        assert records[0]["fields"]["书名"] == "某书"
+        assert records[0]["record_id"] == "r2"
+
+    def test_dedup_stats_emitted(self, temp_records_root, tmp_path):
+        _write_record(temp_records_root, "tid_a", "精品", "r1", "A", "2026-05-01T10:00:00")
+        _write_record(temp_records_root, "tid_b", "精品", "r2", "A", "2026-05-18T10:00:00")
+        _write_record(temp_records_root, "tid_c", "精品", "r3", "B", "2026-05-18T10:00:00")
+        tdir = temp_records_root / "tid_a"
+        (tdir / "r_empty.json").write_text(json.dumps({
+            "record_id": "r_empty", "fields": {},
+            "_record_id": "r_empty", "_synced_at": "2026-05-01T10:00:00",
+        }, ensure_ascii=False), encoding="utf-8")
+
+        out = tmp_path / "out.json"
+        index = rebuild_index(out, latest_app_token="app_x")
+
+        stats = index["_dedup_stats"]
+        assert stats["unique_books"] == 2
+        assert stats["dropped_duplicates"] == 1
+        assert stats["skipped_no_title"] == 1
+        assert stats["total_files"] == 4
+
+        dropped = index["_dedup_dropped"]
+        assert len(dropped) == 1
+        assert dropped[0]["title"] == "A"
+
+    def test_cross_table_winner_in_its_table_only(self, temp_records_root, tmp_path):
+        _write_record(temp_records_root, "tid_chong", "冲量", "r1", "某书", "2026-05-01T10:00:00")
+        _write_record(temp_records_root, "tid_jing", "精品", "r2", "某书", "2026-05-18T10:00:00")
+
+        out = tmp_path / "out.json"
+        index = rebuild_index(out, latest_app_token="app_x")
+
+        chong = [t for t in index["tables"] if t["table_name"] == "冲量"][0]
+        jing = [t for t in index["tables"] if t["table_name"] == "精品"][0]
+        assert len(chong["records"]) == 0
+        assert len(jing["records"]) == 1
+        assert jing["records"][0]["record_id"] == "r2"
+
+    def test_rebuild_idempotent_ignoring_timestamp(self, temp_records_root, tmp_path):
+        _write_record(temp_records_root, "tid_a", "精品", "r1", "A", "2026-05-18T10:00:00")
+        _write_record(temp_records_root, "tid_b", "精品", "r2", "A", "2026-05-01T10:00:00")
+
+        out1 = tmp_path / "out1.json"
+        out2 = tmp_path / "out2.json"
+        idx1 = rebuild_index(out1, latest_app_token="app_x")
+        idx2 = rebuild_index(out2, latest_app_token="app_x")
+
+        for d in (idx1, idx2):
+            d.pop("synced_at")
+        assert idx1 == idx2
+
+    def test_same_table_name_multiple_dirs_merged(self, temp_records_root, tmp_path):
+        _write_record(temp_records_root, "tid_a", "精品", "r1", "A", "2026-05-01T10:00:00")
+        _write_record(temp_records_root, "tid_b", "精品", "r2", "B", "2026-05-01T10:00:00")
+        _write_record(temp_records_root, "tid_c", "精品", "r3", "C", "2026-05-01T10:00:00")
+
+        out = tmp_path / "out.json"
+        index = rebuild_index(out, latest_app_token="app_x")
+
+        jing_tables = [t for t in index["tables"] if t["table_name"] == "精品"]
+        assert len(jing_tables) == 1
+        titles = sorted(r["fields"]["书名"] for r in jing_tables[0]["records"])
+        assert titles == ["A", "B", "C"]

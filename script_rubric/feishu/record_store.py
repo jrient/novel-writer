@@ -175,26 +175,104 @@ def load_table(table_id: str) -> dict | None:
 
 
 def rebuild_index(out_path: Path, latest_app_token: str | None = None) -> dict:
-    """从 per-record 文件并集 rebuild 出 bitable_rubric.json 索引。
+    """从 per-record 文件并集 rebuild bitable_rubric.json 索引，并按书名去重。
+
+    流程：
+      1. 遍历所有 table_id 目录，按 table_name 分组
+      2. 每张表内按归一化书名去重（最新 _synced_at 胜出）
+      3. 同表名的多个 table_id 目录合并为单条 table 项
+      4. 输出附加 _dedup_stats / _dedup_dropped 供审计
 
     Args:
         out_path: 索引文件输出路径
         latest_app_token: 本次同步的 app_token（写入索引头部用于溯源）
-
-    Returns:
-        写入的索引内容
     """
-    tables = []
+    from script_rubric.feishu.book_dedup import dedup_by_book
+
+    # table_id -> table_name mapping, plus best meta per table_name
+    tid_to_table_name: dict[str, str] = {}
+    meta_by_table_name: dict[str, dict] = {}
+    total_files = 0
+
+    # Collect all records globally, tagged with (rec, tid)
+    all_records_with_tid: list[tuple[dict, str]] = []
+
     for tid in sorted(list_table_ids()):
-        loaded = load_table(tid)
-        if loaded is not None:
-            tables.append(loaded)
+        meta = load_table_meta(tid)
+        if meta is None:
+            continue
+        table_name = meta.get("table_name", "")
+        if not table_name:
+            continue
+        tid_to_table_name[tid] = table_name
+        existing_meta = meta_by_table_name.get(table_name)
+        if existing_meta is None or (meta.get("_updated_at", "") > existing_meta.get("_updated_at", "")):
+            meta_by_table_name[table_name] = meta
+
+        for rid in list_record_ids(tid):
+            rec = load_record(tid, rid)
+            if rec is None:
+                continue
+            total_files += 1
+            all_records_with_tid.append((rec, tid))
+
+    # Global dedup across all table_names — winner belongs to its own table_name only
+    winners_global, all_dropped, skipped_no_title = dedup_by_book(all_records_with_tid)
+    unique_books = len(winners_global)
+    dropped_duplicates = len(all_dropped)
+
+    # Group winners by their table_name
+    winners_by_table_name: dict[str, list[tuple[dict, str]]] = {}
+    for rec, source_tid in winners_global:
+        table_name = tid_to_table_name.get(source_tid, "")
+        if not table_name:
+            continue
+        winners_by_table_name.setdefault(table_name, []).append((rec, source_tid))
+
+    tables = []
+    for table_name in sorted(meta_by_table_name.keys()):
+        winners_here = winners_by_table_name.get(table_name, [])
+
+        cleaned_records = []
+        for rec, source_tid in winners_here:
+            clean = {k: v for k, v in rec.items() if not k.startswith("_")}
+            if "record_id" not in clean and "_record_id" in rec:
+                clean["record_id"] = rec["_record_id"]
+            if "id" not in clean and rec.get("_record_id"):
+                clean["id"] = rec["_record_id"]
+            clean["_last_source"] = {
+                "app_token": rec.get("_source_app_token", ""),
+                "table_id": source_tid,
+                "record_id": rec.get("_record_id") or rec.get("record_id", ""),
+                "synced_at": rec.get("_synced_at", ""),
+            }
+            cleaned_records.append(clean)
+
+        tid_count: dict[str, int] = {}
+        for _, source_tid in winners_here:
+            tid_count[source_tid] = tid_count.get(source_tid, 0) + 1
+        representative_tid = max(tid_count.items(), key=lambda kv: (kv[1], kv[0]))[0] if tid_count else ""
+
+        meta = meta_by_table_name[table_name]
+        tables.append({
+            "table_id": representative_tid or meta.get("table_id", ""),
+            "table_name": table_name,
+            "fields": meta.get("fields", []),
+            "records": cleaned_records,
+        })
 
     data = {
         "synced_at": datetime.now().isoformat(),
         "app_token": latest_app_token or "",
         "tables": tables,
         "_index_rebuilt_from": str(RECORDS_ROOT),
+        "_dedup_stats": {
+            "total_files": total_files,
+            "unique_books": unique_books,
+            "dropped_duplicates": dropped_duplicates,
+            "skipped_no_title": skipped_no_title,
+        },
+        "_dedup_dropped": all_dropped,
     }
     _atomic_write_json(out_path, data)
     return data
