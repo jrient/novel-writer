@@ -1,10 +1,15 @@
 """书级去重逻辑单测。"""
 
+import json
+
+import pytest
+
 from script_rubric.feishu.book_dedup import (
     normalize_title,
     select_winner,
     dedup_by_book,
 )
+from script_rubric.feishu.record_store import rebuild_index
 
 
 class TestNormalizeTitle:
@@ -107,14 +112,6 @@ class TestDedupByBook:
         assert len(winners) == 1
         assert skipped == 1
         assert dropped == []
-
-
-import json
-from pathlib import Path
-
-import pytest
-
-from script_rubric.feishu.record_store import rebuild_index, save_record, save_table_meta
 
 
 @pytest.fixture

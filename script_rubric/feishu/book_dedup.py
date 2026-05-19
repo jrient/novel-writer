@@ -41,7 +41,10 @@ def _sort_key(record: dict) -> tuple[str, str]:
 def select_winner(records: list[dict]) -> tuple[dict, list[dict]]:
     """从一组同 title 的 records 中选 winner。
 
-    规则：_synced_at 最大者；tiebreak 取 _record_id 字典序更大者。
+    规则：_synced_at 最大者；tiebreak 取 _record_id 字典序更大者
+    （注意是字典序 max，即 'r_zzz' 胜过 'r_aaa'，与"最新 ID 胜"
+    的直觉一致但与"最大数字 ID 胜"不同——飞书 record_id 是
+    字母数字字符串，字典序通常能反映创建顺序）。
     缺失 _synced_at 视为 epoch（必然输给任何有时间戳的）。
 
     Returns:

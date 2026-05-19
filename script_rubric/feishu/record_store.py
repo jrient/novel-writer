@@ -29,6 +29,8 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from script_rubric.feishu.book_dedup import dedup_by_book
+
 logger = logging.getLogger(__name__)
 
 # 路径锚点 — script_rubric/data/bitable_records/
@@ -174,6 +176,16 @@ def load_table(table_id: str) -> dict | None:
     }
 
 
+_TABLE_ORDER = ("精品", "冲量", "内部本")
+
+
+def _table_sort_key(name: str) -> tuple[int, str]:
+    try:
+        return (_TABLE_ORDER.index(name), name)
+    except ValueError:
+        return (len(_TABLE_ORDER), name)
+
+
 def rebuild_index(out_path: Path, latest_app_token: str | None = None) -> dict:
     """从 per-record 文件并集 rebuild bitable_rubric.json 索引，并按书名去重。
 
@@ -187,11 +199,9 @@ def rebuild_index(out_path: Path, latest_app_token: str | None = None) -> dict:
         out_path: 索引文件输出路径
         latest_app_token: 本次同步的 app_token（写入索引头部用于溯源）
     """
-    from script_rubric.feishu.book_dedup import dedup_by_book
-
     # table_id -> table_name mapping, plus best meta per table_name
     tid_to_table_name: dict[str, str] = {}
-    meta_by_table_name: dict[str, dict] = {}
+    meta_by_table_name: dict[str, dict] = {}  # table_name -> (tid, meta)
     total_files = 0
 
     # Collect all records globally, tagged with (rec, tid)
@@ -205,9 +215,9 @@ def rebuild_index(out_path: Path, latest_app_token: str | None = None) -> dict:
         if not table_name:
             continue
         tid_to_table_name[tid] = table_name
-        existing_meta = meta_by_table_name.get(table_name)
-        if existing_meta is None or (meta.get("_updated_at", "") > existing_meta.get("_updated_at", "")):
-            meta_by_table_name[table_name] = meta
+        existing_entry = meta_by_table_name.get(table_name)
+        if existing_entry is None or (meta.get("_updated_at", "") > existing_entry[1].get("_updated_at", "")):
+            meta_by_table_name[table_name] = (tid, meta)
 
         for rid in list_record_ids(tid):
             rec = load_record(tid, rid)
@@ -230,7 +240,7 @@ def rebuild_index(out_path: Path, latest_app_token: str | None = None) -> dict:
         winners_by_table_name.setdefault(table_name, []).append((rec, source_tid))
 
     tables = []
-    for table_name in sorted(meta_by_table_name.keys()):
+    for table_name in sorted(meta_by_table_name.keys(), key=_table_sort_key):
         winners_here = winners_by_table_name.get(table_name, [])
 
         cleaned_records = []
@@ -248,14 +258,10 @@ def rebuild_index(out_path: Path, latest_app_token: str | None = None) -> dict:
             }
             cleaned_records.append(clean)
 
-        tid_count: dict[str, int] = {}
-        for _, source_tid in winners_here:
-            tid_count[source_tid] = tid_count.get(source_tid, 0) + 1
-        representative_tid = max(tid_count.items(), key=lambda kv: (kv[1], kv[0]))[0] if tid_count else ""
-
-        meta = meta_by_table_name[table_name]
+        # fields and table_id both come from the same meta (the _updated_at-newest one)
+        meta_tid, meta = meta_by_table_name[table_name]
         tables.append({
-            "table_id": representative_tid or meta.get("table_id", ""),
+            "table_id": meta_tid,
             "table_name": table_name,
             "fields": meta.get("fields", []),
             "records": cleaned_records,
