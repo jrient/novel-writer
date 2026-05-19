@@ -8,7 +8,7 @@
 
 from __future__ import annotations
 
-from script_rubric.feishu.feishu_common import _extract_record_title
+from script_rubric.feishu.feishu_common import extract_record_title
 
 
 def normalize_title(title: str | None) -> str:
@@ -27,11 +27,15 @@ def normalize_title(title: str | None) -> str:
 _EPOCH_FALLBACK = "1970-01-01T00:00:00"
 
 
+def _get_record_id(record: dict) -> str:
+    """提取记录 ID：内部 _record_id 优先，回退 record_id / id；都缺则空串。"""
+    return record.get("_record_id") or record.get("record_id") or record.get("id") or ""
+
+
 def _sort_key(record: dict) -> tuple[str, str]:
     """winner 选择排序 key：(_synced_at, _record_id)，缺失 _synced_at 用 epoch。"""
     synced_at = record.get("_synced_at") or _EPOCH_FALLBACK
-    record_id = record.get("_record_id") or record.get("record_id") or record.get("id") or ""
-    return (synced_at, record_id)
+    return (synced_at, _get_record_id(record))
 
 
 def select_winner(records: list[dict]) -> tuple[dict, list[dict]]:
@@ -70,7 +74,7 @@ def dedup_by_book(
     groups: dict[str, list[tuple[dict, str]]] = {}
     skipped = 0
     for rec, tid in records_with_table:
-        raw_title = _extract_record_title(rec)
+        raw_title = extract_record_title(rec)
         key = normalize_title(raw_title)
         if not key:
             skipped += 1
@@ -83,19 +87,16 @@ def dedup_by_book(
         if len(group) == 1:
             winners.append(group[0])
             continue
-        records_only = [r for r, _ in group]
-        winner_rec, _ = select_winner(records_only)
-        winner_tid = next(tid for r, tid in group if r is winner_rec)
+        # 按 (record 的 _sort_key) 排序整个 paired tuple，winner = 最后一个
+        sorted_group = sorted(group, key=lambda rt: _sort_key(rt[0]))
+        winner_rec, winner_tid = sorted_group[-1]
         winners.append((winner_rec, winner_tid))
-        kept_from = f"{winner_tid}/{winner_rec.get('_record_id') or winner_rec.get('record_id', '')}"
-        for r, tid in group:
-            if r is winner_rec:
-                continue
-            dropped_from = f"{tid}/{r.get('_record_id') or r.get('record_id', '')}"
+        kept_from = f"{winner_tid}/{_get_record_id(winner_rec)}"
+        for r, tid in sorted_group[:-1]:
             dropped_info.append({
                 "title": key,
                 "kept_from": kept_from,
-                "dropped_from": dropped_from,
+                "dropped_from": f"{tid}/{_get_record_id(r)}",
             })
 
     return winners, dropped_info, skipped

@@ -257,6 +257,10 @@ def _extract_record_title(record: dict) -> str | None:
     return None
 
 
+# Public alias — 供同包外部模块（如 book_dedup）调用，避免跨模块 import 私有名。
+extract_record_title = _extract_record_title
+
+
 def merge_bitable_tables(
     existing_tables: list,
     new_tables: list,
