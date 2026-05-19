@@ -6,6 +6,20 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-novel_writer}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: Asia/Shanghai
+    # 低端服务器（~1.6Gi）瘦身：app 池 3 条 + 维护内连接，常驻 < 120MB；
+    # 192M 给峰值 + WAL/缓存留余量，与 backend 共用 OS page cache。
+    mem_limit: 192m
+    mem_reservation: 96m
+    # 关闭 OOM-Score 提升：DB 不该被优先 kill
+    oom_score_adj: -100
+    # PG 自身堆调优：shared_buffers 24M / work_mem 4M（默认 128M/4M）
+    command: >
+      postgres
+      -c shared_buffers=24MB
+      -c work_mem=4MB
+      -c maintenance_work_mem=16MB
+      -c effective_cache_size=128MB
+      -c max_connections=20
     volumes:
       - postgres_data:/var/lib/postgresql/data
     # 数据库端口不对外暴露，仅容器内部使用
@@ -23,6 +37,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    # 低端服务器瘦身：1 worker uvicorn + asyncio + httpx + sqlalchemy 常驻 ~150MB；
+    # adaptation 改写并发 2 时，单场 prompt/response 峰值 60~80MB；
+    # 256M 留 50MB 头部余量。OOM 时优先于 db 被 kill（adj 默认 0）。
+    mem_limit: 256m
+    mem_reservation: 160m
     ports:
       - "8084:8000"
     volumes:
@@ -58,6 +77,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    # 低端服务器瘦身：nginx 静态文件服务，常驻 < 30MB；64M 已含安全余量。
+    mem_limit: 64m
+    mem_reservation: 32m
     ports:
       - "8083:80"
     depends_on:

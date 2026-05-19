@@ -73,7 +73,10 @@ class Settings(BaseSettings):
 
     # 改编模块配置
     ADAPTATION_MAX_CHARS: int = 200_000
-    ADAPTATION_REWRITE_CONCURRENCY: int = 5
+    # 低端服务器（≈1.6Gi 内存）瘦身：原 5 并发时单场 prompt+response 峰值
+    # 可达 60~80MB（v4-flash 长上下文），五场叠满即吃半个机器；
+    # 降到 2 仍能让 LLM 吞吐覆盖切场速度，且单场失败影响面更小。
+    ADAPTATION_REWRITE_CONCURRENCY: int = 2
     ADAPTATION_PER_SCENE_TIMEOUT_SEC: int = 90
     ADAPTATION_EXTRACT_MODEL: Optional[str] = None
     ADAPTATION_REWRITE_MODEL: Optional[str] = None

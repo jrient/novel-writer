@@ -12,13 +12,16 @@ if settings.DATABASE_URL.startswith("sqlite"):
     )
 else:
     # PostgreSQL 配置连接池
+    # 低端服务器（≈1.6Gi 物理内存）瘦身：每条 PG 连接驻留 ~10MB，
+    # 20+10 满载即吃掉 ~300MB。adaptation 改写并发已限 2，
+    # 加上 SSE/普通请求峰值 ~3 条连接即可覆盖；溢出关掉避免突发风暴。
     engine = create_async_engine(
         settings.DATABASE_URL,
         echo=False,
-        pool_size=20,           # 核心连接数
-        max_overflow=10,        # 最大溢出连接数
-        pool_recycle=3600,      # 连接回收时间（秒）
-        pool_pre_ping=True,     # 自动心跳检测，防止连接断开
+        pool_size=3,
+        max_overflow=0,
+        pool_recycle=3600,
+        pool_pre_ping=True,
     )
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
