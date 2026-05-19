@@ -222,3 +222,30 @@ class TestRebuildIndexDedup:
         assert len(jing_tables) == 1
         titles = sorted(r["fields"]["书名"] for r in jing_tables[0]["records"])
         assert titles == ["A", "B", "C"]
+
+
+class TestFetchBitableAllowlistNone:
+    """allowlist=None 时应拉所有表，不过滤。"""
+
+    def test_none_allowlist_does_not_skip(self, monkeypatch):
+        from script_rubric.feishu import sync_bitable
+
+        monkeypatch.setattr(sync_bitable, "get_tenant_access_token", lambda: "tok")
+        monkeypatch.setattr(sync_bitable, "resolve_url_to_bitable_app_token", lambda u, t: "app_x")
+        monkeypatch.setattr(sync_bitable, "list_bitable_tables", lambda t, a: [
+            {"table_id": "tid_a", "name": "精品"},
+            {"table_id": "tid_b", "name": "冲量"},
+            {"table_id": "tid_c", "name": "内部本"},
+            {"table_id": "tid_d", "name": "成品表"},
+        ])
+        monkeypatch.setattr(sync_bitable, "list_bitable_fields", lambda t, a, tid: [
+            {"field_name": "书名"}
+        ])
+        monkeypatch.setattr(sync_bitable, "fetch_all_bitable_records", lambda t, a, tid: [
+            {"record_id": f"r_{tid}", "fields": {"书名": f"书{tid}"}}
+        ])
+
+        result = sync_bitable.fetch_bitable("https://x/base/app_x", tables_allowlist=None)
+
+        table_names = sorted(t["table_name"] for t in result["tables"])
+        assert table_names == ["内部本", "冲量", "成品表", "精品"]

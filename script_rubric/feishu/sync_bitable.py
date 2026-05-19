@@ -52,7 +52,7 @@ from script_rubric.feishu.record_store import (
 
 load_dotenv()
 
-EXPECTED_TABLES = {"冲量", "精品"}  # 缺省 allowlist；可被每源 source.tables 覆盖
+EXPECTED_TABLES = None  # None = 拉全部表；可被每源 source.tables 覆盖
 
 # 路径锚点
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -67,9 +67,10 @@ def fetch_bitable(url_or_token: str, tables_allowlist: set[str] | None = None) -
     Args:
         url_or_token: bitable /base/ URL、wiki /wiki/ URL、或裸 app_token。
             wiki 链接背后必须是 bitable 类型节点。
-        tables_allowlist: 只拉取这些表名；None 时回退到 EXPECTED_TABLES。
+        tables_allowlist: 只拉取这些表名；None 时回退到 EXPECTED_TABLES
+            （后者默认为 None = 不过滤、拉全部表）。
             注意：高级权限模式下，list_tables 可能"假成功"返回空数组，
-            此时 allowlist 不会触发任何拉取；调用方应检查 RuntimeError 提示。
+            此时即便 allowlist=None 也无任何记录可拉；调用方应检查 RuntimeError 提示。
     """
     token = get_tenant_access_token()
     app_token = resolve_url_to_bitable_app_token(url_or_token, token)
@@ -82,7 +83,7 @@ def fetch_bitable(url_or_token: str, tables_allowlist: set[str] | None = None) -
         table_id = tbl["table_id"]
         table_name = tbl.get("name", table_id)
 
-        if table_name not in allowlist:
+        if allowlist is not None and table_name not in allowlist:
             print(f"  跳过表「{table_name}」（不在 allowlist {sorted(allowlist)}）")
             continue
 
@@ -117,8 +118,9 @@ def fetch_bitable(url_or_token: str, tables_allowlist: set[str] | None = None) -
         })
 
     if not tables_data:
+        allowlist_repr = sorted(allowlist) if allowlist is not None else "<全部>"
         raise RuntimeError(
-            f"未找到任何有效数据表（allowlist={sorted(allowlist)}）。"
+            f"未找到任何有效数据表（allowlist={allowlist_repr}）。"
             f"实际表名: {[t.get('name') for t in tables_meta]}。"
             f"如果 list_tables 返回空数组，多半是 base 开启了高级权限但未给当前 app 配权 "
             f"（症状：app_info 200、list_tables 200 items=[]、list_fields 403 code=1254302）。"
