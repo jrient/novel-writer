@@ -411,31 +411,56 @@ async def create_run(
         raise HTTPException(400, "尚未切场，请先调用 /split")
     pipe = AdaptationPipeline(db=db, llm=get_default_service())
     version = await pipe.create_full_run(p, extra_prompt=payload.extra_prompt)
-    asyncio.create_task(_background_run(p.id, version.id))
+    task = asyncio.create_task(_background_run(p.id, version.id))
+    # asyncio.create_task 的 future 如果没人 await，未捕获异常会被 GC 时静默丢弃。
+    # add_done_callback 把异常显式喂到 logger，避免 v14 那种"task 静默死亡 + UI 永远 running"。
+    task.add_done_callback(lambda t: _log_background_task_error(t, version.id))
     return _version_to_out(version)
 
 
+def _log_background_task_error(task: "asyncio.Task", version_id: int) -> None:
+    if task.cancelled():
+        logger.warning("adaptation 后台 task v=%s 被取消", version_id)
+        return
+    exc = task.exception()
+    if exc is not None:
+        logger.error("adaptation 后台 task v=%s 未捕获异常: %r", version_id, exc, exc_info=exc)
+
+
 async def _background_run(project_id: int, version_id: int) -> None:
-    """后台 task：用一个新的 db session 执行实际改写。"""
+    """后台 task：用一个新的 db session 加载 project/version，
+    然后调 pipeline 的 execute_full_run（其内部每场用自己的独立 session 写结果）。
+    顶层异常兜底把 version 标 failed，保证 UI 不会永远卡在 running。
+    """
     from app.core.database import async_session
-    async with async_session() as session:
-        p = (await session.execute(
-            select(AdaptationProject).where(AdaptationProject.id == project_id)
-        )).scalar_one_or_none()
-        v = (await session.execute(
-            select(AdaptationVersion).where(AdaptationVersion.id == version_id)
-        )).scalar_one_or_none()
-        if not p or not v:
-            return
-        pipe = AdaptationPipeline(db=session, llm=get_default_service())
-        try:
+    try:
+        async with async_session() as session:
+            p = (await session.execute(
+                select(AdaptationProject).where(AdaptationProject.id == project_id)
+            )).scalar_one_or_none()
+            v = (await session.execute(
+                select(AdaptationVersion).where(AdaptationVersion.id == version_id)
+            )).scalar_one_or_none()
+            if not p or not v:
+                return
+            pipe = AdaptationPipeline(db=session, llm=get_default_service())
             await pipe.execute_full_run(p, v)
-        except Exception as e:
-            logger.exception("背景跑改编失败")
-            v.status = "failed"
-            v.error = str(e)[:500]
-            await session.commit()
-            await event_bus.publish(version_id, {"event": "version_failed", "error": str(e)[:200]})
+    except Exception as e:
+        logger.exception("背景跑改编失败 v=%s", version_id)
+        # 用独立 session 写 failed 状态，不依赖外层 session 是否还活着
+        try:
+            from app.core.database import async_session
+            from sqlalchemy import update as _update
+            async with async_session() as s2:
+                await s2.execute(
+                    _update(AdaptationVersion)
+                    .where(AdaptationVersion.id == version_id)
+                    .values(status="failed", error=str(e)[:500], completed_at=utcnow_naive())
+                )
+                await s2.commit()
+        except Exception:
+            logger.exception("兜底标 version=%s failed 也失败", version_id)
+        await event_bus.publish(version_id, {"event": "version_failed", "error": str(e)[:200]})
 
 
 @router.get("/projects/{project_id}/runs", response_model=List[AdaptationVersionOut])

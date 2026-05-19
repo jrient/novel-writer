@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from app.core.datetime_utils import utcnow_naive
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, update
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import settings
 from app.models.adaptation_mapping_entry import AdaptationMappingEntry
@@ -151,48 +151,183 @@ class AdaptationPipeline:
     async def execute_full_run(
         self, project: AdaptationProject, version: AdaptationVersion
     ) -> None:
+        """并发改写全部场。
+
+        每个场用独立 db session 自行 commit，避免共享 session 并发 commit
+        引发 race / 一次性堆积 N 行 dirty 数据导致中途异常时整体回滚的问题。
+        gather 用 return_exceptions=True，单场异常不再 cancel 其它兄弟任务。
+        """
+        # 用 self.db 绑定的 engine 派生 session factory，测试 fixture（独立 engine）也能复用
+        _session_factory = async_sessionmaker(
+            self.db.bind, class_=AsyncSession, expire_on_commit=False,
+        )
+
         sem = self._sem()
         meta = project.metadata_ or {}
         summaries = meta.get("scene_summaries", [])
         traits = meta.get("character_traits", [])
         extra_prompt = (version.prompt_overrides or {}).get("extra_prompt")
+        mappings = version.mapping_snapshot or []
+        intensity = project.intensity
+        intent = project.intent
+        era_target = project.era_target
 
         scenes = (await self.db.execute(
             select(AdaptationSceneResult)
             .where(AdaptationSceneResult.version_id == version.id)
             .order_by(AdaptationSceneResult.scene_index)
         )).scalars().all()
+        # 快照只读字段，后续不再回查 ORM
+        scene_specs = [
+            {
+                "id": s.id,
+                "scene_index": s.scene_index,
+                "scene_title": s.scene_title,
+                "original_text": s.original_scene_text,
+            }
+            for s in scenes
+        ]
 
-        async def _one(scene: AdaptationSceneResult):
+        async def _one(spec: Dict[str, Any]):
             async with sem:
-                await self._rewrite_one(
-                    project=project, version=version, scene=scene,
-                    prev_summary=summaries[scene.scene_index - 1] if scene.scene_index > 0 and scene.scene_index - 1 < len(summaries) else None,
-                    traits=traits, mappings=version.mapping_snapshot or [],
+                await self._rewrite_one_isolated(
+                    session_factory=_session_factory,
+                    version_id=version.id,
+                    scene_id=spec["id"],
+                    scene_index=spec["scene_index"],
+                    scene_title=spec["scene_title"],
+                    original_text=spec["original_text"],
+                    intensity=intensity, intent=intent, era_target=era_target,
+                    prev_summary=summaries[spec["scene_index"] - 1] if spec["scene_index"] > 0 and spec["scene_index"] - 1 < len(summaries) else None,
+                    traits=traits, mappings=mappings,
                     extra_prompt=extra_prompt,
                 )
 
-        await asyncio.gather(*[_one(s) for s in scenes], return_exceptions=False)
+        results = await asyncio.gather(*[_one(s) for s in scene_specs], return_exceptions=True)
+        # 兜底：捕获 _rewrite_one_isolated 本身的异常（按理 isolated 内部已全部 catch；
+        # 这里防御性记录一笔）。
+        for spec, r in zip(scene_specs, results):
+            if isinstance(r, BaseException):
+                logger.error("场 %s isolated task 异常未被内部处理: %r", spec["scene_index"], r)
 
-        succeeded = sum(1 for s in scenes if s.status == "done")
-        failed = sum(1 for s in scenes if s.status == "failed")
-        if failed == 0:
-            version.status = "done"
-        elif succeeded == 0:
-            version.status = "failed"
-        else:
-            version.status = "partial"
-        version.completed_at = utcnow_naive()
-        version.stats = {
-            "total_scenes": len(scenes),
-            "succeeded": succeeded,
-            "failed": failed,
-            "total_tokens": sum((s.token_used or 0) for s in scenes),
-        }
-        project.status = "done"
-        await self.db.commit()
+        # 收尾：用独立 session 重新统计真实状态，避免 self.db 缓存的 ORM 与
+        # 各场 isolated session 写入产生不一致。
+        async with _session_factory() as s:
+            counts = (await s.execute(
+                select(AdaptationSceneResult.status, func.count())
+                .where(AdaptationSceneResult.version_id == version.id)
+                .group_by(AdaptationSceneResult.status)
+            )).all()
+            total = sum(c for _, c in counts)
+            succeeded = next((c for st, c in counts if st == "done"), 0)
+            failed = next((c for st, c in counts if st == "failed"), 0)
+            if failed == 0:
+                final_status = "done"
+            elif succeeded == 0:
+                final_status = "failed"
+            else:
+                final_status = "partial"
+            await s.execute(
+                update(AdaptationVersion)
+                .where(AdaptationVersion.id == version.id)
+                .values(
+                    status=final_status,
+                    completed_at=utcnow_naive(),
+                    stats={
+                        "total_scenes": total,
+                        "succeeded": succeeded,
+                        "failed": failed,
+                    },
+                )
+            )
+            await s.execute(
+                update(AdaptationProject)
+                .where(AdaptationProject.id == project.id)
+                .values(status="done")
+            )
+            await s.commit()
         await event_bus.publish(version.id, {
-            "event": "version_done", "version_id": version.id, "status": version.status,
+            "event": "version_done", "version_id": version.id, "status": final_status,
+        })
+
+    async def _rewrite_one_isolated(
+        self, *, session_factory, version_id: int, scene_id: int,
+        scene_index: int, scene_title: Optional[str], original_text: str,
+        intensity: int, intent: Optional[str], era_target: Optional[str],
+        prev_summary: Optional[str], traits: List[Dict[str, Any]],
+        mappings: List[Dict[str, Any]], extra_prompt: Optional[str],
+    ) -> None:
+        """单场独立 session 版本：标 running → LLM → 写结果，三次独立 commit。
+
+        与 _rewrite_one 行为等价，但不共享 self.db；供 execute_full_run 并发使用。
+        """
+        # ① 标 running + SSE
+        try:
+            async with session_factory() as s:
+                await s.execute(
+                    update(AdaptationSceneResult)
+                    .where(AdaptationSceneResult.id == scene_id)
+                    .values(status="running", updated_at=utcnow_naive())
+                )
+                await s.commit()
+        except Exception:
+            logger.exception("场 %s 标 running 失败", scene_index)
+        await event_bus.publish(version_id, {
+            "event": "scene_running", "scene_index": scene_index,
+        })
+
+        # ② 跑 LLM
+        rewritten_text: Optional[str] = None
+        delta_pct: Optional[float] = None
+        err: Optional[str] = None
+        try:
+            rewritten_text = await asyncio.wait_for(
+                self.llm.rewrite_scene(
+                    scene_text=original_text,
+                    intensity=intensity,
+                    intent=intent,
+                    era_target=era_target,
+                    mappings=mappings,
+                    prev_scene_summary=prev_summary,
+                    character_traits=traits,
+                    extra_prompt=extra_prompt,
+                    scene_title=scene_title,
+                ),
+                timeout=settings.ADAPTATION_PER_SCENE_TIMEOUT_SEC,
+            )
+            delta_pct = _delta_pct(original_text, rewritten_text)
+            new_status = "done"
+        except Exception as e:
+            err = str(e)[:500]
+            new_status = "failed"
+            logger.exception("场 %s 改写失败", scene_index)
+
+        # ③ 写结果（即使 LLM 失败也要落库为 failed，否则 UI 永远看到 running）
+        try:
+            async with session_factory() as s:
+                # Core update 不触发 ORM onupdate=utcnow_naive，显式带 updated_at
+                values: Dict[str, Any] = {"status": new_status, "updated_at": utcnow_naive()}
+                if rewritten_text is not None:
+                    values["rewritten_scene_text"] = rewritten_text
+                    values["line_count_delta_pct"] = delta_pct
+                if err is not None:
+                    values["error"] = err
+                await s.execute(
+                    update(AdaptationSceneResult)
+                    .where(AdaptationSceneResult.id == scene_id)
+                    .values(**values)
+                )
+                await s.commit()
+        except Exception:
+            logger.exception("场 %s 写结果失败", scene_index)
+
+        await event_bus.publish(version_id, {
+            "event": "scene_done",
+            "scene_index": scene_index,
+            "status": new_status,
+            "rewritten": rewritten_text,
+            "error": err,
+            "line_count_delta_pct": delta_pct,
         })
 
     async def _rewrite_one(

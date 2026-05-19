@@ -2,10 +2,11 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Text, Integer, JSON, ForeignKey, func
+from sqlalchemy import String, Text, Integer, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.core.datetime_utils import utcnow_naive
 
 
 class AdaptationProject(Base):
@@ -24,9 +25,11 @@ class AdaptationProject(Base):
     era_target: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="parsing")
     metadata_: Mapped[Optional[dict]] = mapped_column("metadata", JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(),
-                                                  onupdate=func.now())
+    # 统一走 Python utcnow_naive：与代码侧手写的 utcnow_naive() 同基准（UTC naive），
+    # 避免与 server_default=func.now()（PG 容器 +8 时区）混用导致 duration 错乱。
+    created_at: Mapped[datetime] = mapped_column(default=utcnow_naive)
+    updated_at: Mapped[datetime] = mapped_column(default=utcnow_naive,
+                                                  onupdate=utcnow_naive)
 
     mappings = relationship(
         "AdaptationMappingEntry", back_populates="project",

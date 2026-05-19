@@ -2,10 +2,11 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Text, Integer, JSON, Float, ForeignKey, UniqueConstraint, func
+from sqlalchemy import String, Text, Integer, JSON, Float, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.core.datetime_utils import utcnow_naive
 
 
 class AdaptationSceneResult(Base):
@@ -25,8 +26,9 @@ class AdaptationSceneResult(Base):
     token_used: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     line_count_delta_pct: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     manual_edits: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, default=list)
+    # 走 Python utcnow_naive，与 version/project 同基准（UTC naive）
     updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
+        default=utcnow_naive, onupdate=utcnow_naive
     )
 
     version = relationship("AdaptationVersion", back_populates="scene_results")
