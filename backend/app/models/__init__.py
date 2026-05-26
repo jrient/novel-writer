@@ -32,6 +32,8 @@ from app.models.adaptation_mapping_entry import AdaptationMappingEntry
 from app.models.adaptation_version import AdaptationVersion
 from app.models.adaptation_scene_result import AdaptationSceneResult
 
+from app.models.prose_project import ProseProject, ProseScene
+
 __all__ = [
     "User", "Invitation",
     "Project", "Chapter", "ChapterVersion", "Character", "WorldbuildingEntry",
@@ -41,4 +43,5 @@ __all__ = [
     "ExpansionProject", "ExpansionSegment",
     "AdaptationProject", "AdaptationMappingEntry", "AdaptationVersion", "AdaptationSceneResult",
     "StyleSample", "StyleSampleChunk",
+    "ProseProject", "ProseScene",
 ]
