@@ -117,6 +117,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '剧本改编工作台', requiresAuth: true },
   },
   {
+    path: '/style-samples',
+    name: 'StyleSampleLibrary',
+    component: () => import('@/views/StyleSampleLibrary.vue'),
+    meta: { title: '风格样本库', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },

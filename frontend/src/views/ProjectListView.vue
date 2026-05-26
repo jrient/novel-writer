@@ -28,6 +28,9 @@
           <el-button @click="$router.push('/adaptation')" round>
             剧本改编
           </el-button>
+          <el-button @click="$router.push('/style-samples')" round>
+            风格样本库
+          </el-button>
           <el-button type="primary" :icon="Plus" @click="goToWizard" round>
             新建项目
           </el-button>
