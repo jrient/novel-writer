@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base
+import app.models  # noqa: F401 — 确保所有模型注册到 Base.metadata
 
 
 # 使用内存数据库进行测试
