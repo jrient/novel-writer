@@ -129,3 +129,53 @@ async def test_reindex_resets_status_and_runs_pipeline(client, db_session):
 async def test_delete_404(client):
     resp = client.delete("/api/v1/style-samples/9999")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_search_returns_top_k_grouped_by_sample(client, db_session, monkeypatch):
+    """search 应按 sample 折叠去重，返回 (sample, top_chunks)"""
+    from app.models.style_sample import StyleSampleChunk
+
+    guide = json.dumps({
+        "structured": {"pov": "第一人称"}, "prose_excerpt": "...", "prompt_fragment": "frag"
+    }, ensure_ascii=False)
+
+    s1 = StyleSample(title="一", genre="都市言情", content="x", style_guide=guide, index_status="ready")
+    s2 = StyleSample(title="二", genre="都市言情", content="y", style_guide=guide, index_status="ready")
+    s3 = StyleSample(title="三 悬疑", genre="悬疑", content="z", style_guide=guide, index_status="ready")
+    db_session.add_all([s1, s2, s3])
+    await db_session.commit()
+    for s in (s1, s2, s3):
+        await db_session.refresh(s)
+
+    db_session.add_all([
+        StyleSampleChunk(sample_id=s1.id, chunk_index=0, content="一甲", char_count=2, embedding=[0.0] * 1536),
+        StyleSampleChunk(sample_id=s1.id, chunk_index=1, content="一乙", char_count=2, embedding=[0.0] * 1536),
+        StyleSampleChunk(sample_id=s2.id, chunk_index=0, content="二", char_count=1, embedding=[0.0] * 1536),
+        StyleSampleChunk(sample_id=s3.id, chunk_index=0, content="三", char_count=1, embedding=[0.0] * 1536),
+    ])
+    await db_session.commit()
+
+    async def fake_embed(text):
+        return [0.0] * 1536
+
+    monkeypatch.setattr(
+        "app.routers.style_sample.embedding_service.generate_embedding", fake_embed
+    )
+
+    resp = client.post("/api/v1/style-samples/search", json={
+        "query": "测试", "top_k": 5, "filter": {"genre": "都市言情"}
+    })
+    assert resp.status_code == 200
+    hits = resp.json()
+    titles = {h["sample"]["title"] for h in hits}
+    assert titles == {"一", "二"}
+    s1_hit = next(h for h in hits if h["sample"]["title"] == "一")
+    assert len(s1_hit["top_chunks"]) == 2
+    assert s1_hit["style_guide"]["prompt_fragment"] == "frag"
+
+
+@pytest.mark.asyncio
+async def test_search_empty_query_400(client):
+    resp = client.post("/api/v1/style-samples/search", json={"query": "", "top_k": 5})
+    assert resp.status_code == 422

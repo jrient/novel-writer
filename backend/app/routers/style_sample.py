@@ -8,15 +8,16 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Response, UploadFile
-from sqlalchemy import select
+from sqlalchemy import select, text as _sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session, get_db
-from app.models.style_sample import StyleSample
+from app.models.style_sample import StyleSample, StyleSampleChunk
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.style_sample import StyleSampleSummary, StyleSampleDetail
+from app.schemas.style_sample import StyleSampleSummary, StyleSampleDetail, SearchHit, SearchRequest
 from app.services import style_sample_pipeline
+from app.services.embedding import embedding_service
 from app.services.file_parser import FileParser
 
 router = APIRouter(prefix="/api/v1/style-samples", tags=["style-samples"])
@@ -176,3 +177,77 @@ async def reindex_sample(
     await db.refresh(s)
     background.add_task(style_sample_pipeline.run, async_session, s.id)
     return _to_summary(s)
+
+
+def _is_postgres() -> bool:
+    from app.core.config import settings
+    return not settings.DATABASE_URL.startswith("sqlite")
+
+
+@router.post("/search", response_model=list[SearchHit])
+async def search_samples(
+    payload: SearchRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query_vec = await embedding_service.generate_embedding(payload.query)
+    genre_filter = payload.filter.get("genre") if isinstance(payload.filter, dict) else None
+
+    if _is_postgres():
+        sql = """
+            SELECT c.sample_id, c.chunk_index, c.content, c.char_count,
+                   1.0 - (c.embedding <=> CAST(:qv AS vector)) AS similarity
+            FROM style_sample_chunks c
+            JOIN style_samples s ON s.id = c.sample_id
+            WHERE (:genre IS NULL OR s.genre = :genre)
+              AND s.index_status = 'ready'
+            ORDER BY c.embedding <=> CAST(:qv AS vector)
+            LIMIT :lim
+        """
+        rows = (await db.execute(_sql_text(sql), {
+            "qv": str(query_vec),
+            "genre": genre_filter,
+            "lim": payload.top_k * 5,
+        })).all()
+        chunk_results = [
+            {"sample_id": r.sample_id, "chunk_index": r.chunk_index,
+             "content": r.content, "char_count": r.char_count, "similarity": float(r.similarity)}
+            for r in rows
+        ]
+    else:
+        stmt = select(StyleSampleChunk, StyleSample).join(
+            StyleSample, StyleSample.id == StyleSampleChunk.sample_id
+        ).where(StyleSample.index_status == "ready")
+        if genre_filter:
+            stmt = stmt.where(StyleSample.genre == genre_filter)
+        rows = (await db.execute(stmt)).all()
+        chunk_results = [
+            {"sample_id": c.sample_id, "chunk_index": c.chunk_index,
+             "content": c.content, "char_count": c.char_count, "similarity": 0.0}
+            for (c, _s) in rows
+        ]
+
+    by_sample: dict[int, list] = {}
+    for r in chunk_results:
+        by_sample.setdefault(r["sample_id"], []).append(r)
+
+    sample_ids = list(by_sample.keys())[: payload.top_k]
+    samples = (await db.execute(
+        select(StyleSample).where(StyleSample.id.in_(sample_ids))
+    )).scalars().all()
+    samples_by_id = {s.id: s for s in samples}
+
+    hits: list[dict] = []
+    for sid in sample_ids:
+        s = samples_by_id.get(sid)
+        if not s:
+            continue
+        top_chunks = sorted(by_sample[sid], key=lambda r: -r["similarity"])
+        hits.append({
+            "sample": _to_summary(s),
+            "top_chunks": [{"chunk_index": c["chunk_index"], "content": c["content"],
+                            "char_count": c["char_count"], "similarity": c["similarity"]}
+                           for c in top_chunks],
+            "style_guide": json.loads(s.style_guide) if s.style_guide else None,
+        })
+    return hits
