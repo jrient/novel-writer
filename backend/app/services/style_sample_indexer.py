@@ -182,7 +182,10 @@ async def search_style_samples(
         if not s or not s.style_guide:
             continue
         import json as _json
-        guide = _json.loads(s.style_guide)
+        try:
+            guide = _json.loads(s.style_guide)
+        except (ValueError, TypeError):
+            continue
         result.append({
             "sample_id": s.id,
             "title": s.title,
