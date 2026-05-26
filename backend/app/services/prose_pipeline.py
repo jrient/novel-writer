@@ -80,7 +80,7 @@ async def run(
             project.status = "failed"
             project.style_snapshot = "[]"
             await session.commit()
-            await prose_event_bus.publish(project_id, {"event": "project_failed"})
+            await prose_event_bus.publish(project_id, {"event": "project_failed", "status": "failed"})
             return
 
         sp = (await session.execute(
@@ -180,10 +180,10 @@ async def run(
     results = await asyncio.gather(*[
         _rewrite_one(sid, sidx, stitle, sorig)
         for (sid, sidx, stitle, sorig) in scene_data
-    ])
+    ], return_exceptions=True)
 
-    done = sum(1 for r in results if r)
-    failed = sum(1 for r in results if not r)
+    done = sum(1 for r in results if r is True)
+    failed = sum(1 for r in results if r is not True)
 
     if failed == 0:
         final_status = "done"
