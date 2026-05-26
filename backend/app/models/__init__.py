@@ -13,6 +13,7 @@ from app.models.outline import OutlineNode
 from app.models.reference import ReferenceNovel
 from app.models.embedding import NovelChunk
 from app.models.knowledge import KnowledgeEntry
+from app.models.style_sample import StyleSample, StyleSampleChunk
 
 from app.models.note import Note
 from app.models.event import StoryEvent, Plotline
@@ -39,4 +40,5 @@ __all__ = [
     "ScriptProject", "ScriptNode", "ScriptNodeVersion", "ScriptSession",
     "ExpansionProject", "ExpansionSegment",
     "AdaptationProject", "AdaptationMappingEntry", "AdaptationVersion", "AdaptationSceneResult",
+    "StyleSample", "StyleSampleChunk",
 ]

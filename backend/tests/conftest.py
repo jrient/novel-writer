@@ -12,6 +12,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.pool import StaticPool
 
@@ -30,6 +31,11 @@ async def test_engine():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+    # SQLite 默认不强制 FK CASCADE，需要手动开启
+    @event.listens_for(engine.sync_engine, "connect")
+    def _enable_fk(dbapi_conn, _):
+        dbapi_conn.execute("PRAGMA foreign_keys=ON")
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
