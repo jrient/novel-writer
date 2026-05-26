@@ -2,7 +2,7 @@
 
 设计依据：docs/superpowers/specs/2026-05-26-style-sample-library-design.md 第六节。
 """
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
@@ -120,3 +120,73 @@ async def _delete_chunks_only(session: AsyncSession, sample_id: int) -> None:
         delete(StyleSampleChunk).where(StyleSampleChunk.sample_id == sample_id)
     )
     await session.commit()
+
+
+async def search_style_samples(
+    session: AsyncSession,
+    query_vec: list,
+    top_k: int = 3,
+    genre: Optional[str] = None,
+) -> list[dict]:
+    """内部检索：按 query_vec 找 top_k 样本的风格快照。
+    供 prose_pipeline 直接调用（不走 HTTP）。
+
+    返回：[{"sample_id": int, "title": str, "prompt_fragment": str, "prose_excerpt": str}]
+    样本库为空或无向量时返回 []。
+    """
+    from sqlalchemy import text as _sql_text
+
+    def _is_postgres() -> bool:
+        from app.core.config import settings
+        return not settings.DATABASE_URL.startswith("sqlite")
+
+    if _is_postgres():
+        sql = """
+            SELECT c.sample_id,
+                   1.0 - (c.embedding <=> CAST(:qv AS vector)) AS similarity
+            FROM style_sample_chunks c
+            JOIN style_samples s ON s.id = c.sample_id
+            WHERE (:genre IS NULL OR s.genre = :genre)
+              AND s.index_status = 'ready'
+            ORDER BY c.embedding <=> CAST(:qv AS vector)
+            LIMIT :lim
+        """
+        rows = (await session.execute(_sql_text(sql), {
+            "qv": str(query_vec),
+            "genre": genre,
+            "lim": top_k * 5,
+        })).all()
+        sample_ids_ordered = list(dict.fromkeys(r.sample_id for r in rows))[:top_k]
+    else:
+        stmt = (
+            select(StyleSampleChunk.sample_id)
+            .join(StyleSample, StyleSample.id == StyleSampleChunk.sample_id)
+            .where(StyleSample.index_status == "ready")
+        )
+        if genre:
+            stmt = stmt.where(StyleSample.genre == genre)
+        rows = (await session.execute(stmt)).all()
+        sample_ids_ordered = list(dict.fromkeys(r.sample_id for r in rows))[:top_k]
+
+    if not sample_ids_ordered:
+        return []
+
+    samples = (await session.execute(
+        select(StyleSample).where(StyleSample.id.in_(sample_ids_ordered))
+    )).scalars().all()
+    by_id = {s.id: s for s in samples}
+
+    result = []
+    for sid in sample_ids_ordered:
+        s = by_id.get(sid)
+        if not s or not s.style_guide:
+            continue
+        import json as _json
+        guide = _json.loads(s.style_guide)
+        result.append({
+            "sample_id": s.id,
+            "title": s.title,
+            "prompt_fragment": guide.get("prompt_fragment", ""),
+            "prose_excerpt": guide.get("prose_excerpt", ""),
+        })
+    return result
