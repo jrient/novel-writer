@@ -90,3 +90,42 @@ async def test_detail_returns_content_and_parsed_guide(client, db_session):
 async def test_detail_404(client):
     resp = client.get("/api/v1/style-samples/9999")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_cascades_chunks(client, db_session):
+    from app.models.style_sample import StyleSampleChunk
+    from sqlalchemy import select as _sel
+
+    s = StyleSample(title="del", content="x")
+    db_session.add(s)
+    await db_session.commit()
+    await db_session.refresh(s)
+    db_session.add(StyleSampleChunk(sample_id=s.id, chunk_index=0, content="片", char_count=1))
+    await db_session.commit()
+
+    resp = client.delete(f"/api/v1/style-samples/{s.id}")
+    assert resp.status_code == 204
+
+    remaining = (await db_session.execute(_sel(StyleSampleChunk))).scalars().all()
+    assert remaining == []
+
+
+@pytest.mark.asyncio
+async def test_reindex_resets_status_and_runs_pipeline(client, db_session):
+    s = StyleSample(title="re", content="x", index_status="failed", index_error="boom")
+    db_session.add(s)
+    await db_session.commit()
+    await db_session.refresh(s)
+
+    with patch("app.routers.style_sample.style_sample_pipeline.run", new=AsyncMock()) as mock_run:
+        resp = client.post(f"/api/v1/style-samples/{s.id}/reindex")
+    assert resp.status_code == 200
+    assert resp.json()["index_status"] == "pending"
+    mock_run.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_delete_404(client):
+    resp = client.delete("/api/v1/style-samples/9999")
+    assert resp.status_code == 404

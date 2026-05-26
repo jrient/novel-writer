@@ -7,7 +7,7 @@ import os
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Response, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -137,3 +137,42 @@ async def get_sample(
         "style_guide": json.loads(s.style_guide) if s.style_guide else None,
     })
     return body
+
+
+@router.delete("/{sample_id}", status_code=204)
+async def delete_sample(
+    sample_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    s = (await db.execute(
+        select(StyleSample).where(StyleSample.id == sample_id)
+    )).scalar_one_or_none()
+    if not s:
+        raise HTTPException(404, "样本不存在")
+    await db.delete(s)
+    await db.commit()
+    return Response(status_code=204)
+
+
+@router.post("/{sample_id}/reindex", response_model=StyleSampleSummary)
+async def reindex_sample(
+    sample_id: int,
+    background: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    s = (await db.execute(
+        select(StyleSample).where(StyleSample.id == sample_id)
+    )).scalar_one_or_none()
+    if not s:
+        raise HTTPException(404, "样本不存在")
+    s.index_status = "pending"
+    s.index_error = None
+    s.style_guide = None
+    s.extracted_at = None
+    s.extraction_model = None
+    await db.commit()
+    await db.refresh(s)
+    background.add_task(style_sample_pipeline.run, async_session, s.id)
+    return _to_summary(s)
