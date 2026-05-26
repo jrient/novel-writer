@@ -1,7 +1,9 @@
 """StyleSample chunk 切分 + 索引服务测试"""
 import pytest
+from sqlalchemy import select
 
 from app.services.style_sample_indexer import split_chunks
+from app.models.style_sample import StyleSample, StyleSampleChunk
 
 
 def test_split_chunks_short_text_single():
@@ -60,3 +62,59 @@ def test_split_chunks_trailing_short_orphan():
     text = f"{p1}\n\n{short}"
     chunks = split_chunks(text)
     assert short in chunks
+
+
+@pytest.mark.asyncio
+async def test_index_sample_writes_chunks_with_embeddings(db_session, monkeypatch):
+    """索引一个样本：切 chunk → 调（mock）embedding → 写 DB"""
+    from app.services import style_sample_indexer
+
+    async def fake_embed(texts):
+        return [[0.0] * 1536 for _ in texts]
+
+    monkeypatch.setattr(
+        "app.services.style_sample_indexer.embedding_service.generate_embeddings",
+        fake_embed,
+    )
+
+    s = StyleSample(title="t", content=("段一。" * 60) + "\n\n" + ("段二。" * 70))
+    db_session.add(s)
+    await db_session.commit()
+    await db_session.refresh(s)
+
+    await style_sample_indexer.index_sample(db_session, s.id)
+
+    rows = (await db_session.execute(
+        select(StyleSampleChunk).where(StyleSampleChunk.sample_id == s.id).order_by(StyleSampleChunk.chunk_index)
+    )).scalars().all()
+    assert len(rows) >= 2
+    assert all(r.embedding is not None for r in rows)
+    assert all(r.char_count == len(r.content) for r in rows)
+    assert [r.chunk_index for r in rows] == list(range(len(rows)))
+
+
+@pytest.mark.asyncio
+async def test_index_sample_failure_marks_failed_and_no_partial(db_session, monkeypatch):
+    """embedding 异常时,sample 不写 chunk,留 sample 行(由 pipeline 标 failed)"""
+    from app.services import style_sample_indexer
+
+    async def boom(texts):
+        raise RuntimeError("embed down")
+
+    monkeypatch.setattr(
+        "app.services.style_sample_indexer.embedding_service.generate_embeddings",
+        boom,
+    )
+
+    s = StyleSample(title="t2", content="一段。" * 60)
+    db_session.add(s)
+    await db_session.commit()
+    await db_session.refresh(s)
+
+    with pytest.raises(RuntimeError, match="embed down"):
+        await style_sample_indexer.index_sample(db_session, s.id)
+
+    rows = (await db_session.execute(
+        select(StyleSampleChunk).where(StyleSampleChunk.sample_id == s.id)
+    )).scalars().all()
+    assert rows == []
