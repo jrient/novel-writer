@@ -1,10 +1,12 @@
+"""散文改写项目 ORM 模型。"""
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.core.datetime_utils import utcnow_naive
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -27,8 +29,8 @@ class ProseProject(Base):
     total_scenes: Mapped[int] = mapped_column(Integer, default=0)
     done_scenes: Mapped[int] = mapped_column(Integer, default=0)
     failed_scenes: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(default=utcnow_naive)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=utcnow_naive)
 
     scenes: Mapped[List["ProseScene"]] = relationship(
         "ProseScene",
@@ -52,6 +54,6 @@ class ProseScene(Base):
     status: Mapped[str] = mapped_column(String(20), default="pending")
     error: Mapped[Optional[str]] = mapped_column(Text)
     token_used: Mapped[int] = mapped_column(Integer, default=0)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=func.now())
+    updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=utcnow_naive)
 
     project: Mapped["ProseProject"] = relationship("ProseProject", back_populates="scenes")
