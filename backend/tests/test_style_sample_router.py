@@ -1,7 +1,10 @@
 """style_sample router 测试 —— 全程 mock pipeline 与 ai/embedding"""
+import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
+from app.models.style_sample import StyleSample
 
 
 @pytest.mark.asyncio
@@ -37,3 +40,53 @@ async def test_upload_requires_title(client):
     files = {"file": ("t.txt", "abc".encode("utf-8"), "text/plain")}
     resp = client.post("/api/v1/style-samples", files=files, data={})
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_list_returns_summaries_filterable(client, db_session):
+    db_session.add_all([
+        StyleSample(title="A 都市", genre="都市言情", content="x"),
+        StyleSample(title="B 悬疑", genre="悬疑", content="y"),
+    ])
+    await db_session.commit()
+
+    resp = client.get("/api/v1/style-samples")
+    assert resp.status_code == 200
+    items = resp.json()
+    assert {it["title"] for it in items} == {"A 都市", "B 悬疑"}
+    assert "content" not in items[0]
+
+    resp = client.get("/api/v1/style-samples?genre=都市言情")
+    assert [it["title"] for it in resp.json()] == ["A 都市"]
+
+
+@pytest.mark.asyncio
+async def test_detail_returns_content_and_parsed_guide(client, db_session):
+    guide = json.dumps({
+        "structured": {"pov": "第一人称", "signature_devices": []},
+        "prose_excerpt": "节选...",
+        "prompt_fragment": "片段...",
+    }, ensure_ascii=False)
+    s = StyleSample(
+        title="详情用",
+        content="原文全文 1234",
+        style_guide=guide,
+        extraction_model="test-model",
+        index_status="ready",
+    )
+    db_session.add(s)
+    await db_session.commit()
+    await db_session.refresh(s)
+
+    resp = client.get(f"/api/v1/style-samples/{s.id}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["content"] == "原文全文 1234"
+    assert body["style_guide"]["structured"]["pov"] == "第一人称"
+    assert body["style_guide"]["prompt_fragment"] == "片段..."
+
+
+@pytest.mark.asyncio
+async def test_detail_404(client):
+    resp = client.get("/api/v1/style-samples/9999")
+    assert resp.status_code == 404

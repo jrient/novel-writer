@@ -8,13 +8,14 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session, get_db
 from app.models.style_sample import StyleSample
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.style_sample import StyleSampleSummary
+from app.schemas.style_sample import StyleSampleSummary, StyleSampleDetail
 from app.services import style_sample_pipeline
 from app.services.file_parser import FileParser
 
@@ -100,3 +101,39 @@ async def upload_sample(
 
     background.add_task(style_sample_pipeline.run, async_session, sample.id)
     return _to_summary(sample)
+
+
+@router.get("", response_model=list[StyleSampleSummary])
+async def list_samples(
+    genre: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    stmt = select(StyleSample).order_by(StyleSample.created_at.desc())
+    if genre:
+        stmt = stmt.where(StyleSample.genre == genre)
+    rows = (await db.execute(stmt)).scalars().all()
+    return [_to_summary(s) for s in rows]
+
+
+@router.get("/{sample_id}", response_model=StyleSampleDetail)
+async def get_sample(
+    sample_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    s = (await db.execute(
+        select(StyleSample).where(StyleSample.id == sample_id)
+    )).scalar_one_or_none()
+    if not s:
+        raise HTTPException(404, "样本不存在")
+    body = _to_summary(s)
+    body.update({
+        "file_path": s.file_path,
+        "file_format": s.file_format,
+        "notes": s.notes,
+        "content": s.content,
+        "extraction_model": s.extraction_model,
+        "style_guide": json.loads(s.style_guide) if s.style_guide else None,
+    })
+    return body
