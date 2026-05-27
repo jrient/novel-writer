@@ -162,28 +162,22 @@ def test_split_content_heading_based():
     assert scenes[1][0] == "第二场 冲突"
 
 
-def test_split_content_short_paragraphs_merged_by_chars():
-    """短段落（对白行）应累积到 _MIN_SCENE_CHARS 才切，不产生微场景"""
-    from app.services.prose_pipeline import _split_content_to_scenes, _MIN_SCENE_CHARS
-    # 每段约30字，需要多段才能凑满 _MIN_SCENE_CHARS
-    short_para = "女主：你好，好久不见呀。"  # ~14字
+def test_split_content_no_headings_merges_to_batches():
+    """无标题时，段落应合并为 TARGET_BATCHES 个批次，不产生微场景"""
+    from app.services.prose_pipeline import _split_content_to_scenes, TARGET_BATCHES
+    short_para = "女主：你好，好久不见呀。"  # 短对白行
     text = "\n\n".join([short_para] * 40)
     scenes = _split_content_to_scenes(text)
-    # 不应该是40个场景
-    assert len(scenes) < 20
-    # 每个场景应有足够字数（最后一场合并了余量，可能稍短）
-    for title, content in scenes[:-1]:
-        assert len(content) >= _MIN_SCENE_CHARS
+    assert len(scenes) == TARGET_BATCHES
 
 
-def test_split_content_many_paragraphs_capped():
-    """超过 _TARGET_MAX_SCENES 时二次合并"""
-    from app.services.prose_pipeline import _split_content_to_scenes, _TARGET_MAX_SCENES
-    # 每段400字，确保每段独立成场景，但段数远超上限
-    long_para = "这是一段很长的内容，" * 40  # ~400字
-    text = "\n\n".join([long_para] * 40)
+def test_split_content_many_scenes_merged_to_batches():
+    """20个场景标题应合并为 TARGET_BATCHES 个批次"""
+    from app.services.prose_pipeline import _split_content_to_scenes, TARGET_BATCHES
+    lines = [f"1-{i} 场景{i} 夜\n内容描述。" for i in range(1, 21)]
+    text = "\n\n".join(lines)
     scenes = _split_content_to_scenes(text)
-    assert len(scenes) <= _TARGET_MAX_SCENES
+    assert len(scenes) == TARGET_BATCHES
 
 
 @pytest.mark.asyncio
