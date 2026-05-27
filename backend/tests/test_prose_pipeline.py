@@ -151,6 +151,35 @@ async def test_pipeline_degraded_no_samples(
     assert project.style_snapshot == "[]"
 
 
+def test_split_content_heading_based():
+    """有场景标题时应按标题行分组"""
+    from app.services.prose_pipeline import _split_content_to_scenes
+    text = "第一场 开场\n主角登场，走进房间。\n\n第二场 冲突\n两人争吵激烈。\n\n第三场 结局\n和解收场。"
+    scenes = _split_content_to_scenes(text)
+    assert len(scenes) == 3
+    assert scenes[0][0] == "第一场 开场"
+    assert "主角登场" in scenes[0][1]
+    assert scenes[1][0] == "第二场 冲突"
+
+
+def test_split_content_few_paragraphs():
+    """少于30段时每段一个场景"""
+    from app.services.prose_pipeline import _split_content_to_scenes
+    text = "段落一内容。\n\n段落二内容。\n\n段落三内容。"
+    scenes = _split_content_to_scenes(text)
+    assert len(scenes) == 3
+    assert scenes[0][0] == "段落一内容。"
+
+
+def test_split_content_many_paragraphs_merged():
+    """超过30段时自动合并，场景数不超过20"""
+    from app.services.prose_pipeline import _split_content_to_scenes
+    text = "\n\n".join(f"段落{i}内容，这是一段示例文字。" for i in range(60))
+    scenes = _split_content_to_scenes(text)
+    assert len(scenes) <= 20
+    assert len(scenes) >= 1
+
+
 @pytest.mark.asyncio
 async def test_pipeline_split_content_path(
     db_session, session_factory, test_user
