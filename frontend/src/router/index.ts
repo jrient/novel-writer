@@ -117,6 +117,24 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '剧本改编工作台', requiresAuth: true },
   },
   {
+    path: '/prose',
+    name: 'ProseList',
+    component: () => import('@/views/ProseListView.vue'),
+    meta: { title: '散文改写', requiresAuth: true },
+  },
+  {
+    path: '/prose/new',
+    name: 'ProseCreate',
+    component: () => import('@/views/ProseCreateView.vue'),
+    meta: { title: '新建散文项目', requiresAuth: true },
+  },
+  {
+    path: '/prose/:id',
+    name: 'ProseDetail',
+    component: () => import('@/views/ProseDetailView.vue'),
+    meta: { title: '散文详情', requiresAuth: true },
+  },
+  {
     path: '/style-samples',
     name: 'StyleSampleLibrary',
     component: () => import('@/views/StyleSampleLibrary.vue'),
