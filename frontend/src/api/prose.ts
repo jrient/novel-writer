@@ -1,12 +1,5 @@
 import request from './request'
 
-export interface ProseProjectCreate {
-  script_project_id: number
-  premise: string
-  title?: string
-  genre?: string
-}
-
 export interface ProseSceneOut {
   id: number
   scene_index: number
@@ -22,7 +15,7 @@ export interface ProseProjectOut {
   id: number
   user_id: number
   title: string
-  script_project_id: number
+  script_project_id: number | null
   script_project_title: string | null
   premise: string
   genre: string | null
@@ -39,9 +32,23 @@ export interface ProseProjectDetail extends ProseProjectOut {
   scenes: ProseSceneOut[]
 }
 
+export interface ProseCreateForm {
+  file: File
+  premise: string
+  title?: string
+  genre?: string
+}
+
 export const proseApi = {
-  create(data: ProseProjectCreate) {
-    return request.post<ProseProjectOut>('/prose', data)
+  create(form: ProseCreateForm) {
+    const fd = new FormData()
+    fd.append('file', form.file)
+    fd.append('premise', form.premise)
+    if (form.title) fd.append('title', form.title)
+    if (form.genre) fd.append('genre', form.genre)
+    return request.post<ProseProjectOut>('/prose', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
   },
 
   list() {

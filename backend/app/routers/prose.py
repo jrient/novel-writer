@@ -1,9 +1,11 @@
 """散文生成模块路由：CRUD + SSE 5 个端点"""
 import asyncio
+import io
 import json
 import logging
+from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,15 +14,35 @@ from sqlalchemy.orm import selectinload
 from app.core.database import async_session, get_db
 from app.core.security import create_sse_ticket, verify_sse_ticket
 from app.models.prose_project import ProseProject, ProseScene
-from app.models.script_project import ScriptProject
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.prose import ProseProjectCreate, ProseProjectDetail, ProseProjectOut
+from app.schemas.prose import ProseProjectDetail, ProseProjectOut
 from app.services import prose_pipeline
 from app.services.prose_event_bus import prose_event_bus
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/prose", tags=["prose"])
+
+_ALLOWED_SUFFIXES = {".txt", ".docx"}
+
+
+async def _parse_upload(file: UploadFile) -> str:
+    """解析上传文件，返回纯文本内容。支持 .txt 和 .docx。"""
+    fname = (file.filename or "").lower()
+    content = await file.read()
+    if fname.endswith(".docx"):
+        try:
+            from docx import Document  # type: ignore
+            doc = Document(io.BytesIO(content))
+            paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+            return "\n\n".join(paragraphs)
+        except Exception as e:
+            raise HTTPException(400, f"DOCX 解析失败：{e}")
+    else:
+        try:
+            return content.decode("utf-8")
+        except UnicodeDecodeError:
+            return content.decode("gbk", errors="replace")
 
 
 async def _get_owned_project(
@@ -41,30 +63,36 @@ async def _get_owned_project(
 
 @router.post("", response_model=ProseProjectOut)
 async def create_prose_project(
-    payload: ProseProjectCreate,
     background: BackgroundTasks,
+    file: UploadFile = File(...),
+    premise: str = Form(..., min_length=1, max_length=500),
+    title: Optional[str] = Form(None),
+    genre: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    sp = (await db.execute(
-        select(ScriptProject).where(
-            ScriptProject.id == payload.script_project_id,
-            ScriptProject.user_id == current_user.id,
-        )
-    )).scalar_one_or_none()
-    if not sp:
-        raise HTTPException(400, "剧本不存在或无权访问")
+    fname = (file.filename or "").lower()
+    suffix = "." + fname.rsplit(".", 1)[-1] if "." in fname else ""
+    if suffix not in _ALLOWED_SUFFIXES:
+        raise HTTPException(400, "仅支持 .txt 和 .docx 格式")
 
-    title = payload.title or f"《{sp.title}》散文改写"
-    genre = payload.genre or getattr(sp, "genre", None)
+    script_content = await _parse_upload(file)
+    if not script_content.strip():
+        raise HTTPException(400, "文件内容为空")
+
+    project_title = title or (
+        fname.rsplit(".", 1)[0].replace("_", " ").replace("-", " ")[:50]
+        + " 散文改写"
+    )
 
     project = ProseProject(
         user_id=current_user.id,
-        title=title,
-        script_project_id=sp.id,
-        script_project_title=sp.title,
-        premise=payload.premise,
-        genre=genre,
+        title=project_title,
+        script_project_id=None,
+        script_project_title=fname,
+        script_content=script_content,
+        premise=premise,
+        genre=genre or None,
         status="pending",
     )
     db.add(project)

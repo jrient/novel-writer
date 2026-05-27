@@ -3,13 +3,6 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ProseProjectCreate(BaseModel):
-    script_project_id: int
-    premise: str = Field(min_length=1, max_length=500)
-    title: Optional[str] = None
-    genre: Optional[str] = None
-
-
 class ProseSceneOut(BaseModel):
     id: int
     scene_index: int
@@ -27,7 +20,7 @@ class ProseProjectOut(BaseModel):
     id: int
     user_id: int
     title: str
-    script_project_id: int
+    script_project_id: Optional[int]
     script_project_title: Optional[str]
     premise: str
     genre: Optional[str]

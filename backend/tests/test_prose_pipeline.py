@@ -152,6 +152,43 @@ async def test_pipeline_degraded_no_samples(
 
 
 @pytest.mark.asyncio
+async def test_pipeline_split_content_path(
+    db_session, session_factory, test_user
+):
+    """script_content 路径：按双换行拆分为场景"""
+    project = ProseProject(
+        user_id=test_user.id,
+        title="上传文件散文",
+        script_project_id=None,
+        script_content="第一段内容，描述场景一。\n\n第二段内容，描述场景二。\n\n第三段内容。",
+        premise="测试梗概",
+    )
+    db_session.add(project)
+    await db_session.commit()
+    await db_session.refresh(project)
+
+    fake_provider = AsyncMock()
+    fake_provider.complete = AsyncMock(return_value="散文改写结果")
+    fake_search = AsyncMock(return_value=[])
+
+    from app.services import prose_pipeline
+    with patch.object(prose_pipeline, "_search_style_samples", fake_search):
+        await prose_pipeline.run(session_factory, project.id, provider=fake_provider)
+
+    await db_session.refresh(project)
+    assert project.status == "done"
+    assert project.total_scenes == 3
+    assert project.done_scenes == 3
+
+    scenes = (await db_session.execute(
+        select(ProseScene).where(ProseScene.project_id == project.id)
+        .order_by(ProseScene.scene_index)
+    )).scalars().all()
+    assert len(scenes) == 3
+    assert scenes[0].scene_title == "第一段内容，描述场景一。"
+
+
+@pytest.mark.asyncio
 async def test_pipeline_empty_script_marks_failed(
     db_session, session_factory, test_user
 ):

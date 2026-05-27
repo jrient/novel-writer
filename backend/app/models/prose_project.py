@@ -20,8 +20,9 @@ class ProseProject(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    script_project_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    script_project_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
     script_project_title: Mapped[Optional[str]] = mapped_column(String(200))
+    script_content: Mapped[Optional[str]] = mapped_column(Text)
     premise: Mapped[str] = mapped_column(Text, nullable=False)
     genre: Mapped[Optional[str]] = mapped_column(String(50))
     style_snapshot: Mapped[Optional[str]] = mapped_column(Text)

@@ -1,23 +1,24 @@
 <template>
-  <div class="prose-create" style="padding: 24px; max-width: 640px; margin: 0 auto">
+  <div class="prose-create">
     <h2>新建散文改写项目</h2>
 
     <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
-      <el-form-item label="来源剧本" prop="script_project_id">
-        <el-select
-          v-model="form.script_project_id"
-          filterable
-          placeholder="请选择剧本"
-          style="width: 100%"
-          :loading="loadingProjects"
+      <el-form-item label="上传剧本" prop="file">
+        <el-upload
+          class="script-uploader"
+          :auto-upload="false"
+          :multiple="false"
+          :limit="1"
+          accept=".txt,.docx"
+          :on-change="handleFileChange"
+          :on-remove="handleFileRemove"
+          :file-list="fileList"
         >
-          <el-option
-            v-for="sp in scriptProjects"
-            :key="sp.id"
-            :label="sp.title"
-            :value="sp.id"
-          />
-        </el-select>
+          <el-button type="primary" plain>选择文件</el-button>
+          <template #tip>
+            <div class="el-upload__tip">支持 .txt 和 .docx 格式，文件内容按段落拆分为场景</div>
+          </template>
+        </el-upload>
       </el-form-item>
 
       <el-form-item label="故事梗概" prop="premise">
@@ -30,14 +31,14 @@
       </el-form-item>
 
       <el-form-item label="项目标题">
-        <el-input v-model="form.title" placeholder="留空则自动生成" />
+        <el-input v-model="form.title" placeholder="留空则自动以文件名生成" />
       </el-form-item>
 
       <el-form-item label="题材">
         <el-select
           v-model="form.genre"
           clearable
-          placeholder="可选，留空自动继承剧本题材"
+          placeholder="可选"
           style="width: 100%"
         >
           <el-option v-for="g in genres" :key="g" :label="g" :value="g" />
@@ -55,27 +56,29 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
+import type { FormInstance, UploadFile, UploadFiles } from 'element-plus'
 import { proseApi } from '@/api/prose'
-import { getDramaProjects } from '@/api/drama'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
-const loadingProjects = ref(false)
 
 const form = reactive({
-  script_project_id: null as number | null,
+  file: null as File | null,
   premise: '',
   title: '',
   genre: '',
 })
 
+const fileList = ref<UploadFile[]>([])
+
 const rules = {
-  script_project_id: [{ required: true, message: '请选择来源剧本', trigger: 'change' }],
+  file: [{ required: true, validator: (_: any, __: any, cb: any) => {
+    form.file ? cb() : cb(new Error('请上传剧本文件'))
+  }, trigger: 'change' }],
   premise: [
     { required: true, message: '请输入故事梗概', trigger: 'blur' },
     { min: 5, max: 500, message: '梗概长度 5-500 字', trigger: 'blur' },
@@ -84,23 +87,14 @@ const rules = {
 
 const genres = ['都市言情', '悬疑', '古风', '现实', '职场', '家庭', '其他']
 
-interface ScriptProjectItem {
-  id: number
-  title: string
+function handleFileChange(_file: UploadFile, files: UploadFiles) {
+  const last = files[files.length - 1]
+  form.file = last?.raw ?? null
 }
 
-const scriptProjects = ref<ScriptProjectItem[]>([])
-
-async function loadScriptProjects() {
-  loadingProjects.value = true
-  try {
-    const projects = await getDramaProjects()
-    scriptProjects.value = projects.map((p) => ({ id: p.id, title: p.title }))
-  } catch {
-    ElMessage.warning('无法加载剧本列表，请确认有已创建的剧本')
-  } finally {
-    loadingProjects.value = false
-  }
+function handleFileRemove() {
+  form.file = null
+  fileList.value = []
 }
 
 async function handleSubmit() {
@@ -109,7 +103,7 @@ async function handleSubmit() {
   submitting.value = true
   try {
     const res = await proseApi.create({
-      script_project_id: form.script_project_id!,
+      file: form.file!,
       premise: form.premise,
       title: form.title || undefined,
       genre: form.genre || undefined,
@@ -122,8 +116,6 @@ async function handleSubmit() {
     submitting.value = false
   }
 }
-
-onMounted(loadScriptProjects)
 </script>
 
 <style scoped>
@@ -131,5 +123,8 @@ onMounted(loadScriptProjects)
   padding: 24px;
   max-width: 640px;
   margin: 0 auto;
+}
+.script-uploader {
+  width: 100%;
 }
 </style>

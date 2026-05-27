@@ -3,27 +3,17 @@ import pytest
 from unittest.mock import AsyncMock, patch
 
 from app.models.prose_project import ProseProject, ProseScene
-from app.models.script_project import ScriptProject
 from app.models.user import User
 
 
 @pytest.fixture
-async def script_project(db_session, sample_user):
-    sp = ScriptProject(
-        user_id=sample_user.id, title="测试剧本", script_type="dynamic"
-    )
-    db_session.add(sp)
-    await db_session.commit()
-    await db_session.refresh(sp)
-    return sp
-
-
-@pytest.fixture
-async def prose_project(db_session, sample_user, script_project):
+async def prose_project(db_session, sample_user):
     p = ProseProject(
         user_id=sample_user.id,
         title="测试散文项目",
-        script_project_id=script_project.id,
+        script_project_id=None,
+        script_project_title="test.txt",
+        script_content="第一段内容。\n\n第二段内容。",
         premise="一个都市爱情故事",
         status="done",
         total_scenes=2,
@@ -43,27 +33,41 @@ async def prose_project(db_session, sample_user, script_project):
 
 
 @pytest.mark.asyncio
-async def test_create_prose_project_returns_pending(client, db_session, script_project):
+async def test_create_prose_project_returns_pending(client):
+    txt = b"\xe7\xac\xac\xe4\xb8\x80\xe6\xae\xb5\xe5\x86\x85\xe5\xae\xb9\n\n\xe7\xac\xac\xe4\xba\x8c\xe6\xae\xb5\xe5\x86\x85\xe5\xae\xb9"
     with patch("app.routers.prose.prose_pipeline.run", new=AsyncMock()):
-        resp = client.post("/api/v1/prose", json={
-            "script_project_id": script_project.id,
-            "premise": "都市爱情故事",
-            "title": "我的散文",
-        })
+        resp = client.post(
+            "/api/v1/prose",
+            data={"premise": "都市爱情故事", "title": "我的散文"},
+            files={"file": ("test.txt", txt, "text/plain")},
+        )
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["status"] == "pending"
-    assert body["script_project_id"] == script_project.id
+    assert body["script_project_id"] is None
     assert body["premise"] == "都市爱情故事"
+    assert body["title"] == "我的散文"
 
 
 @pytest.mark.asyncio
-async def test_create_returns_400_if_script_not_found(client):
+async def test_create_returns_400_on_unsupported_format(client):
     with patch("app.routers.prose.prose_pipeline.run", new=AsyncMock()):
-        resp = client.post("/api/v1/prose", json={
-            "script_project_id": 99999,
-            "premise": "测试梗概",
-        })
+        resp = client.post(
+            "/api/v1/prose",
+            data={"premise": "测试梗概"},
+            files={"file": ("test.pdf", b"pdf content", "application/pdf")},
+        )
+    assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_create_returns_400_on_empty_file(client):
+    with patch("app.routers.prose.prose_pipeline.run", new=AsyncMock()):
+        resp = client.post(
+            "/api/v1/prose",
+            data={"premise": "测试梗概"},
+            files={"file": ("empty.txt", b"   ", "text/plain")},
+        )
     assert resp.status_code == 400
 
 

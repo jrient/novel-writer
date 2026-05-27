@@ -57,3 +57,15 @@ async def init_db():
                     await conn.execute(text(
                         f"CREATE INDEX IF NOT EXISTS ix_{table}_owner_id ON {table}(owner_id)"
                     ))
+            # prose_projects: add script_content, make script_project_id nullable
+            result = await conn.execute(text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name='prose_projects' AND column_name='script_content'"
+            ))
+            if not result.fetchone():
+                await conn.execute(text(
+                    "ALTER TABLE prose_projects ADD COLUMN script_content TEXT"
+                ))
+                await conn.execute(text(
+                    "ALTER TABLE prose_projects ALTER COLUMN script_project_id DROP NOT NULL"
+                ))
