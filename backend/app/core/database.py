@@ -69,3 +69,12 @@ async def init_db():
                 await conn.execute(text(
                     "ALTER TABLE prose_projects ALTER COLUMN script_project_id DROP NOT NULL"
                 ))
+            # prose_projects: add outline column
+            result = await conn.execute(text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name='prose_projects' AND column_name='outline'"
+            ))
+            if not result.fetchone():
+                await conn.execute(text(
+                    "ALTER TABLE prose_projects ADD COLUMN outline TEXT"
+                ))

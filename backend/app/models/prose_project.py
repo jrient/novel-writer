@@ -23,6 +23,7 @@ class ProseProject(Base):
     script_project_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
     script_project_title: Mapped[Optional[str]] = mapped_column(String(200))
     script_content: Mapped[Optional[str]] = mapped_column(Text)
+    outline: Mapped[Optional[str]] = mapped_column(Text)  # 内部大纲，不对外暴露
     premise: Mapped[str] = mapped_column(Text, nullable=False)
     genre: Mapped[Optional[str]] = mapped_column(String(50))
     style_snapshot: Mapped[Optional[str]] = mapped_column(Text)
