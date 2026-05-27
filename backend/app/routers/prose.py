@@ -7,6 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import async_session, get_db
 from app.core.security import create_sse_ticket, verify_sse_ticket
@@ -23,13 +24,13 @@ router = APIRouter(prefix="/api/v1/prose", tags=["prose"])
 
 
 async def _get_owned_project(
-    id: int,
+    project_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ProseProject:
     p = (await db.execute(
         select(ProseProject).where(
-            ProseProject.id == id,
+            ProseProject.id == project_id,
             ProseProject.user_id == current_user.id,
         )
     )).scalar_one_or_none()
@@ -87,41 +88,34 @@ async def list_prose_projects(
     return rows
 
 
-@router.get("/{id}", response_model=ProseProjectDetail)
+@router.get("/{project_id}", response_model=ProseProjectDetail)
 async def get_prose_project(
-    project: ProseProject = Depends(_get_owned_project),
+    project_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    scenes = (await db.execute(
-        select(ProseScene).where(ProseScene.project_id == project.id)
-        .order_by(ProseScene.scene_index)
-    )).scalars().all()
-    # Build from dict to avoid pydantic triggering lazy-load on project.scenes relationship
-    project_dict = {
-        col: getattr(project, col)
-        for col in (
-            "id", "user_id", "title", "script_project_id", "script_project_title",
-            "premise", "genre", "style_snapshot", "status",
-            "total_scenes", "done_scenes", "failed_scenes",
-            "created_at", "updated_at",
-        )
-    }
-    project_dict["scenes"] = list(scenes)
-    return ProseProjectDetail.model_validate(project_dict)
+    project = (await db.execute(
+        select(ProseProject)
+        .where(ProseProject.id == project_id, ProseProject.user_id == current_user.id)
+        .options(selectinload(ProseProject.scenes))
+    )).scalar_one_or_none()
+    if not project:
+        raise HTTPException(404, "散文项目不存在或无权访问")
+    return project
 
 
-
-@router.delete("/{id}", status_code=204)
+@router.delete("/{project_id}", status_code=204)
 async def delete_prose_project(
     project: ProseProject = Depends(_get_owned_project),
     db: AsyncSession = Depends(get_db),
 ):
+    await prose_event_bus.publish(project.id, {"event": "project_failed", "status": "deleted"})
     await db.delete(project)
     await db.commit()
     return Response(status_code=204)
 
 
-@router.post("/{id}/stream/ticket")
+@router.post("/{project_id}/stream/ticket")
 async def create_stream_ticket(
     project: ProseProject = Depends(_get_owned_project),
     current_user: User = Depends(get_current_user),
@@ -130,15 +124,15 @@ async def create_stream_ticket(
     return {"ticket": create_sse_ticket(current_user.id, project.id)}
 
 
-@router.get("/{id}/stream")
-async def stream_prose_project(id: int, ticket: str = Query(...)):
-    if verify_sse_ticket(ticket, id) is None:
+@router.get("/{project_id}/stream")
+async def stream_prose_project(project_id: int, ticket: str = Query(...)):
+    if verify_sse_ticket(ticket, project_id) is None:
         raise HTTPException(401, "ticket 无效或已过期")
-    sub = prose_event_bus.subscribe(id)
+    sub = prose_event_bus.subscribe(project_id)
 
     async def gen():
         try:
-            yield "data: " + json.dumps({"event": "subscribed", "project_id": id}) + "\n\n"
+            yield "data: " + json.dumps({"event": "subscribed", "project_id": project_id}) + "\n\n"
             while True:
                 try:
                     payload = await asyncio.wait_for(sub.queue.get(), timeout=15.0)
