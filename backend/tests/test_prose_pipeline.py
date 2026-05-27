@@ -162,34 +162,46 @@ def test_split_content_heading_based():
     assert scenes[1][0] == "第二场 冲突"
 
 
-def test_split_content_few_paragraphs():
-    """少于30段时每段一个场景"""
-    from app.services.prose_pipeline import _split_content_to_scenes
-    text = "段落一内容。\n\n段落二内容。\n\n段落三内容。"
+def test_split_content_short_paragraphs_merged_by_chars():
+    """短段落（对白行）应累积到 _MIN_SCENE_CHARS 才切，不产生微场景"""
+    from app.services.prose_pipeline import _split_content_to_scenes, _MIN_SCENE_CHARS
+    # 每段约30字，需要多段才能凑满 _MIN_SCENE_CHARS
+    short_para = "女主：你好，好久不见呀。"  # ~14字
+    text = "\n\n".join([short_para] * 40)
     scenes = _split_content_to_scenes(text)
-    assert len(scenes) == 3
-    assert scenes[0][0] == "段落一内容。"
+    # 不应该是40个场景
+    assert len(scenes) < 20
+    # 每个场景应有足够字数（最后一场合并了余量，可能稍短）
+    for title, content in scenes[:-1]:
+        assert len(content) >= _MIN_SCENE_CHARS
 
 
-def test_split_content_many_paragraphs_merged():
-    """超过30段时自动合并，场景数不超过20"""
-    from app.services.prose_pipeline import _split_content_to_scenes
-    text = "\n\n".join(f"段落{i}内容，这是一段示例文字。" for i in range(60))
+def test_split_content_many_paragraphs_capped():
+    """超过 _TARGET_MAX_SCENES 时二次合并"""
+    from app.services.prose_pipeline import _split_content_to_scenes, _TARGET_MAX_SCENES
+    # 每段400字，确保每段独立成场景，但段数远超上限
+    long_para = "这是一段很长的内容，" * 40  # ~400字
+    text = "\n\n".join([long_para] * 40)
     scenes = _split_content_to_scenes(text)
-    assert len(scenes) <= 20
-    assert len(scenes) >= 1
+    assert len(scenes) <= _TARGET_MAX_SCENES
 
 
 @pytest.mark.asyncio
 async def test_pipeline_split_content_path(
     db_session, session_factory, test_user
 ):
-    """script_content 路径：按双换行拆分为场景"""
+    """script_content 路径：有标题行时按标题分组为场景"""
+    # 使用明确的场景标题，触发策略1（标题分组）
+    script = (
+        "第一场 相遇\n女主走进咖啡馆，看到一个熟悉的背影……\n\n"
+        "第二场 对话\n两人相视一笑，话题从工作聊到了往事。\n\n"
+        "第三场 离别\n咖啡喝完，两人各自散去，心里都留下了一丝惆怅。"
+    )
     project = ProseProject(
         user_id=test_user.id,
         title="上传文件散文",
         script_project_id=None,
-        script_content="第一段内容，描述场景一。\n\n第二段内容，描述场景二。\n\n第三段内容。",
+        script_content=script,
         premise="测试梗概",
     )
     db_session.add(project)
@@ -214,7 +226,7 @@ async def test_pipeline_split_content_path(
         .order_by(ProseScene.scene_index)
     )).scalars().all()
     assert len(scenes) == 3
-    assert scenes[0].scene_title == "第一段内容，描述场景一。"
+    assert scenes[0].scene_title == "第一场 相遇"
 
 
 @pytest.mark.asyncio

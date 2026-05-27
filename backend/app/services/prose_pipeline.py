@@ -33,15 +33,18 @@ _HEADING_RE = re.compile(
     r")"
 )
 
+_MIN_SCENE_CHARS = 300   # 无标题时每个场景的最少字数
 _TARGET_MAX_SCENES = 20  # 无标题时的目标最大场景数
 
 
 def _split_content_to_scenes(text: str) -> list[tuple[str, str]]:
     """将纯文本拆分为 (title, content) 场景列表。
 
-    1. 优先按场景标题行（第X场/【...】/分隔线）分组。
-    2. 无标题时按双换行段落分组；超过 30 段则自动合并，
-       使总场景数不超过 _TARGET_MAX_SCENES。
+    策略 1（优先）：检测场景标题行（第X场/幕/章、【...】、分隔线），
+                    有标题则按标题分组，每个标题块 = 一个场景。
+    策略 2（回退）：无标题时把段落按字数累积，每攒满 _MIN_SCENE_CHARS
+                    个字才切一刀，避免对白行被切成无数微场景。
+                    超过 _TARGET_MAX_SCENES 个场景时再次合并。
     """
     lines = text.splitlines()
     heading_indices = [
@@ -55,27 +58,51 @@ def _split_content_to_scenes(text: str) -> list[tuple[str, str]]:
             title = lines[start].strip()
             body = "\n".join(lines[start + 1 : end]).strip()
             content = f"{title}\n{body}".strip() if body else title
-            scenes.append((title[:50], content))
+            if content:
+                scenes.append((title[:50], content))
         return scenes
 
-    # 无标题：按双换行段落分组
+    # 无标题：按字数累积段落
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
     if not paragraphs:
         return []
-    if len(paragraphs) <= 30:
-        return [
-            (p.split("\n", 1)[0][:50] or f"段落{i + 1}", p)
-            for i, p in enumerate(paragraphs)
-        ]
 
-    # 超过 30 段：合并为约 _TARGET_MAX_SCENES 个场景
-    chunk_size = max(2, (len(paragraphs) + _TARGET_MAX_SCENES - 1) // _TARGET_MAX_SCENES)
-    result: list[tuple[str, str]] = []
-    for i in range(0, len(paragraphs), chunk_size):
-        group = paragraphs[i : i + chunk_size]
-        title = group[0].split("\n", 1)[0][:50] or f"段落{i + 1}"
-        result.append((title, "\n\n".join(group)))
-    return result
+    scenes = []
+    bucket: list[str] = []
+    bucket_chars = 0
+
+    for para in paragraphs:
+        bucket.append(para)
+        bucket_chars += len(para)
+        if bucket_chars >= _MIN_SCENE_CHARS:
+            content = "\n\n".join(bucket)
+            title = bucket[0].split("\n", 1)[0][:50] or f"场景{len(scenes) + 1}"
+            scenes.append((title, content))
+            bucket = []
+            bucket_chars = 0
+
+    # 剩余不足一场的内容合并到最后一场，避免末尾碎片
+    if bucket:
+        content = "\n\n".join(bucket)
+        if scenes:
+            last_title, last_content = scenes[-1]
+            scenes[-1] = (last_title, last_content + "\n\n" + content)
+        else:
+            title = bucket[0].split("\n", 1)[0][:50] or "场景1"
+            scenes.append((title, content))
+
+    # 场景数超出上限时再次合并
+    if len(scenes) > _TARGET_MAX_SCENES:
+        chunk = max(2, (len(scenes) + _TARGET_MAX_SCENES - 1) // _TARGET_MAX_SCENES)
+        merged: list[tuple[str, str]] = []
+        for i in range(0, len(scenes), chunk):
+            group = scenes[i : i + chunk]
+            title = group[0][0]
+            content = "\n\n".join(c for _, c in group)
+            merged.append((title, content))
+        scenes = merged
+
+    return scenes
 
 
 class _LLMProvider:
