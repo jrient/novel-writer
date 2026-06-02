@@ -146,7 +146,7 @@ async def search_style_samples(
                    1.0 - (c.embedding <=> CAST(:qv AS vector)) AS similarity
             FROM style_sample_chunks c
             JOIN style_samples s ON s.id = c.sample_id
-            WHERE (:genre IS NULL OR s.genre = :genre)
+            WHERE (CAST(:genre AS text) IS NULL OR s.genre = CAST(:genre AS text))
               AND s.index_status = 'ready'
             ORDER BY c.embedding <=> CAST(:qv AS vector)
             LIMIT :lim
