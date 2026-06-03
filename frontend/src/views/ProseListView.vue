@@ -12,7 +12,7 @@
       <el-table-column label="标题" prop="title" min-width="180" />
       <el-table-column label="来源剧本" prop="script_project_title" min-width="150">
         <template #default="{ row }">
-          {{ row.script_project_title || `剧本 #${row.script_project_id}` }}
+          {{ row.script_project_title || '上传文件' }}
         </template>
       </el-table-column>
       <el-table-column label="进度" min-width="120">

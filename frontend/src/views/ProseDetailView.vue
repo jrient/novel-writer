@@ -6,7 +6,7 @@
         <div>
           <h2 style="margin: 0 0 4px">{{ project.title }}</h2>
           <el-text type="info">
-            来源：{{ project.script_project_title || `剧本 #${project.script_project_id}` }}
+            来源：{{ project.script_project_title || '上传文件' }}
             ｜ 梗概：{{ project.premise }}
           </el-text>
         </div>
@@ -22,7 +22,7 @@
       <!-- 进度 -->
       <div style="margin-top: 12px">
         <el-tag :type="statusTagType(project.status)" style="margin-right: 8px">
-          {{ statusLabel(project.status) }}
+          {{ isOutlining ? '提炼大纲中…' : statusLabel(project.status) }}
         </el-tag>
         <el-progress
           v-if="project.status === 'generating'"
@@ -30,9 +30,9 @@
           style="display: inline-flex; width: 300px; vertical-align: middle"
         />
         <el-text v-else type="info">
-          {{ project.done_scenes }}/{{ project.total_scenes }} 场完成
+          {{ project.done_scenes }}/{{ project.total_scenes }} 章完成
           <span v-if="project.failed_scenes > 0" style="color: #f56c6c">
-            ，{{ project.failed_scenes }} 场失败
+            ，{{ project.failed_scenes }} 章失败
           </span>
         </el-text>
       </div>
@@ -52,7 +52,7 @@
 
     <el-skeleton v-if="!project" :rows="5" animated />
 
-    <!-- 场次列表 -->
+    <!-- 章节列表 -->
     <el-collapse v-if="project" v-model="openScenes" accordion style="margin-top: 8px">
       <el-collapse-item
         v-for="scene in scenes"
@@ -61,7 +61,7 @@
       >
         <template #title>
           <div style="display: flex; align-items: center; gap: 8px">
-            <span>{{ scene.scene_title || `场 ${scene.scene_index + 1}` }}</span>
+            <span>{{ scene.scene_title || `第 ${scene.scene_index + 1} 章` }}</span>
             <el-tag :type="sceneTagType(scene.status)" size="small">
               {{ sceneLabel(scene.status) }}
             </el-tag>
@@ -80,6 +80,11 @@
           {{ scene.status === 'running' ? '生成中…' : '等待中' }}
         </div>
       </el-collapse-item>
+
+      <!-- 大纲生成中占位 -->
+      <div v-if="isOutlining" style="padding: 16px; color: #909399; text-align: center">
+        正在分析剧本，提炼故事大纲…
+      </div>
     </el-collapse>
   </div>
 </template>
@@ -97,6 +102,7 @@ const projectId = Number(route.params.id)
 const project = ref<ProseProjectDetail | null>(null)
 const scenes = ref<ProseSceneOut[]>([])
 const openScenes = ref<number[]>([])
+const isOutlining = ref(false)
 let eventSource: EventSource | null = null
 
 const styleSnapshot = computed(() => {
@@ -139,7 +145,7 @@ async function loadDetail() {
   try {
     const res = await proseApi.get(projectId)
     project.value = res
-    scenes.value = res.scenes
+    scenes.value = [...res.scenes].sort((a, b) => a.scene_index - b.scene_index)
   } catch {
     ElMessage.error('加载失败')
   }
@@ -151,9 +157,19 @@ async function startSSE() {
     const url = proseApi.getStreamUrl(projectId, (ticketRes as { ticket: string }).ticket)
     eventSource = new EventSource(url)
 
-    eventSource.onmessage = (e) => {
+    eventSource.onmessage = async (e) => {
       const payload = JSON.parse(e.data)
-      if (payload.event === 'scene_done') {
+
+      if (payload.event === 'outline_start') {
+        isOutlining.value = true
+
+      } else if (payload.event === 'outline_done') {
+        // 大纲完成：此时章节已写入 DB，重新拉取
+        isOutlining.value = false
+        await loadDetail()
+        if (project.value) project.value.total_scenes = payload.total_chapters
+
+      } else if (payload.event === 'scene_done') {
         const idx = scenes.value.findIndex(s => s.scene_index === payload.scene_index)
         if (idx >= 0) {
           scenes.value[idx] = {
@@ -161,18 +177,35 @@ async function startSSE() {
             status: payload.status,
             prose_text: payload.prose_text ?? null,
           }
+        } else {
+          // 章节刚创建还未被初始加载，直接追加
+          scenes.value.push({
+            id: 0,
+            scene_index: payload.scene_index,
+            scene_title: payload.scene_title ?? `第${payload.scene_index + 1}章`,
+            original_scene_text: '',
+            prose_text: payload.prose_text ?? null,
+            status: payload.status,
+            error: null,
+            token_used: 0,
+          })
+          scenes.value.sort((a, b) => a.scene_index - b.scene_index)
         }
         if (project.value) {
           if (payload.status === 'done') project.value.done_scenes++
           else if (payload.status === 'failed') project.value.failed_scenes++
         }
+
       } else if (payload.event === 'project_done' || payload.event === 'project_failed') {
-        if (project.value) project.value.status = payload.event === 'project_done' ? 'done' : payload.status
+        if (project.value) {
+          project.value.status = payload.event === 'project_done' ? 'done' : payload.status
+        }
         eventSource?.close()
         eventSource = null
-        loadDetail()
+        await loadDetail()
       }
     }
+
     eventSource.onerror = () => {
       eventSource?.close()
       eventSource = null
@@ -185,7 +218,7 @@ async function startSSE() {
 function exportTxt() {
   const lines = scenes.value
     .filter(s => s.prose_text)
-    .map(s => `## ${s.scene_title || `场 ${s.scene_index + 1}`}\n\n${s.prose_text}`)
+    .map(s => `${s.scene_title || `第 ${s.scene_index + 1} 章`}\n\n${s.prose_text}`)
     .join('\n\n---\n\n')
   const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' })
   const a = document.createElement('a')
