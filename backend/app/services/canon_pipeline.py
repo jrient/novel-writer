@@ -109,3 +109,116 @@ async def _merge_entities_of_type(
     if len(batch_results) < len(raw_entities) and len(batch_results) > MERGE_BATCH:
         return await _merge_entities_of_type(entity_type, batch_results, model)
     return batch_results
+
+
+async def run_canon_extraction(
+    reference_id: int,
+    session_factory: async_sessionmaker,
+    model: Optional[str] = None,
+) -> int:
+    """编排：建 job → CHUNK → ATOMIC(并行) → MERGE(按类型) → PERSIST。返回 job_id。
+    幂等：重跑前清空该 reference 既有 ai_extracted 实体（保留 user_* 人工条目）。
+    """
+    # 1) 建 job + 取原作正文
+    async with session_factory() as s:
+        ref = (await s.execute(select(ReferenceNovel).where(
+            ReferenceNovel.id == reference_id))).scalar_one_or_none()
+        if ref is None:
+            raise ValueError(f"reference {reference_id} 不存在")
+        content = ref.content or ""
+        job = CanonExtractionJob(reference_id=reference_id, model=model, status="processing")
+        s.add(job)
+        await s.commit()
+        await s.refresh(job)
+        job_id = job.id
+
+    try:
+        # 2) CHUNK
+        chunks = _chunk_reference(content)
+        async with session_factory() as s:
+            j = (await s.execute(select(CanonExtractionJob).where(
+                CanonExtractionJob.id == job_id))).scalar_one()
+            j.chunk_total = len(chunks)
+            await s.commit()
+        await canon_event_bus.publish(reference_id,
+            {"event": "chunked", "chunk_total": len(chunks)})
+
+        # 3) ATOMIC（并行限流）
+        sem = asyncio.Semaphore(ATOMIC_CONCURRENCY)
+        done = 0
+        failed = 0
+        all_atomic: List[Dict[str, Any]] = []
+
+        async def _worker(ch):
+            async with sem:
+                return await _atomic_extract_chunk(ch, model)
+
+        results = await asyncio.gather(*[_worker(c) for c in chunks],
+                                       return_exceptions=True)
+        for r in results:
+            if isinstance(r, Exception):
+                failed += 1
+                logger.warning("canon atomic chunk failed: %s", r)
+            else:
+                all_atomic.extend(r)
+            done += 1
+            await canon_event_bus.publish(reference_id,
+                {"event": "progress", "chunk_done": done, "failed": failed})
+
+        async with session_factory() as s:
+            j = (await s.execute(select(CanonExtractionJob).where(
+                CanonExtractionJob.id == job_id))).scalar_one()
+            j.chunk_done = done
+            j.failed_chunks = failed
+            await s.commit()
+
+        # 4) MERGE（按类型）
+        by_type: Dict[str, List[Dict[str, Any]]] = {t: [] for t in ENTITY_TYPES}
+        for e in all_atomic:
+            t = e.get("entity_type")
+            if t in by_type:
+                by_type[t].append(e)
+        merged_all: List[Dict[str, Any]] = []
+        for t in ENTITY_TYPES:
+            merged_all.extend(await _merge_entities_of_type(t, by_type[t], model))
+        await canon_event_bus.publish(reference_id,
+            {"event": "merged", "entity_count": len(merged_all)})
+
+        # 5) PERSIST（先清旧 ai_extracted，保留人工条目）
+        async with session_factory() as s:
+            await s.execute(delete(CanonEntity).where(
+                CanonEntity.reference_id == reference_id,
+                CanonEntity.review_status == "ai_extracted"))
+            for e in merged_all:
+                s.add(CanonEntity(
+                    reference_id=reference_id,
+                    entity_type=e.get("entity_type", "character"),
+                    canonical_name=e.get("canonical_name", "")[:200] or "未命名",
+                    aliases=e.get("aliases", []),
+                    summary=e.get("summary"),
+                    attributes=e.get("attributes", {}),
+                    source_refs=e.get("source_refs", []),
+                    importance=e.get("importance", "major"),
+                    confidence=float(e.get("confidence", 1.0)),
+                    review_status="ai_extracted",
+                ))
+            j = (await s.execute(select(CanonExtractionJob).where(
+                CanonExtractionJob.id == job_id))).scalar_one()
+            j.entity_count = len(merged_all)
+            j.status = "done"
+            await s.commit()
+
+        await canon_event_bus.publish(reference_id,
+            {"event": "done", "entity_count": len(merged_all)})
+        return job_id
+
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("canon extraction failed")
+        async with session_factory() as s:
+            j = (await s.execute(select(CanonExtractionJob).where(
+                CanonExtractionJob.id == job_id))).scalar_one()
+            j.status = "failed"
+            j.error = str(exc)[:2000]
+            await s.commit()
+        await canon_event_bus.publish(reference_id, {"event": "failed", "error": str(exc)})
+        return job_id

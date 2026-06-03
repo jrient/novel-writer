@@ -88,3 +88,56 @@ async def test_merge_no_progress_terminates_without_hang():
         merged = await _merge_entities_of_type("character", raw, model=None)
     # 坏 JSON 全部回退，无法归并，但必须终止并返回全部条目
     assert len(merged) == MERGE_BATCH + 5
+
+
+# ---------------------------------------------------------------------------
+# Task 8: end-to-end integration test for run_canon_extraction
+# ---------------------------------------------------------------------------
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from app.models.reference import ReferenceNovel
+from app.models.canon import CanonEntity, CanonExtractionJob
+from sqlalchemy import select
+
+
+@pytest.fixture
+def session_factory(test_engine):
+    return async_sessionmaker(test_engine, expire_on_commit=False)
+
+
+async def test_run_canon_extraction_end_to_end(db_session, session_factory):
+    ref = ReferenceNovel(title="测试原作",
+                         content="乌鸡国国王被狮猁怪推入御花园八角琉璃井中。" * 30,
+                         total_chars=600)
+    db_session.add(ref)
+    await db_session.commit()
+    await db_session.refresh(ref)
+
+    atomic_out = (
+        '[{"entity_type":"character","canonical_name":"乌鸡国国王",'
+        '"aliases":["陛下"],"summary":"被害君主",'
+        '"source":{"quote":"乌鸡国国王被推入井中"},"importance":"major"}]'
+    )
+    merge_out = (
+        '[{"entity_type":"character","canonical_name":"乌鸡国国王",'
+        '"aliases":["陛下"],"summary":"被害君主",'
+        '"source_refs":[{"chapter":"片段1","quote":"乌鸡国国王被推入井中"}],'
+        '"importance":"major"}]'
+    )
+
+    async def fake_generate(prompt, provider=None, max_tokens=None):
+        return merge_out if "归并" in prompt or "待归并" in prompt else atomic_out
+
+    from app.services.canon_pipeline import run_canon_extraction
+    with patch.object(AIService, "generate_text", side_effect=fake_generate):
+        job_id = await run_canon_extraction(ref.id, session_factory, model="demo")
+
+    async with session_factory() as s:
+        job = (await s.execute(select(CanonExtractionJob).where(
+            CanonExtractionJob.id == job_id))).scalar_one()
+        assert job.status == "done"
+        assert job.entity_count >= 1
+        ents = (await s.execute(select(CanonEntity).where(
+            CanonEntity.reference_id == ref.id))).scalars().all()
+        assert any(e.canonical_name == "乌鸡国国王" for e in ents)
+        assert ents[0].source_refs  # 溯源非空（准确度回归基线）
+        assert ents[0].review_status == "ai_extracted"
