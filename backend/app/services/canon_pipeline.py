@@ -11,7 +11,7 @@ import re
 from typing import List, Dict, Any, Optional
 
 from sqlalchemy import select, delete
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.services.chunk import ChunkService
 from app.services.ai_service import AIService
@@ -141,29 +141,33 @@ async def run_canon_extraction(
             j.chunk_total = len(chunks)
             await s.commit()
         await canon_event_bus.publish(reference_id,
-            {"event": "chunked", "chunk_total": len(chunks)})
+            {"event": "chunked", "job_id": job_id, "chunk_total": len(chunks)})
 
-        # 3) ATOMIC（并行限流）
+        # 3) ATOMIC（并行限流，实时进度）
         sem = asyncio.Semaphore(ATOMIC_CONCURRENCY)
         done = 0
         failed = 0
         all_atomic: List[Dict[str, Any]] = []
 
         async def _worker(ch):
+            nonlocal done, failed
             async with sem:
-                return await _atomic_extract_chunk(ch, model)
+                try:
+                    ents = await _atomic_extract_chunk(ch, model)
+                except Exception as e:  # noqa: BLE001
+                    failed += 1
+                    logger.warning("canon atomic chunk failed: %s", e)
+                    ents = []
+                else:
+                    all_atomic.extend(ents)
+                done += 1
+                await canon_event_bus.publish(reference_id, {
+                    "event": "progress", "job_id": job_id,
+                    "chunk_done": done, "failed": failed,
+                })
+                return ents
 
-        results = await asyncio.gather(*[_worker(c) for c in chunks],
-                                       return_exceptions=True)
-        for r in results:
-            if isinstance(r, Exception):
-                failed += 1
-                logger.warning("canon atomic chunk failed: %s", r)
-            else:
-                all_atomic.extend(r)
-            done += 1
-            await canon_event_bus.publish(reference_id,
-                {"event": "progress", "chunk_done": done, "failed": failed})
+        await asyncio.gather(*[_worker(c) for c in chunks])
 
         async with session_factory() as s:
             j = (await s.execute(select(CanonExtractionJob).where(
@@ -182,7 +186,7 @@ async def run_canon_extraction(
         for t in ENTITY_TYPES:
             merged_all.extend(await _merge_entities_of_type(t, by_type[t], model))
         await canon_event_bus.publish(reference_id,
-            {"event": "merged", "entity_count": len(merged_all)})
+            {"event": "merged", "job_id": job_id, "entity_count": len(merged_all)})
 
         # 5) PERSIST（先清旧 ai_extracted，保留人工条目）
         async with session_factory() as s:
@@ -209,16 +213,20 @@ async def run_canon_extraction(
             await s.commit()
 
         await canon_event_bus.publish(reference_id,
-            {"event": "done", "entity_count": len(merged_all)})
+            {"event": "done", "job_id": job_id, "entity_count": len(merged_all)})
         return job_id
 
     except Exception as exc:  # noqa: BLE001
         logger.exception("canon extraction failed")
-        async with session_factory() as s:
-            j = (await s.execute(select(CanonExtractionJob).where(
-                CanonExtractionJob.id == job_id))).scalar_one()
-            j.status = "failed"
-            j.error = str(exc)[:2000]
-            await s.commit()
-        await canon_event_bus.publish(reference_id, {"event": "failed", "error": str(exc)})
+        try:
+            async with session_factory() as s:
+                j = (await s.execute(select(CanonExtractionJob).where(
+                    CanonExtractionJob.id == job_id))).scalar_one_or_none()
+                if j is not None:
+                    j.status = "failed"
+                    j.error = str(exc)[:2000]
+                    await s.commit()
+        except Exception:  # noqa: BLE001
+            logger.exception("canon extraction: failed to persist failed-status")
+        await canon_event_bus.publish(reference_id, {"event": "failed", "job_id": job_id, "error": str(exc)})
         return job_id
