@@ -61,3 +61,25 @@ def _safe_json_array(text: str) -> List[Dict[str, Any]]:
                 except json.JSONDecodeError:
                     return []
     return []
+
+
+async def _atomic_extract_chunk(chunk: Dict[str, str], model: Optional[str]) -> List[Dict[str, Any]]:
+    """单块原子提取：调 LLM → 解析 → 把 source.quote 规整为 source_refs（附 chapter=label）。
+    任何异常/坏 JSON 返回 []（由上层计 failed）。
+    """
+    prompt = build_atomic_prompt(chunk_text=chunk["text"], chunk_label=chunk["label"])
+    raw = await AIService.generate_text(prompt, provider=model, max_tokens=4000)
+    entities = _safe_json_array(raw)
+
+    normalized: List[Dict[str, Any]] = []
+    for e in entities:
+        if not isinstance(e, dict) or not e.get("canonical_name"):
+            continue
+        src = e.pop("source", None) or {}
+        quote = src.get("quote") if isinstance(src, dict) else None
+        e["source_refs"] = [{"chapter": chunk["label"], "quote": quote}] if quote else []
+        e.setdefault("aliases", [])
+        e.setdefault("attributes", {})
+        e.setdefault("importance", "major")
+        normalized.append(e)
+    return normalized

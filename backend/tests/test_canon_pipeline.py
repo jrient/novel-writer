@@ -20,3 +20,34 @@ def test_safe_json_array_parses_fenced():
 
 def test_safe_json_array_returns_empty_on_garbage():
     assert _safe_json_array("这不是JSON，纯文本。") == []
+
+
+import pytest
+from unittest.mock import patch, AsyncMock
+from app.services.ai_service import AIService
+
+
+async def test_atomic_extract_one_chunk_parses_entities():
+    from app.services.canon_pipeline import _atomic_extract_chunk
+
+    fake_llm = AsyncMock(return_value=(
+        '[{"entity_type":"character","canonical_name":"乌鸡国国王",'
+        '"aliases":["陛下"],"summary":"被害君主",'
+        '"source":{"quote":"我本是乌鸡国王"},"importance":"major"}]'
+    ))
+    with patch.object(AIService, "generate_text", fake_llm):
+        ents = await _atomic_extract_chunk(
+            {"label": "第三十七回", "text": "我本是乌鸡国王..."}, model=None
+        )
+    assert len(ents) == 1
+    assert ents[0]["canonical_name"] == "乌鸡国国王"
+    # source 被规整进 source_refs
+    assert ents[0]["source_refs"][0]["quote"] == "我本是乌鸡国王"
+    assert ents[0]["source_refs"][0]["chapter"] == "第三十七回"
+
+
+async def test_atomic_extract_chunk_handles_bad_json():
+    from app.services.canon_pipeline import _atomic_extract_chunk
+    with patch.object(AIService, "generate_text", AsyncMock(return_value="抱歉我无法解析")):
+        ents = await _atomic_extract_chunk({"label": "片段1", "text": "x"}, model=None)
+    assert ents == []
