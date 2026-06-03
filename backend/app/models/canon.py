@@ -5,10 +5,11 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Text, Integer, Float, ForeignKey, JSON, DateTime, func
+from sqlalchemy import String, Text, Integer, Float, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.core.datetime_utils import utcnow_naive
 
 
 class CanonEntity(Base):
@@ -32,8 +33,11 @@ class CanonEntity(Base):
     # ai_extracted / user_verified / user_edited / user_added
     review_status: Mapped[str] = mapped_column(String(20), default="ai_extracted")
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(default=utcnow_naive)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=utcnow_naive)
+
+    def __repr__(self):
+        return f"<CanonEntity(id={self.id}, type='{self.entity_type}', name='{self.canonical_name}')>"
 
 
 class CanonExtractionJob(Base):
@@ -52,5 +56,8 @@ class CanonExtractionJob(Base):
     entity_count: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(default=utcnow_naive)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=utcnow_naive)
+
+    def __repr__(self):
+        return f"<CanonExtractionJob(id={self.id}, ref={self.reference_id}, status='{self.status}')>"
