@@ -1,4 +1,8 @@
 """canon_pipeline 纯函数单测（不触发 LLM）"""
+import pytest
+from unittest.mock import patch, AsyncMock
+
+from app.services.ai_service import AIService
 from app.services.canon_pipeline import _chunk_reference, _safe_json_array
 
 
@@ -20,11 +24,6 @@ def test_safe_json_array_parses_fenced():
 
 def test_safe_json_array_returns_empty_on_garbage():
     assert _safe_json_array("这不是JSON，纯文本。") == []
-
-
-import pytest
-from unittest.mock import patch, AsyncMock
-from app.services.ai_service import AIService
 
 
 async def test_atomic_extract_one_chunk_parses_entities():
