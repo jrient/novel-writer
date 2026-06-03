@@ -38,6 +38,7 @@ from app.routers import (
 )
 from app.routers.rubric_pipeline import router as rubric_pipeline_router
 from app.routers.prose import router as prose_router
+from app.routers.canon import router as canon_router
 from app.services.scheduled_task import start_scheduler, stop_scheduler
 
 
@@ -145,6 +146,7 @@ app.include_router(adaptation_router)
 app.include_router(style_sample_router)
 app.include_router(rubric_pipeline_router)
 app.include_router(prose_router)
+app.include_router(canon_router)
 
 
 @app.get("/")
