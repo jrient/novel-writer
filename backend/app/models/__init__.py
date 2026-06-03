@@ -33,6 +33,7 @@ from app.models.adaptation_version import AdaptationVersion
 from app.models.adaptation_scene_result import AdaptationSceneResult
 
 from app.models.prose_project import ProseProject, ProseScene
+from app.models.canon import CanonEntity, CanonExtractionJob
 
 __all__ = [
     "User", "Invitation",
@@ -44,4 +45,5 @@ __all__ = [
     "AdaptationProject", "AdaptationMappingEntry", "AdaptationVersion", "AdaptationSceneResult",
     "StyleSample", "StyleSampleChunk",
     "ProseProject", "ProseScene",
+    "CanonEntity", "CanonExtractionJob",
 ]
