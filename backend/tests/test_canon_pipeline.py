@@ -77,3 +77,14 @@ async def test_merge_entities_by_type_disambiguates():
 async def test_merge_entities_empty_returns_empty():
     from app.services.canon_pipeline import _merge_entities_of_type
     assert await _merge_entities_of_type("ability", [], model=None) == []
+
+
+async def test_merge_no_progress_terminates_without_hang():
+    """所有批次都返回坏 JSON → 回退原样 → 不应死循环，返回原集合。"""
+    from app.services.canon_pipeline import _merge_entities_of_type, MERGE_BATCH
+    raw = [{"entity_type": "character", "canonical_name": f"角色{i}", "aliases": [],
+            "source_refs": []} for i in range(MERGE_BATCH + 5)]
+    with patch.object(AIService, "generate_text", AsyncMock(return_value="非JSON输出")):
+        merged = await _merge_entities_of_type("character", raw, model=None)
+    # 坏 JSON 全部回退，无法归并，但必须终止并返回全部条目
+    assert len(merged) == MERGE_BATCH + 5

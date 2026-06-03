@@ -105,4 +105,7 @@ async def _merge_entities_of_type(
         prompt = build_merge_prompt(entity_type, batch)
         raw = await AIService.generate_text(prompt, provider=model, max_tokens=4000)
         batch_results.extend(_safe_json_array(raw) or batch)
-    return await _merge_entities_of_type(entity_type, batch_results, model)
+    # 仅在严格递减时递归再归并，避免坏 JSON 反复回退导致死循环
+    if len(batch_results) < len(raw_entities) and len(batch_results) > MERGE_BATCH:
+        return await _merge_entities_of_type(entity_type, batch_results, model)
+    return batch_results
