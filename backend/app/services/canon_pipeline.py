@@ -83,3 +83,26 @@ async def _atomic_extract_chunk(chunk: Dict[str, str], model: Optional[str]) -> 
         e.setdefault("importance", "major")
         normalized.append(e)
     return normalized
+
+
+async def _merge_entities_of_type(
+    entity_type: str, raw_entities: List[Dict[str, Any]], model: Optional[str]
+) -> List[Dict[str, Any]]:
+    """对同类型条目做 LLM 归并消歧。条目过多时树状分批（每批 MERGE_BATCH）。"""
+    if not raw_entities:
+        return []
+    if len(raw_entities) <= MERGE_BATCH:
+        prompt = build_merge_prompt(entity_type, raw_entities)
+        raw = await AIService.generate_text(prompt, provider=model, max_tokens=4000)
+        merged = _safe_json_array(raw)
+        # 回退：归并失败则原样返回（不丢数据）
+        return merged if merged else raw_entities
+
+    # 分批归并后递归再归并
+    batch_results: List[Dict[str, Any]] = []
+    for i in range(0, len(raw_entities), MERGE_BATCH):
+        batch = raw_entities[i:i + MERGE_BATCH]
+        prompt = build_merge_prompt(entity_type, batch)
+        raw = await AIService.generate_text(prompt, provider=model, max_tokens=4000)
+        batch_results.extend(_safe_json_array(raw) or batch)
+    return await _merge_entities_of_type(entity_type, batch_results, model)

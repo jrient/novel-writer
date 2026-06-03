@@ -50,3 +50,30 @@ async def test_atomic_extract_chunk_handles_bad_json():
     with patch.object(AIService, "generate_text", AsyncMock(return_value="抱歉我无法解析")):
         ents = await _atomic_extract_chunk({"label": "片段1", "text": "x"}, model=None)
     assert ents == []
+
+
+async def test_merge_entities_by_type_disambiguates():
+    from app.services.canon_pipeline import _merge_entities_of_type
+
+    raw = [
+        {"entity_type": "character", "canonical_name": "乌鸡国王",
+         "aliases": ["陛下"], "source_refs": [{"chapter": "片段1", "quote": "a"}]},
+        {"entity_type": "character", "canonical_name": "乌鸡国国王",
+         "aliases": [], "source_refs": [{"chapter": "片段2", "quote": "b"}]},
+    ]
+    merged_json = (
+        '[{"entity_type":"character","canonical_name":"乌鸡国国王",'
+        '"aliases":["陛下","乌鸡国王"],"summary":"被害君主",'
+        '"source_refs":[{"chapter":"片段1","quote":"a"},{"chapter":"片段2","quote":"b"}],'
+        '"importance":"major"}]'
+    )
+    with patch.object(AIService, "generate_text", AsyncMock(return_value=merged_json)):
+        merged = await _merge_entities_of_type("character", raw, model=None)
+    assert len(merged) == 1
+    assert merged[0]["canonical_name"] == "乌鸡国国王"
+    assert len(merged[0]["source_refs"]) == 2
+
+
+async def test_merge_entities_empty_returns_empty():
+    from app.services.canon_pipeline import _merge_entities_of_type
+    assert await _merge_entities_of_type("ability", [], model=None) == []
