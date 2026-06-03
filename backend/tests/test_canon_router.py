@@ -52,6 +52,20 @@ async def test_start_extraction_triggers_pipeline(client, ref):
 
 
 @pytest.mark.asyncio
+async def test_stream_requires_valid_ticket(client, ref):
+    # 无效 ticket 应被拒绝
+    resp = client.get(f"/api/v1/references/{ref.id}/canon/stream?ticket=bogus")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_create_stream_ticket_returns_ticket_for_owner(client, ref):
+    resp = client.post(f"/api/v1/references/{ref.id}/canon/stream/ticket")
+    assert resp.status_code == 200
+    assert resp.json().get("ticket")
+
+
+@pytest.mark.asyncio
 async def test_start_extraction_rejects_when_in_flight(client, ref, db_session):
     # 预置一个 processing 中的 job
     job = CanonExtractionJob(reference_id=ref.id, status="processing")

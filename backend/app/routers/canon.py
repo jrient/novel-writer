@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.database import get_db, engine
+from app.core.security import create_sse_ticket, verify_sse_ticket
 from app.models.reference import ReferenceNovel
 from app.models.canon import CanonEntity, CanonExtractionJob
 from app.models.user import User
@@ -148,9 +149,22 @@ async def delete_entity(
     await db.commit()
 
 
+@router.post("/stream/ticket")
+async def create_stream_ticket(
+    reference_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """颁发 30s 短票据，供 EventSource 拉 SSE 流。"""
+    await _get_owned_ref(reference_id, db, user)
+    return {"ticket": create_sse_ticket(user.id, reference_id)}
+
+
 @router.get("/stream")
 async def stream_extraction(reference_id: int, ticket: str = Query(...)):
-    """SSE 进度流。"""
+    """SSE 进度流。需先经 POST /stream/ticket 取得签名票据。"""
+    if verify_sse_ticket(ticket, reference_id) is None:
+        raise HTTPException(status_code=401, detail="ticket 无效或已过期")
     sub = canon_event_bus.subscribe(reference_id)
 
     async def gen():
