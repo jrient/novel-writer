@@ -61,6 +61,29 @@
         />
       </el-form-item>
 
+      <el-form-item label="锚定原作（二创设定）">
+        <el-select
+          v-model="wizardStore.ideaData.canon_reference_id"
+          placeholder="可选：选择一部已提取设定的原作，AI 生成将严格遵守其人物/世界观"
+          clearable
+          filterable
+          style="width: 100%"
+        >
+          <el-option
+            v-for="ref in references"
+            :key="ref.id"
+            :label="ref.title"
+            :value="ref.id"
+          />
+        </el-select>
+        <div class="canon-hint">
+          二创模式：选定原作后，AI 会把该原作已提取的设定作为「必须遵守的事实」注入生成，
+          与文风参考不同。请先在
+          <el-link type="primary" :underline="false" @click="goToCanon">原作设定校对</el-link>
+          页提取并校对设定。
+        </div>
+      </el-form-item>
+
       <div class="tips-box">
         <h4>💡 提示</h4>
         <ul>
@@ -81,13 +104,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useWizardStore } from '@/stores/wizard'
+import { getReferences } from '@/api/reference'
+import type { ReferenceNovel } from '@/api/reference'
 
 const wizardStore = useWizardStore()
+const router = useRouter()
 const formRef = ref<FormInstance>()
+const references = ref<ReferenceNovel[]>([])
+
+onMounted(async () => {
+  try {
+    references.value = await getReferences()
+  } catch {
+    // 列表加载失败不阻塞向导；错误已由拦截器提示
+  }
+})
+
+function goToCanon() {
+  const id = wizardStore.ideaData.canon_reference_id
+  router.push(id ? `/references/${id}/canon` : '/projects')
+}
 
 const rules: FormRules = {
   title: [{ required: true, message: '请输入小说标题', trigger: 'blur' }],
@@ -137,6 +178,13 @@ async function handleNext() {
   padding: 32px;
   border-radius: 14px;
   border: 1px solid #E0DFDC;
+}
+
+.canon-hint {
+  font-size: 12px;
+  color: #7A7A7A;
+  line-height: 1.7;
+  margin-top: 6px;
 }
 
 .tips-box {

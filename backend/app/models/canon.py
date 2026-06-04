@@ -26,7 +26,7 @@ class CanonEntity(Base):
     aliases: Mapped[Optional[list]] = mapped_column(JSON, default=list)
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     attributes: Mapped[Optional[dict]] = mapped_column(JSON, default=dict)
-    # 溯源：[{"chapter":..,"offset":..,"quote":".."}]
+    # 溯源：[{"chapter": <分块标签，如 "片段3">, "quote": "<≤40字原文>"}]
     source_refs: Mapped[Optional[list]] = mapped_column(JSON, default=list)
     importance: Mapped[str] = mapped_column(String(20), default="major")  # critical/major/minor
     confidence: Mapped[float] = mapped_column(Float, default=1.0)

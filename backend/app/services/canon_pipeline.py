@@ -10,7 +10,7 @@ import logging
 import re
 from typing import List, Dict, Any, Optional
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.services.chunk import ChunkService
@@ -188,32 +188,43 @@ async def run_canon_extraction(
         await canon_event_bus.publish(reference_id,
             {"event": "merged", "job_id": job_id, "entity_count": len(merged_all)})
 
-        # 5) PERSIST（先清旧 ai_extracted，保留人工条目）
+        # 5) PERSIST（仅当有新产出时才清旧 ai_extracted，保留人工条目）
+        # 防御：若本次全数失败导致 merged_all 为空，跳过删除，避免一次失败的提取
+        # 静默抹除上一次成功提取的历史 ai_extracted 结果。
         async with session_factory() as s:
-            await s.execute(delete(CanonEntity).where(
-                CanonEntity.reference_id == reference_id,
-                CanonEntity.review_status == "ai_extracted"))
-            for e in merged_all:
-                s.add(CanonEntity(
-                    reference_id=reference_id,
-                    entity_type=e.get("entity_type", "character"),
-                    canonical_name=e.get("canonical_name", "")[:200] or "未命名",
-                    aliases=e.get("aliases", []),
-                    summary=e.get("summary"),
-                    attributes=e.get("attributes", {}),
-                    source_refs=e.get("source_refs", []),
-                    importance=e.get("importance", "major"),
-                    confidence=float(e.get("confidence", 1.0)),
-                    review_status="ai_extracted",
-                ))
+            if merged_all:
+                await s.execute(delete(CanonEntity).where(
+                    CanonEntity.reference_id == reference_id,
+                    CanonEntity.review_status == "ai_extracted"))
+                for e in merged_all:
+                    s.add(CanonEntity(
+                        reference_id=reference_id,
+                        entity_type=e.get("entity_type", "character"),
+                        canonical_name=e.get("canonical_name", "")[:200] or "未命名",
+                        aliases=e.get("aliases", []),
+                        summary=e.get("summary"),
+                        attributes=e.get("attributes", {}),
+                        source_refs=e.get("source_refs", []),
+                        importance=e.get("importance", "major"),
+                        confidence=float(e.get("confidence", 1.0)),
+                        review_status="ai_extracted",
+                    ))
+                new_count = len(merged_all)
+            else:
+                # 无产出：保留历史，entity_count 报告现存 ai_extracted 数量（更诚实）
+                new_count = (await s.execute(
+                    select(func.count()).select_from(CanonEntity).where(
+                        CanonEntity.reference_id == reference_id,
+                        CanonEntity.review_status == "ai_extracted"))
+                ).scalar() or 0
             j = (await s.execute(select(CanonExtractionJob).where(
                 CanonExtractionJob.id == job_id))).scalar_one()
-            j.entity_count = len(merged_all)
+            j.entity_count = new_count
             j.status = "done"
             await s.commit()
 
         await canon_event_bus.publish(reference_id,
-            {"event": "done", "job_id": job_id, "entity_count": len(merged_all)})
+            {"event": "done", "job_id": job_id, "entity_count": new_count})
         return job_id
 
     except Exception as exc:  # noqa: BLE001

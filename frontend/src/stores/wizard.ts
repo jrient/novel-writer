@@ -34,6 +34,7 @@ export const useWizardStore = defineStore('wizard', () => {
     genre: '',
     description: '',
     reference_ids: [] as number[],
+    canon_reference_id: null as number | null,  // 设定锚定原作（二创）
   })
 
   // 步骤 2：地图数据
@@ -105,6 +106,7 @@ export const useWizardStore = defineStore('wizard', () => {
           genre: ideaData.value.genre,
           description: ideaData.value.description,
           reference_ids: ideaData.value.reference_ids,
+          canon_reference_id: ideaData.value.canon_reference_id ?? undefined,
           revision_request: revisionRequest,
           current_maps: isRevision ? maps.value : undefined,
         },
@@ -174,6 +176,7 @@ export const useWizardStore = defineStore('wizard', () => {
           description: ideaData.value.description,
           map_id: mapId || '',
           map_name: mapItem.name,
+          canon_reference_id: ideaData.value.canon_reference_id ?? undefined,
           revision_request: revisionRequest,
           current_parts: isRevision ? mapItem.parts : undefined,
         },
@@ -522,7 +525,7 @@ export const useWizardStore = defineStore('wizard', () => {
 
       const draft = JSON.parse(data)
       currentStep.value = draft.currentStep || 1
-      ideaData.value = draft.ideaData || { title: '', genre: '', description: '', reference_ids: [] }
+      ideaData.value = draft.ideaData || { title: '', genre: '', description: '', reference_ids: [], canon_reference_id: null }
       maps.value = draft.maps || []
       selectedMapId.value = draft.selectedMapId || null
       characters.value = draft.characters || []
@@ -552,6 +555,7 @@ export const useWizardStore = defineStore('wizard', () => {
       genre: '',
       description: '',
       reference_ids: [],
+      canon_reference_id: null,
     }
     maps.value = []
     selectedMapId.value = null

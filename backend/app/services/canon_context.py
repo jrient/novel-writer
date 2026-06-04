@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.canon import CanonEntity
+from app.models.reference import ReferenceNovel
 
 _TYPE_CN = {
     "character": "人物", "location": "地点", "ability": "能力",
@@ -17,7 +18,16 @@ _MAX_ENTITIES = 60
 
 
 async def build_canon_context(db: AsyncSession, reference_id: int,
+                              owner_user_id: Optional[int] = None,
                               max_entities: int = _MAX_ENTITIES) -> str:
+    # 归属校验（防越权）：传入 owner_user_id 时，原作须属于该用户或为公共原作
+    # (owner_id 为空)，否则返回空，杜绝用他人原作 canon 注入自己的生成。
+    if owner_user_id is not None:
+        ref = (await db.execute(select(ReferenceNovel).where(
+            ReferenceNovel.id == reference_id))).scalar_one_or_none()
+        if ref is None or (ref.owner_id is not None and ref.owner_id != owner_user_id):
+            return ""
+
     rows = (await db.execute(select(CanonEntity).where(
         CanonEntity.reference_id == reference_id))).scalars().all()
     if not rows:

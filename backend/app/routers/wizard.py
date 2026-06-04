@@ -253,7 +253,8 @@ async def wizard_generate_maps(
     canon_context = ""
     if payload.canon_reference_id:
         from app.services.canon_context import build_canon_context
-        canon_context = await build_canon_context(db, payload.canon_reference_id)
+        canon_context = await build_canon_context(
+            db, payload.canon_reference_id, owner_user_id=current_user.id)
     effective_description = (
         canon_context + "\n\n" + payload.description if canon_context else payload.description
     )
@@ -323,7 +324,8 @@ async def wizard_generate_parts(
     canon_context = ""
     if payload.canon_reference_id:
         from app.services.canon_context import build_canon_context
-        canon_context = await build_canon_context(db, payload.canon_reference_id)
+        canon_context = await build_canon_context(
+            db, payload.canon_reference_id, owner_user_id=current_user.id)
     effective_description = (
         canon_context + "\n\n" + payload.description if canon_context else payload.description
     )

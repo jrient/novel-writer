@@ -141,3 +141,39 @@ async def test_run_canon_extraction_end_to_end(db_session, session_factory):
         assert any(e.canonical_name == "乌鸡国国王" for e in ents)
         assert ents[0].source_refs  # 溯源非空（准确度回归基线）
         assert ents[0].review_status == "ai_extracted"
+
+
+async def test_empty_extraction_preserves_existing_entities(db_session, session_factory):
+    """全数失败导致 merged_all 为空时，不得抹除上次成功提取的 ai_extracted，
+    更不得动用户的人工条目。回归保护：一次失败的提取不应清空历史。"""
+    ref = ReferenceNovel(title="测试原作B", content="正文。" * 50, total_chars=150)
+    db_session.add(ref)
+    await db_session.commit()
+    await db_session.refresh(ref)
+    # 预置历史：1 条 AI 提取 + 1 条人工新增
+    db_session.add_all([
+        CanonEntity(reference_id=ref.id, entity_type="character",
+                    canonical_name="旧AI实体", importance="major",
+                    confidence=1.0, review_status="ai_extracted"),
+        CanonEntity(reference_id=ref.id, entity_type="character",
+                    canonical_name="用户实体", importance="major",
+                    confidence=1.0, review_status="user_added"),
+    ])
+    await db_session.commit()
+
+    # LLM 全程返回非 JSON → atomic 全空 → merged_all 为空
+    from app.services.canon_pipeline import run_canon_extraction
+    with patch.object(AIService, "generate_text",
+                      AsyncMock(return_value="服务繁忙，无法解析")):
+        job_id = await run_canon_extraction(ref.id, session_factory, model="demo")
+
+    async with session_factory() as s:
+        job = (await s.execute(select(CanonExtractionJob).where(
+            CanonExtractionJob.id == job_id))).scalar_one()
+        assert job.status == "done"
+        names = {e.canonical_name for e in (await s.execute(select(CanonEntity).where(
+            CanonEntity.reference_id == ref.id))).scalars().all()}
+        # 历史 ai_extracted 与人工条目都应保留
+        assert "旧AI实体" in names
+        assert "用户实体" in names
+        assert job.entity_count == 1  # 报告现存 ai_extracted 数量

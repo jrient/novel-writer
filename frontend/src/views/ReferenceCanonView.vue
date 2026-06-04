@@ -111,7 +111,7 @@
                   class="source-item"
                 >
                   <el-text v-if="ref.chapter !== undefined && ref.chapter !== null" type="info" size="small">
-                    第 {{ ref.chapter }} 章
+                    来源：{{ ref.chapter }}
                   </el-text>
                   <blockquote v-if="ref.quote" class="source-quote">{{ ref.quote }}</blockquote>
                 </div>
