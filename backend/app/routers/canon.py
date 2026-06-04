@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.core.database import get_db, engine
+from app.core.database import get_db, engine, async_session
 from app.core.security import create_sse_ticket, verify_sse_ticket
 from app.models.reference import ReferenceNovel
 from app.models.canon import CanonEntity, CanonExtractionJob
@@ -165,11 +165,40 @@ async def stream_extraction(reference_id: int, ticket: str = Query(...)):
     """SSE 进度流。需先经 POST /stream/ticket 取得签名票据。"""
     if verify_sse_ticket(ticket, reference_id) is None:
         raise HTTPException(status_code=401, detail="ticket 无效或已过期")
+    # 先订阅再读快照：订阅在 gen() 执行前已注册，期间产生的事件会进队列，
+    # 不会因「读快照→订阅」之间的间隙而漏事件。
     sub = canon_event_bus.subscribe(reference_id)
 
     async def gen():
         try:
             yield "data: " + json.dumps({"event": "subscribed", "reference_id": reference_id}) + "\n\n"
+
+            # 快照首帧：补发当前 job 状态，消除「订阅晚于任务启动」的竞态，
+            # 同时兼容断线重连/刷新恢复。若任务已结束则立即下发终止事件。
+            async with async_session() as s:
+                job = (await s.execute(
+                    select(CanonExtractionJob)
+                    .where(CanonExtractionJob.reference_id == reference_id)
+                    .order_by(CanonExtractionJob.id.desc())
+                    .limit(1)
+                )).scalar_one_or_none()
+            if job is not None:
+                yield "data: " + json.dumps({
+                    "event": "snapshot", "job_id": job.id, "status": job.status,
+                    "chunk_total": job.chunk_total, "chunk_done": job.chunk_done,
+                    "failed": job.failed_chunks, "entity_count": job.entity_count,
+                }, ensure_ascii=False) + "\n\n"
+                if job.status == "done":
+                    yield "data: " + json.dumps({
+                        "event": "done", "job_id": job.id, "entity_count": job.entity_count,
+                    }, ensure_ascii=False) + "\n\n"
+                    return
+                if job.status == "failed":
+                    yield "data: " + json.dumps({
+                        "event": "failed", "job_id": job.id, "error": job.error or "提取失败",
+                    }, ensure_ascii=False) + "\n\n"
+                    return
+
             while True:
                 payload = await sub.queue.get()
                 yield "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"

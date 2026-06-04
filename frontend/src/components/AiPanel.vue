@@ -169,6 +169,17 @@
               <span v-if="ref.writing_style" style="color: #9E9E9E; font-size: 12px; margin-left: 8px">有风格分析</span>
             </el-option>
           </el-select>
+          <div v-if="selectedReferences.length" class="canon-entry-row">
+            <span class="canon-entry-hint">校对原作设定：</span>
+            <el-button
+              v-for="ref in selectedReferences"
+              :key="ref.id"
+              text
+              size="small"
+              type="primary"
+              @click="goToCanon(ref.id)"
+            >设定：《{{ ref.title }}》</el-button>
+          </div>
         </el-form-item>
         <el-form-item label="使用知识库">
           <el-switch v-model="batchForm.use_knowledge" />
@@ -430,6 +441,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   MagicStick, Promotion, Edit, Plus, Reading,
   Loading, Check, CopyDocument, Bottom, Delete, Close, Files, RefreshRight, EditPen, FullScreen, Connection,
@@ -455,6 +467,8 @@ const emit = defineEmits<{
   'replace-text': [text: string]
   'chapters-updated': []
 }>()
+
+const router = useRouter()
 
 const generating = ref(false)
 const outputText = ref('')
@@ -511,6 +525,15 @@ const customTemplateForm = ref({
 })
 
 let abortController: AbortController | null = null
+
+// 已选中的参考小说（用于跳转原作设定校对）
+const selectedReferences = computed(() =>
+  referenceList.value.filter((ref) => batchForm.value.reference_ids.includes(ref.id))
+)
+
+function goToCanon(refId: number) {
+  router.push(`/references/${refId}/canon`)
+}
 
 // 加载参考小说列表
 async function loadReferences() {
@@ -1147,6 +1170,20 @@ function updateTemplate(id: string, updates: Partial<PromptTemplate>) {
   margin-left: 8px;
   color: #9E9E9E;
   font-size: 13px;
+}
+
+.canon-entry-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.canon-entry-hint {
+  font-size: 12px;
+  color: #9E9E9E;
 }
 
 /* 自由对话区 */

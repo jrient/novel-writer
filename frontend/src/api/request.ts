@@ -183,13 +183,15 @@ instance.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // 统一错误处理
-    const message =
-      error.response?.data?.detail ||
-      error.response?.data?.message ||
-      error.message ||
-      '请求失败，请稍后重试'
-    ElMessage.error(message)
+    // 统一错误处理（调用方可通过 config.skipErrorToast 跳过全局提示，自行处理）
+    if (!error.config?.skipErrorToast) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        '请求失败，请稍后重试'
+      ElMessage.error(message)
+    }
     return Promise.reject(error)
   }
 )
