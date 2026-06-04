@@ -249,12 +249,21 @@ async def wizard_generate_maps(
         if style_parts:
             style_reference = "风格参考：\n" + "\n\n".join(style_parts)
 
+    # 设定锚定（canon）：与文风参考语义分离，作为必须遵守的原作事实约束注入
+    canon_context = ""
+    if payload.canon_reference_id:
+        from app.services.canon_context import build_canon_context
+        canon_context = await build_canon_context(db, payload.canon_reference_id)
+    effective_description = (
+        canon_context + "\n\n" + payload.description if canon_context else payload.description
+    )
+
     async def event_stream():
         try:
             prompt = PROMPTS["wizard_maps"].format(
                 title=payload.title,
                 genre=payload.genre or "未指定",
-                description=payload.description,
+                description=effective_description,
                 style_reference=style_reference or "无",
             )
 
@@ -310,12 +319,21 @@ async def wizard_generate_parts(
     - type: parts - 部分 JSON
     - type: done - 完成
     """
+    # 设定锚定（canon）：与文风参考语义分离，作为必须遵守的原作事实约束注入
+    canon_context = ""
+    if payload.canon_reference_id:
+        from app.services.canon_context import build_canon_context
+        canon_context = await build_canon_context(db, payload.canon_reference_id)
+    effective_description = (
+        canon_context + "\n\n" + payload.description if canon_context else payload.description
+    )
+
     async def event_stream():
         try:
             prompt = PROMPTS["wizard_parts"].format(
                 title=payload.title,
                 genre=payload.genre or "未指定",
-                description=payload.description,
+                description=effective_description,
                 map_name=payload.map_name,
                 map_description="",
                 style_reference="无",
