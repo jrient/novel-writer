@@ -76,6 +76,7 @@ export interface WizardMapsRequest {
   genre?: string
   description: string
   reference_ids?: number[]
+  canon_reference_id?: number  // 设定锚定原作（二创）
   revision_request?: string
   current_maps?: MapNode[]
 }
@@ -86,6 +87,7 @@ export interface WizardPartsRequest {
   description: string
   map_id: string
   map_name: string
+  canon_reference_id?: number  // 设定锚定原作（二创）
   revision_request?: string
   current_parts?: PartNode[]
 }

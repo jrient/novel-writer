@@ -141,6 +141,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '风格样本库', requiresAuth: true },
   },
   {
+    path: '/references/:id/canon',
+    name: 'ReferenceCanon',
+    component: () => import('@/views/ReferenceCanonView.vue'),
+    meta: { title: '原作设定校对', requiresAuth: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/projects',
   },

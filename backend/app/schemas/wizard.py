@@ -112,6 +112,7 @@ class WizardMapsRequest(BaseModel):
     genre: Optional[str] = None
     description: str
     reference_ids: Optional[List[int]] = None
+    canon_reference_id: Optional[int] = None  # 设定锚定原作
     # 修改意见
     revision_request: Optional[str] = None
     current_maps: Optional[List[MapNode]] = None
@@ -124,6 +125,7 @@ class WizardPartsRequest(BaseModel):
     description: str
     map_id: str  # 选中的地图ID
     map_name: str  # 地图名称
+    canon_reference_id: Optional[int] = None  # 设定锚定原作
     # 修改意见
     revision_request: Optional[str] = None
     current_parts: Optional[List[PartNode]] = None
