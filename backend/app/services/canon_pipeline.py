@@ -18,7 +18,8 @@ from app.services.chunk import ChunkService
 from app.services.ai_service import AIService
 from app.services.canon_event_bus import canon_event_bus
 from app.services.canon_prompts import build_atomic_prompt, build_merge_prompt, build_relation_prompt
-from app.models.canon import CanonEntity, CanonExtractionJob, CanonRelation
+from app.models.canon import CanonExtractionJob, CanonRelation
+from app.models.canon import CanonEntity as _CanonEntity
 from app.models.reference import ReferenceNovel
 
 logger = logging.getLogger(__name__)
@@ -194,6 +195,34 @@ async def _merge_entities_of_type(
     # 仅在严格递减时递归再归并，避免坏 JSON 反复回退导致死循环
     if len(batch_results) < len(raw_entities) and len(batch_results) > MERGE_BATCH:
         return await _merge_entities_of_type(entity_type, batch_results, model)
+
+async def _get_processed_chunks(reference_id: int, session_factory) -> set:
+    async with session_factory() as s:
+        job = (await s.execute(
+            select(CanonExtractionJob)
+            .where(CanonExtractionJob.reference_id == reference_id)
+            .order_by(CanonExtractionJob.id.desc())
+            .limit(1)
+        )).scalar_one_or_none()
+        if job and job.status == "processing" and job.processed_chunks:
+            return set(json.loads(job.processed_chunks))
+    return set()
+
+
+def _entity_to_dict(e) -> dict:
+    return {
+        "canonical_name": e.canonical_name,
+        "entity_type": e.entity_type,
+        "aliases": e.aliases or [],
+        "summary": e.summary or "",
+        "attributes": e.attributes or {},
+        "source_refs": e.source_refs or [],
+        "importance": e.importance,
+        "confidence": e.confidence,
+    }
+
+
+
     return batch_results
 
 
@@ -219,15 +248,22 @@ async def run_canon_extraction(
         job_id = job.id
 
     try:
-        # 2) CHUNK
-        chunks = _chunk_reference(content)
+                # 2) CHUNK
+        all_chunks = _chunk_reference(content)
+        processed_set = await _get_processed_chunks(reference_id, session_factory)
+        if processed_set:
+            chunks = [c for c in all_chunks if c["label"] not in processed_set]
+            logger.info("canon resume: %d/%d chunks already done", len(all_chunks) - len(chunks), len(all_chunks))
+        else:
+            chunks = all_chunks
         async with session_factory() as s:
             j = (await s.execute(select(CanonExtractionJob).where(
                 CanonExtractionJob.id == job_id))).scalar_one()
-            j.chunk_total = len(chunks)
+            j.chunk_total = len(all_chunks)
             await s.commit()
-        await canon_event_bus.publish(reference_id,
-            {"event": "chunked", "job_id": job_id, "chunk_total": len(chunks)})
+            logger.info("canon: %d/%d chunks 待提取, 开始原子抽取", len(chunks), len(all_chunks))
+            await canon_event_bus.publish(reference_id,
+                {"event": "chunked", "job_id": job_id, "chunk_total": len(all_chunks)})
 
         # 3) ATOMIC（并行限流，实时进度）
         sem = asyncio.Semaphore(ATOMIC_CONCURRENCY)
@@ -244,8 +280,28 @@ async def run_canon_extraction(
                     failed += 1
                     logger.warning("canon atomic chunk failed: %s", e)
                     ents = []
-                else:
-                    all_atomic.extend(ents)
+                # 每块提取结果立即落库（支持断点续跑）
+                async with session_factory() as s:
+                    for e in ents:
+                        s.add(_CanonEntity(
+                            reference_id=reference_id,
+                            entity_type=e.get("entity_type", "character"),
+                            canonical_name=e.get("canonical_name", "")[:200] or "未命名",
+                            aliases=e.get("aliases", []),
+                            summary=e.get("summary"),
+                            attributes=e.get("attributes", {}),
+                            source_refs=e.get("source_refs", []),
+                            importance=e.get("importance", "major"),
+                            confidence=float(e.get("confidence", 1.0)),
+                            review_status="ai_extracted",
+                        ))
+                    job_row = (await s.execute(select(CanonExtractionJob).where(
+                        CanonExtractionJob.id == job_id))).scalar_one()
+                    proc = json.loads(job_row.processed_chunks) if job_row.processed_chunks else []
+                    proc.append(ch["label"])
+                    job_row.processed_chunks = json.dumps(proc)
+                    job_row.chunk_done = done + 1
+                    await s.commit()
                 done += 1
                 await canon_event_bus.publish(reference_id, {
                     "event": "progress", "job_id": job_id,
@@ -255,35 +311,32 @@ async def run_canon_extraction(
 
         await asyncio.gather(*[_worker(c) for c in chunks])
 
+        # 4）从 DB 读全部已保存实体 → 按类型分组 → 合并消歧
         async with session_factory() as s:
-            j = (await s.execute(select(CanonExtractionJob).where(
-                CanonExtractionJob.id == job_id))).scalar_one()
-            j.chunk_done = done
-            j.failed_chunks = failed
-            await s.commit()
-
-        # 4) MERGE（按类型）
-        by_type: Dict[str, List[Dict[str, Any]]] = {t: [] for t in ENTITY_TYPES}
-        for e in all_atomic:
-            t = e.get("entity_type")
-            if t in by_type:
-                by_type[t].append(e)
-        merged_all: List[Dict[str, Any]] = []
+            rows = (await s.execute(
+                select(_CanonEntity).where(
+                    _CanonEntity.reference_id == reference_id,
+                    _CanonEntity.review_status == "ai_extracted")
+            )).scalars().all()
+        by_type: Dict[str, List[Dict]] = {t: [] for t in ENTITY_TYPES}
+        for row in rows:
+            d = _entity_to_dict(row)
+            if d["entity_type"] in by_type:
+                by_type[d["entity_type"]].append(d)
+        merged_all: List[Dict] = []
         for t in ENTITY_TYPES:
             merged_all.extend(await _merge_entities_of_type(t, by_type[t], model))
         await canon_event_bus.publish(reference_id,
             {"event": "merged", "job_id": job_id, "entity_count": len(merged_all)})
 
-        # 5) PERSIST（仅当有新产出时才清旧 ai_extracted，保留人工条目）
-        # 防御：若本次全数失败导致 merged_all 为空，跳过删除，避免一次失败的提取
-        # 静默抹除上一次成功提取的历史 ai_extracted 结果。
+        # 5）清旧写新（单事务，失败则旧数据还在）
         async with session_factory() as s:
             if merged_all:
-                await s.execute(delete(CanonEntity).where(
-                    CanonEntity.reference_id == reference_id,
-                    CanonEntity.review_status == "ai_extracted"))
+                await s.execute(delete(_CanonEntity).where(
+                    _CanonEntity.reference_id == reference_id,
+                    _CanonEntity.review_status == "ai_extracted"))
                 for e in merged_all:
-                    s.add(CanonEntity(
+                    s.add(_CanonEntity(
                         reference_id=reference_id,
                         entity_type=e.get("entity_type", "character"),
                         canonical_name=e.get("canonical_name", "")[:200] or "未命名",
@@ -297,15 +350,15 @@ async def run_canon_extraction(
                     ))
                 new_count = len(merged_all)
             else:
-                # 无产出：保留历史，entity_count 报告现存 ai_extracted 数量（更诚实）
                 new_count = (await s.execute(
-                    select(func.count()).select_from(CanonEntity).where(
-                        CanonEntity.reference_id == reference_id,
-                        CanonEntity.review_status == "ai_extracted"))
+                    select(func.count()).select_from(_CanonEntity).where(
+                        _CanonEntity.reference_id == reference_id,
+                        _CanonEntity.review_status == "ai_extracted"))
                 ).scalar() or 0
             j = (await s.execute(select(CanonExtractionJob).where(
                 CanonExtractionJob.id == job_id))).scalar_one()
             j.entity_count = new_count
+            j.processed_chunks = None  # 合并完成，清跟踪
             j.status = "done"
             await s.commit()
 

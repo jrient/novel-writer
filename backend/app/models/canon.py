@@ -55,6 +55,7 @@ class CanonExtractionJob(Base):
     failed_chunks: Mapped[int] = mapped_column(Integer, default=0)
     entity_count: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    processed_chunks: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON 已完成块标签数组
 
     created_at: Mapped[datetime] = mapped_column(default=utcnow_naive)
     updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=utcnow_naive)
