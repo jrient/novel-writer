@@ -10,6 +10,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import defer
 
 from app.core.database import get_db
 from app.models.reference import ReferenceNovel
@@ -210,11 +211,11 @@ async def upload_reference(
     if ext not in (".txt", ".md", ".text"):
         raise HTTPException(status_code=400, detail="仅支持 .txt 和 .md 格式")
 
-    # 限制文件大小（最大 20MB）
-    MAX_FILE_SIZE = 20 * 1024 * 1024
+    # 限制文件大小（最大 50MB）
+    MAX_FILE_SIZE = 50 * 1024 * 1024
     raw = await file.read()
     if len(raw) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="文件大小不能超过 20MB")
+        raise HTTPException(status_code=413, detail="文件大小不能超过 50MB")
     # 尝试多种编码
     content = None
     for encoding in ["utf-8", "gbk", "gb2312", "gb18030", "big5", "latin-1"]:
@@ -290,7 +291,11 @@ async def list_references(
     db: AsyncSession = Depends(get_db),
 ):
     """列出参考小说，支持按类型和参考类型筛选"""
-    stmt = select(ReferenceNovel).where(
+    stmt = select(ReferenceNovel).options(
+        defer(ReferenceNovel.content),
+        defer(ReferenceNovel.chapters_data),
+        defer(ReferenceNovel.analysis),
+    ).where(
         (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None)
     )
 
@@ -315,7 +320,11 @@ async def get_reference_stats(
     db: AsyncSession = Depends(get_db),
 ):
     """获取参考库统计信息"""
-    result = await db.execute(select(ReferenceNovel).where(
+    result = await db.execute(select(ReferenceNovel).options(
+        defer(ReferenceNovel.content),
+        defer(ReferenceNovel.chapters_data),
+        defer(ReferenceNovel.analysis),
+    ).where(
         (ReferenceNovel.owner_id == current_user.id) | (ReferenceNovel.owner_id == None)
     ))
     novels = result.scalars().all()
