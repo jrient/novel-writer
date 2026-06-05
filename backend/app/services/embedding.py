@@ -4,7 +4,6 @@ Embedding服务
 """
 import asyncio
 import logging
-import os
 import httpx
 from typing import List, Optional
 from app.core.config import settings
@@ -16,9 +15,6 @@ _MAX_RETRIES = 3          # 总尝试次数 = 1 + 重试
 _BACKOFF_BASE = 0.6       # 退避基数（秒），第 n 次重试等待 _BACKOFF_BASE * 2**(n-1)
 
 
-def _get_proxy() -> Optional[str]:
-    """从环境变量获取代理配置"""
-    return os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy") or None
 
 
 def _is_transient(exc: Exception) -> bool:
@@ -41,8 +37,8 @@ class EmbeddingService:
         self.model = settings.EMBEDDING_MODEL
 
     async def _post_once(self, texts: List[str]) -> List[List[float]]:
-        proxy = _get_proxy()
-        async with httpx.AsyncClient(timeout=60.0, proxy=proxy) as client:
+        # trust_env=True 让 httpx 遵守 HTTP_PROXY 与 NO_PROXY；yibuapi 在 NO_PROXY 中会直连，避免被翻墙代理卡死
+        async with httpx.AsyncClient(timeout=60.0, trust_env=True) as client:
             response = await client.post(
                 f"{self.api_base}/embeddings",
                 headers={
