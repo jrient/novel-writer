@@ -19,3 +19,10 @@ def test_merge_prompt_groups_by_type():
     assert "乌鸡国王" in p
     assert "乌鸡国国王" in p
     assert "合并" in p or "归并" in p
+
+def test_atomic_prompt_includes_new_dimensions():
+    p = build_atomic_prompt(chunk_text="他取出一件法宝", chunk_label="片段1")
+    for key in ("item", "race", "realm", "concept"):
+        assert key in p
+    # 中文维度名也应出现在类型说明里
+    assert "物品" in p and "种族" in p and "境界" in p and "术语" in p
