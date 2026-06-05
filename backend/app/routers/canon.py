@@ -6,20 +6,20 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, func, func
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.database import get_db, engine, async_session
 from app.core.security import create_sse_ticket, verify_sse_ticket
 from app.models.reference import ReferenceNovel
-from app.models.canon import CanonEntity, CanonExtractionJob, CanonRelation, CanonRelation
+from app.models.canon import CanonEntity, CanonExtractionJob, CanonRelation
 from app.models.user import User
 from app.routers.auth import get_current_user
 from app.schemas.canon import (
     CanonEntityOut, CanonEntityCreate, CanonEntityUpdate, CanonJobOut,
     CanonRelationOut, CanonRelationCreate, CanonRelationUpdate, CanonGraphOut,
 )
-from app.services.canon_pipeline import run_canon_extraction
+from app.services.canon_pipeline import run_canon_extraction, extract_relations_for_reference
 from app.services.canon_event_bus import canon_event_bus
 
 router = APIRouter(prefix="/api/v1/references/{reference_id}/canon", tags=["canon"])
@@ -289,3 +289,42 @@ async def delete_relation(
         raise HTTPException(status_code=404, detail="关系不存在")
     await db.delete(r)
     await db.commit()
+
+@router.get("/graph", response_model=CanonGraphOut)
+async def get_graph(
+    reference_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_owned_ref(reference_id, db, user)
+    nodes = (await db.execute(select(CanonEntity).where(
+        CanonEntity.reference_id == reference_id).order_by(
+        CanonEntity.entity_type, CanonEntity.id))).scalars().all()
+    edges = (await db.execute(select(CanonRelation).where(
+        CanonRelation.reference_id == reference_id).order_by(
+        CanonRelation.id))).scalars().all()
+    return {"nodes": nodes, "edges": edges}
+
+
+@router.post("/extract-relations", status_code=202)
+async def start_relation_extraction(
+    reference_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_owned_ref(reference_id, db, user)
+    # 须已有实体
+    cnt = (await db.execute(select(func.count()).select_from(CanonEntity).where(
+        CanonEntity.reference_id == reference_id))).scalar() or 0
+    if cnt == 0:
+        raise HTTPException(status_code=400, detail="请先提取设定（实体）再抽取关系")
+    # 并发守卫：复用 entity job 表，避免与正在进行的提取冲突
+    existing = (await db.execute(select(CanonExtractionJob).where(
+        CanonExtractionJob.reference_id == reference_id,
+        CanonExtractionJob.status.in_(["pending", "processing"]),
+    ))).scalar_one_or_none()
+    if existing is not None:
+        raise HTTPException(status_code=409, detail="该原作已有任务进行中")
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    asyncio.create_task(extract_relations_for_reference(reference_id, session_factory))
+    return {"message": "关系抽取已启动", "reference_id": reference_id}
