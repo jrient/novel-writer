@@ -6,7 +6,9 @@ import { useUserStore } from '@/stores/user'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/projects',
+    name: 'Dashboard',
+    component: () => import('@/views/DashboardView.vue'),
+    meta: { title: '首页', requiresAuth: true },
   },
   {
     path: '/login',
@@ -139,6 +141,12 @@ const routes: RouteRecordRaw[] = [
     name: 'StyleSampleLibrary',
     component: () => import('@/views/StyleSampleLibrary.vue'),
     meta: { title: '风格样本库', requiresAuth: true },
+  },
+  {
+    path: '/reference-library',
+    name: 'ReferenceLibrary',
+    component: () => import('@/views/ReferenceLibraryView.vue'),
+    meta: { title: '原作知识图谱库', requiresAuth: true },
   },
   {
     path: '/references/:id/canon',
