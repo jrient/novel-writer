@@ -61,3 +61,34 @@ class CanonExtractionJob(Base):
 
     def __repr__(self):
         return f"<CanonExtractionJob(id={self.id}, ref={self.reference_id}, status='{self.status}')>"
+
+
+class CanonRelation(Base):
+    """原作知识图谱的关系边（三元组 <source, relation, target>）"""
+    __tablename__ = "canon_relations"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    reference_id: Mapped[int] = mapped_column(
+        ForeignKey("reference_novels.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    source_entity_id: Mapped[int] = mapped_column(
+        ForeignKey("canon_entities.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    target_entity_id: Mapped[int] = mapped_column(
+        ForeignKey("canon_entities.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # 受控词表 key（见 canon_prompts.RELATION_TYPES_CN）或 "custom"
+    relation_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    label: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # 溯源：[{"chapter": "片段N", "quote": "≤40字原文"}]
+    source_refs: Mapped[Optional[list]] = mapped_column(JSON, default=list)
+    confidence: Mapped[float] = mapped_column(Float, default=1.0)
+    # ai_extracted / user_verified / user_edited / user_added
+    review_status: Mapped[str] = mapped_column(String(20), default="ai_extracted")
+
+    created_at: Mapped[datetime] = mapped_column(default=utcnow_naive)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=utcnow_naive)
+
+    def __repr__(self):
+        return f"<CanonRelation(id={self.id}, type='{self.relation_type}', {self.source_entity_id}->{self.target_entity_id})>"
