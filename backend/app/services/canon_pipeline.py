@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from app.services.chunk import ChunkService
 from app.services.ai_service import AIService
 from app.services.canon_event_bus import canon_event_bus
-from app.services.canon_prompts import build_atomic_prompt, build_merge_prompt
+from app.services.canon_prompts import build_atomic_prompt, build_merge_prompt, build_relation_prompt
 from app.models.canon import CanonEntity, CanonExtractionJob
 from app.models.reference import ReferenceNovel
 
@@ -63,6 +63,53 @@ def _safe_json_array(text: str) -> List[Dict[str, Any]]:
                     return []
     return []
 
+
+
+def _build_name_index(entities: List[Dict[str, Any]]) -> Dict[str, int]:
+    """canonical_name 与 aliases → entity_id。后者不覆盖前者已占用的名字。"""
+    idx: Dict[str, int] = {}
+    for e in entities:
+        eid = e.get("id")
+        name = (e.get("canonical_name") or "").strip()
+        if name and name not in idx:
+            idx[name] = eid
+        for a in e.get("aliases") or []:
+            a = (a or "").strip()
+            if a and a not in idx:
+                idx[a] = eid
+    return idx
+
+
+def _resolve_relations(
+    raw_rels: List[Dict[str, Any]], name_index: Dict[str, int], chunk_label: str
+) -> List[Dict[str, Any]]:
+    """把 LLM 抽出的 {source,target,...} 回链到 entity_id，丢弃越界/自指，并按
+    (src,tgt,type) 去重合并 source_refs。"""
+    bucket: Dict[tuple, Dict[str, Any]] = {}
+    for r in raw_rels:
+        if not isinstance(r, dict):
+            continue
+        sid = name_index.get((r.get("source") or "").strip())
+        tid = name_index.get((r.get("target") or "").strip())
+        if sid is None or tid is None or sid == tid:
+            continue
+        rtype = (r.get("relation_type") or "custom").strip() or "custom"
+        key = (sid, tid, rtype)
+        quote = (r.get("quote") or "").strip()
+        ref = {"chapter": chunk_label, "quote": quote} if quote else None
+        if key in bucket:
+            if ref:
+                bucket[key]["source_refs"].append(ref)
+        else:
+            bucket[key] = {
+                "source_entity_id": sid,
+                "target_entity_id": tid,
+                "relation_type": rtype,
+                "label": (r.get("label") or "").strip() or None,
+                "summary": None,
+                "source_refs": [ref] if ref else [],
+            }
+    return list(bucket.values())
 
 async def _atomic_extract_chunk(chunk: Dict[str, str], model: Optional[str]) -> List[Dict[str, Any]]:
     """单块原子提取：调 LLM → 解析 → 把 source.quote 规整为 source_refs（附 chapter=label）。
