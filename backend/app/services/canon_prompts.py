@@ -77,3 +77,68 @@ def build_merge_prompt(entity_type: str, raw_entities: list) -> str:
         f"【待归并条目】\n{payload}\n\n"
         f"请输出归并消歧后的 JSON 数组："
     )
+
+# 受控关系词表：key 为存储值，value 为说明
+RELATION_TYPES_CN = {
+    "亲属": "角色↔角色：血缘/姻亲",
+    "师徒": "角色↔角色：师承",
+    "情感": "角色↔角色：恋慕/夫妻/挚友",
+    "盟友": "角色↔角色 或 势力↔势力：结盟",
+    "敌对": "角色/势力之间：敌对仇杀",
+    "上下级": "角色↔角色：统属/主从",
+    "属于": "角色→势力/种族：归属",
+    "领导": "角色→势力：领导/掌门",
+    "创立": "角色→势力：开创",
+    "出身": "角色→地点：出生地/来历",
+    "居于": "角色→地点：居所",
+    "统治": "角色→地点/势力：治理",
+    "掌握": "角色→能力：习得功法/技能",
+    "持有": "角色→物品：拥有",
+    "炼制": "角色→物品：炼制/创造",
+    "处于境界": "角色→境界：当前修为",
+    "参与": "角色→事件：参与",
+    "主导": "角色→事件：主导/发动",
+    "受害": "角色→事件：受害方",
+    "承载": "物品→能力：法宝赋予能力",
+    "记载": "物品→能力：秘籍记载功法",
+    "天赋": "种族→能力：天生能力",
+    "进阶": "境界→境界：层级递进",
+    "因果": "事件→事件：因果",
+    "时序": "事件→事件：先后",
+    "伏笔": "事件→事件：伏笔呼应",
+    "发生于": "事件→地点：发生地",
+    "隶属": "势力→势力 或 地点→地点：层级隶属",
+    "custom": "以上都不匹配时，用自由文本 label 描述关系",
+}
+
+RELATION_SYSTEM = """你是一位严谨的原作关系分析专家。下面给你【本部原作已确认的设定实体清单】和【一个原文片段】。
+请只在【清单内实体之间】抽取本片段中【有文字依据】的关系，形成三元组。
+
+【铁律】
+1. source 与 target 必须是清单里的 canonical_name，严禁出现清单外的名字。
+2. 只抽本片段确有依据的关系，严禁脑补；每条须附 quote（原文摘录≤40字）。
+3. relation_type 优先取受控词表的 key；都不匹配时填 "custom" 并在 label 写明关系。
+
+严格输出 JSON 数组，元素格式：
+{
+  "source": "清单中的 canonical_name",
+  "target": "清单中的 canonical_name",
+  "relation_type": "受控词表 key 或 custom",
+  "label": "关系简述（custom 必填，其它可选）",
+  "quote": "原文摘录≤40字"
+}
+只输出 JSON 数组，不要任何解释文字。"""
+
+
+def build_relation_prompt(entities: list, chunk_text: str, chunk_label: str) -> str:
+    vocab = "\n".join(f"- {k}：{v}" for k, v in RELATION_TYPES_CN.items())
+    ent_lines = "\n".join(
+        f"- {e.get('canonical_name')}（{e.get('entity_type')}）" for e in entities
+    )
+    return (
+        f"{RELATION_SYSTEM}\n\n"
+        f"【受控关系词表】\n{vocab}\n\n"
+        f"【实体清单】\n{ent_lines}\n\n"
+        f"【片段位置】{chunk_label}\n【片段正文】\n{chunk_text}\n\n"
+        f"请输出本片段实体间的关系 JSON 数组（每条含 quote）："
+    )
