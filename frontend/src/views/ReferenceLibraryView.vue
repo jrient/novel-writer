@@ -8,15 +8,15 @@
       </div>
       <div class="header-right">
         <el-upload
-          action="/api/v1/references"
+          action="/api/v1/references/upload"
           :show-file-list="false"
           :before-upload="handleBeforeUpload"
           :on-success="handleUploadSuccess"
           :on-error="handleUploadError"
           :headers="uploadHeaders"
-          accept=".txt,.epub"
+          accept=".txt,.md"
         >
-          <el-button type="primary" :icon="Upload">上传小说</el-button>
+          <el-button type="primary" :icon="Upload" :loading="uploading">上传小说</el-button>
         </el-upload>
       </div>
     </header>
@@ -83,6 +83,7 @@ const references = ref<ReferenceNovel[]>([])
 const loading = ref(false)
 
 const uploadHeaders = ref<Record<string, string>>({})
+const uploading = ref(false)
 
 onMounted(async () => {
   loading.value = true
@@ -96,16 +97,19 @@ onMounted(async () => {
 })
 
 function handleBeforeUpload(file: UploadRawFile) {
-  const token = localStorage.getItem('token') || ''
+  const token = localStorage.getItem('access_token') || ''
   uploadHeaders.value = { Authorization: token ? `Bearer ${token}` : '' }
+  uploading.value = true
   return true
 }
 function handleUploadSuccess() {
+  uploading.value = false
   ElMessage.success('上传成功')
   getReferences().then(r => { references.value = r })
   return false
 }
 function handleUploadError() {
+  uploading.value = false
   ElMessage.error('上传失败')
 }
 
