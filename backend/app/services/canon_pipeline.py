@@ -271,8 +271,18 @@ async def run_canon_extraction(
             j.status = "done"
             await s.commit()
 
+        # 6) RELATION_EXTRACT（实体已落库，按已存实体抽关系）
+        relation_count = 0
+        try:
+            relation_count = await extract_relations_for_reference(
+                reference_id, session_factory, model)
+        except Exception:  # noqa: BLE001
+            logger.exception("canon relation extraction failed (non-fatal)")
+
+
         await canon_event_bus.publish(reference_id,
-            {"event": "done", "job_id": job_id, "entity_count": new_count})
+            {"event": "done", "job_id": job_id, "entity_count": new_count,
+             "relation_count": relation_count})
         return job_id
 
     except Exception as exc:  # noqa: BLE001
