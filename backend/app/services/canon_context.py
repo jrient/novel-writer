@@ -12,6 +12,7 @@ from app.models.reference import ReferenceNovel
 _TYPE_CN = {
     "character": "人物", "location": "地点", "ability": "能力",
     "faction": "势力", "worldrule": "世界观规则", "event": "关键事件",
+    "item": "物品", "race": "种族血脉", "realm": "境界体系", "concept": "专有术语",
 }
 _IMPORTANCE_RANK = {"critical": 0, "major": 1, "minor": 2}
 _MAX_ENTITIES = 60

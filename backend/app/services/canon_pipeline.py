@@ -22,7 +22,8 @@ from app.models.reference import ReferenceNovel
 
 logger = logging.getLogger(__name__)
 
-ENTITY_TYPES = ["character", "location", "ability", "faction", "worldrule", "event"]
+ENTITY_TYPES = ["character", "location", "ability", "faction", "worldrule",
+                "event", "item", "race", "realm", "concept"]
 ATOMIC_CONCURRENCY = 4   # 并行块数上限
 MERGE_BATCH = 40         # 单次归并的最大条目数（树状分批）
 
