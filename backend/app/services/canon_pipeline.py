@@ -38,8 +38,8 @@ def _chunk_reference(content: str, chunk_size: int = 4000) -> List[Dict[str, str
 
 
 def _safe_json_array(text: str) -> List[Dict[str, Any]]:
-    """从 LLM 输出中稳健提取 JSON 数组（容错 ```json 围栏、前后噪声）。
-    仿 wizard._extract_json_array。失败返回 []。
+    """从 LLM 输出中稳健提取 JSON 数组（容错 markdown 围栏、截断、嵌套括号）。
+    当 max_tokens 截断导致缺少闭合 ] 时，自动恢复已生成的完整对象。
     """
     if not text:
         return []
@@ -60,10 +60,35 @@ def _safe_json_array(text: str) -> List[Dict[str, Any]]:
                     parsed = json.loads(text[start:i + 1])
                     return parsed if isinstance(parsed, list) else []
                 except json.JSONDecodeError:
-                    return []
-    return []
+                    break  # 匹配到 ] 但解析失败，进入截断恢复
 
+    # 截断恢复：逐个提取完整 {...} 对象，丢弃不完整的尾部
+    array_body = text[start + 1:]
+    objs: List[Dict[str, Any]] = []
+    idx = 0
+    while idx < len(array_body):
+        brace = array_body.find("{", idx)
+        if brace == -1:
+            break
+        d = 0
+        for j in range(brace, len(array_body)):
+            if array_body[j] == "{":
+                d += 1
+            elif array_body[j] == "}":
+                d -= 1
+                if d == 0:
+                    try:
+                        obj = json.loads(array_body[brace:j + 1])
+                        if isinstance(obj, dict):
+                            objs.append(obj)
+                    except json.JSONDecodeError:
+                        pass
+                    idx = j + 1
+                    break
+        else:
+            break  # 未找到闭合 }
 
+    return objs
 
 def _build_name_index(entities: List[Dict[str, Any]]) -> Dict[str, int]:
     """canonical_name 与 aliases → entity_id。后者不覆盖前者已占用的名字。"""
