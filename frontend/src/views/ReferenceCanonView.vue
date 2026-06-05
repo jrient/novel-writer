@@ -38,89 +38,106 @@
     <!-- 空状态 -->
     <el-empty
       v-else-if="entities.length === 0"
-      description="尚未提取，点击上方提取设定"
+      :description="activeTab === 'graph' ? '尚无图谱，请先在列表视图提取设定' : '尚未提取，点击上方提取设定'"
       style="margin-top: 48px"
     />
 
-    <!-- 实体分组列表（上下堆叠） -->
-    <div v-else class="entity-groups">
-      <div
-        v-for="group in groupedEntities"
-        :key="group.type"
-        class="entity-group"
-      >
-        <div class="group-title">
-          {{ entityTypeLabel(group.type) }}
-          <el-tag size="small" type="info" round>{{ group.items.length }}</el-tag>
-        </div>
-
-        <div class="entity-cards">
-          <el-card
-            v-for="entity in group.items"
-            :key="entity.id"
-            class="entity-card"
-            shadow="hover"
-          >
-            <div class="card-head">
-              <div class="card-name">
-                <span class="name-text">{{ entity.canonical_name }}</span>
-                <el-tag :type="importanceTagType(entity.importance)" size="small" effect="dark">
-                  {{ importanceLabel(entity.importance) }}
-                </el-tag>
-                <el-tag :type="reviewTagType(entity.review_status)" size="small">
-                  {{ reviewLabel(entity.review_status) }}
-                </el-tag>
-                <el-text type="info" size="small">置信 {{ formatConfidence(entity.confidence) }}</el-text>
+    <!-- Tab 切换 -->
+    <template v-else>
+      <el-tabs v-model="activeTab">
+        <el-tab-pane label="列表视图" name="list">
+          <div class="entity-groups">
+            <div
+              v-for="group in groupedEntities"
+              :key="group.type"
+              class="entity-group"
+            >
+              <div class="group-title">
+                {{ entityTypeLabel(group.type) }}
+                <el-tag size="small" type="info" round>{{ group.items.length }}</el-tag>
               </div>
-              <div class="card-ops">
-                <el-button text size="small" :icon="Edit" @click="openEditDialog(entity)">编辑</el-button>
-                <el-popconfirm
-                  title="确认删除该设定？"
-                  confirm-button-text="删除"
-                  cancel-button-text="取消"
-                  @confirm="handleDelete(entity)"
+
+              <div class="entity-cards">
+                <el-card
+                  v-for="entity in group.items"
+                  :key="entity.id"
+                  class="entity-card"
+                  shadow="hover"
                 >
-                  <template #reference>
-                    <el-button text size="small" type="danger" :icon="Delete">删除</el-button>
-                  </template>
-                </el-popconfirm>
+                  <div class="card-head">
+                    <div class="card-name">
+                      <span class="name-text">{{ entity.canonical_name }}</span>
+                      <el-tag :type="importanceTagType(entity.importance)" size="small" effect="dark">
+                        {{ importanceLabel(entity.importance) }}
+                      </el-tag>
+                      <el-tag :type="reviewTagType(entity.review_status)" size="small">
+                        {{ reviewLabel(entity.review_status) }}
+                      </el-tag>
+                      <el-text type="info" size="small">置信 {{ formatConfidence(entity.confidence) }}</el-text>
+                    </div>
+                    <div class="card-ops">
+                      <el-button text size="small" :icon="Edit" @click="openEditDialog(entity)">编辑</el-button>
+                      <el-popconfirm
+                        title="确认删除该设定？"
+                        confirm-button-text="删除"
+                        cancel-button-text="取消"
+                        @confirm="handleDelete(entity)"
+                      >
+                        <template #reference>
+                          <el-button text size="small" type="danger" :icon="Delete">删除</el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </div>
+
+                  <div v-if="entity.aliases.length" class="card-aliases">
+                    <el-tag
+                      v-for="alias in entity.aliases"
+                      :key="alias"
+                      size="small"
+                      effect="plain"
+                      style="margin-right: 4px"
+                    >{{ alias }}</el-tag>
+                  </div>
+
+                  <div v-if="entity.summary" class="card-summary">{{ entity.summary }}</div>
+
+                  <!-- 溯源 -->
+                  <el-collapse v-if="entity.source_refs.length" class="card-sources">
+                    <el-collapse-item :name="entity.id">
+                      <template #title>
+                        <el-text type="info" size="small">溯源原文（{{ entity.source_refs.length }}）</el-text>
+                      </template>
+                      <div
+                        v-for="(ref, idx) in entity.source_refs"
+                        :key="idx"
+                        class="source-item"
+                      >
+                        <el-text v-if="ref.chapter !== undefined && ref.chapter !== null" type="info" size="small">
+                          来源：{{ ref.chapter }}
+                        </el-text>
+                        <blockquote v-if="ref.quote" class="source-quote">{{ ref.quote }}</blockquote>
+                      </div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </el-card>
               </div>
             </div>
+          </div>
+        </el-tab-pane>
 
-            <div v-if="entity.aliases.length" class="card-aliases">
-              <el-tag
-                v-for="alias in entity.aliases"
-                :key="alias"
-                size="small"
-                effect="plain"
-                style="margin-right: 4px"
-              >{{ alias }}</el-tag>
-            </div>
-
-            <div v-if="entity.summary" class="card-summary">{{ entity.summary }}</div>
-
-            <!-- 溯源 -->
-            <el-collapse v-if="entity.source_refs.length" class="card-sources">
-              <el-collapse-item :name="entity.id">
-                <template #title>
-                  <el-text type="info" size="small">溯源原文（{{ entity.source_refs.length }}）</el-text>
-                </template>
-                <div
-                  v-for="(ref, idx) in entity.source_refs"
-                  :key="idx"
-                  class="source-item"
-                >
-                  <el-text v-if="ref.chapter !== undefined && ref.chapter !== null" type="info" size="small">
-                    来源：{{ ref.chapter }}
-                  </el-text>
-                  <blockquote v-if="ref.quote" class="source-quote">{{ ref.quote }}</blockquote>
-                </div>
-              </el-collapse-item>
-            </el-collapse>
-          </el-card>
-        </div>
-      </div>
-    </div>
+        <el-tab-pane label="图谱视图" name="graph">
+          <div class="graph-actions">
+            <el-button size="small" :loading="extractingRel" @click="handleExtractRelations">
+              {{ extractingRel ? '抽取关系中…' : '抽取关系' }}
+            </el-button>
+          </div>
+          <CanonGraphView v-if="activeTab === 'graph'" ref="graphViewRef"
+            :reference-id="refId"
+            @select-node="onSelectNode" @select-edge="onSelectEdge" />
+        </el-tab-pane>
+      </el-tabs>
+    </template>
 
     <!-- 编辑 / 新增 抽屉 -->
     <el-drawer
@@ -179,6 +196,26 @@
         <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
       </template>
     </el-drawer>
+
+    <!-- 详情侧栏 -->
+    <el-drawer v-model="detailVisible" :title="detailTitle" size="360px">
+      <div v-if="detailType === 'entity'" class="detail-content">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="类型">{{ entityTypeLabel(detailItem.entity_type) }}</el-descriptions-item>
+          <el-descriptions-item label="名称">{{ detailItem.canonical_name }}</el-descriptions-item>
+          <el-descriptions-item v-if="detailItem.aliases?.length" label="别名">{{ detailItem.aliases.join(' / ') }}</el-descriptions-item>
+          <el-descriptions-item v-if="detailItem.summary" label="摘要">{{ detailItem.summary }}</el-descriptions-item>
+          <el-descriptions-item label="重要度">{{ importanceLabel(detailItem.importance) }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <div v-else class="detail-content">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="关系">{{ detailItem.label || detailItem.relation_type }}</el-descriptions-item>
+          <el-descriptions-item label="类型">{{ detailItem.relation_type }}</el-descriptions-item>
+          <el-descriptions-item label="置信度">{{ detailItem.confidence }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
@@ -188,6 +225,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Edit, Delete } from '@element-plus/icons-vue'
 import { canonApi } from '@/api/canon'
+import CanonGraphView from '@/components/canon/CanonGraphView.vue'
 import type {
   CanonEntity,
   CanonEntityCreate,
@@ -211,8 +249,17 @@ const chunkDone = ref(0)
 const failedChunks = ref(0)
 let eventSource: EventSource | null = null
 
+// Tab 切换 + 图谱相关
+const activeTab = ref<'list' | 'graph'>('list')
+const extractingRel = ref(false)
+const graphViewRef = ref()
+const detailVisible = ref(false)
+const detailTitle = ref('')
+const detailType = ref<'entity' | 'relation'>('entity')
+const detailItem = ref<any>(null)
+
 const entityTypes: CanonEntityType[] = [
-  'character', 'location', 'ability', 'faction', 'worldrule', 'event',
+  'character', 'location', 'ability', 'faction', 'worldrule', 'event', 'item', 'race', 'realm', 'concept',
 ]
 const importanceLevels: CanonImportance[] = ['critical', 'major', 'minor']
 
@@ -266,12 +313,16 @@ function goBack() {
 
 function entityTypeLabel(type: CanonEntityType): string {
   const m: Record<CanonEntityType, string> = {
-    character: '人物',
+    character: '角色',
     location: '地点',
     ability: '能力',
     faction: '势力',
     worldrule: '世界观规则',
-    event: '关键事件',
+    event: '事件',
+    item: '物品',
+    race: '种族血脉',
+    realm: '境界体系',
+    concept: '专有术语',
   }
   return m[type] ?? type
 }
@@ -439,7 +490,7 @@ async function startSSE() {
       // 若已被 done/failed 分支主动 close（eventSource 置空），忽略尾随的 error，避免重复处理。
       if (!eventSource) return
       // 连接中断：可能是正常完成时服务端关流先于 done 帧到达，也可能是真断连。
-      // 与 DB 对账，避免把“已完成”误判为“静默停止”而漏刷新列表。
+      // 与 DB 对账，避免把"已完成"误判为"静默停止"而漏刷新列表。
       closeSSE()
       extracting.value = false
       await loadJob()
@@ -449,7 +500,7 @@ async function startSSE() {
       } else if (job.value?.status === 'failed') {
         ElMessage.error(`提取失败：${job.value.error ?? '未知错误'}`)
       } else if (job.value?.status === 'processing' || job.value?.status === 'pending') {
-        ElMessage.warning('进度连接中断，可点击“提取设定”重新接入')
+        ElMessage.warning('进度连接中断，可点击"提取设定"重新接入')
       }
     }
   } catch {
@@ -531,6 +582,44 @@ async function handleDelete(entity: CanonEntity) {
   } catch {
     // 错误已由拦截器提示
   }
+}
+
+async function handleExtractRelations() {
+  extractingRel.value = true
+  try {
+    await canonApi.extractRelations(refId)
+    ElMessage.success('关系抽取已启动')
+  } catch (e: any) {
+    if (e?.response?.status === 409) {
+      ElMessage.info('已有任务进行中，请稍后刷新')
+    } else {
+      ElMessage.error('关系抽取启动失败')
+    }
+  } finally {
+    extractingRel.value = false
+  }
+}
+
+function onSelectNode(id: number) {
+  const entity = entities.value.find(e => e.id === id)
+  if (entity) {
+    detailType.value = 'entity'
+    detailItem.value = entity
+    detailTitle.value = entity.canonical_name
+    detailVisible.value = true
+  }
+}
+
+function onSelectEdge(id: number) {
+  canonApi.listRelations(refId).then((resp: any) => {
+    const rel = resp.data?.find((r: any) => r.id === id)
+    if (rel) {
+      detailType.value = 'relation'
+      detailItem.value = rel
+      detailTitle.value = rel.label || rel.relation_type
+      detailVisible.value = true
+    }
+  })
 }
 
 onMounted(async () => {
@@ -697,5 +786,13 @@ onBeforeUnmount(() => {
   line-height: 1.7;
   color: #5c5c5c;
   white-space: pre-wrap;
+}
+
+.graph-actions {
+  padding: 8px 0;
+}
+
+.detail-content {
+  padding: 12px 0;
 }
 </style>
