@@ -4,36 +4,14 @@
     <header class="page-header">
       <div class="header-content">
         <div class="logo-area">
-          <span class="logo-icon">&#9997;</span>
-          <h1 class="logo">AI小说创作平台</h1>
+          <el-button text class="back-btn" :icon="HomeFilled" @click="$router.push('/')">
+            首页
+          </el-button>
+          <span class="logo-divider">/</span>
+          <h1 class="logo">我的项目</h1>
         </div>
         <div class="header-actions">
           <ThemeToggle />
-          <el-button
-            v-if="userStore.is_superuser"
-            @click="$router.push('/admin')"
-            round
-          >
-            管理后台
-          </el-button>
-          <el-button @click="$router.push('/drama')" round>
-            剧本创作
-          </el-button>
-          <el-button @click="$router.push('/expansion')" round>
-            文本扩写
-          </el-button>
-          <el-button @click="$router.push('/rubric/score')" round>
-            剧本评分
-          </el-button>
-          <el-button @click="$router.push('/adaptation')" round>
-            剧本改编
-          </el-button>
-          <el-button @click="$router.push('/prose')" round>
-            散文改写
-          </el-button>
-          <el-button @click="$router.push('/style-samples')" round>
-            风格样本库
-          </el-button>
           <el-button type="primary" :icon="Plus" @click="goToWizard" round>
             新建项目
           </el-button>
@@ -220,15 +198,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { Plus, Edit, Delete, Collection, MoreFilled, Download, Document, Clock } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Collection, MoreFilled, Download, Document, Clock, HomeFilled } from '@element-plus/icons-vue'
 import { useProjectStore } from '@/stores/project'
-import { useUserStore } from '@/stores/user'
 import type { Project } from '@/api/project'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const projectStore = useProjectStore()
-const userStore = useUserStore()
 
 const showCreateDialog = ref(false)
 const creating = ref(false)
@@ -375,17 +351,19 @@ onMounted(() => {
 <style scoped>
 .project-list-page {
   min-height: 100vh;
-  background-color: #F0EFEC;
+  background-color: var(--writer-bg-main);
 }
 
 .page-header {
-  background-color: white;
-  border-bottom: 1px solid #E0DFDC;
+  background-color: var(--writer-bg-card);
+  border-bottom: 1px solid var(--writer-border);
   padding: 0 32px;
   height: 64px;
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 3px rgba(44, 44, 44, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .header-content {
@@ -406,17 +384,27 @@ onMounted(() => {
 .logo-area {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.logo-icon {
-  font-size: 24px;
+.back-btn {
+  color: var(--writer-text-secondary) !important;
+  font-weight: 500;
+}
+
+.back-btn:hover {
+  color: var(--writer-primary) !important;
+}
+
+.logo-divider {
+  color: var(--writer-text-light);
+  font-size: 16px;
 }
 
 .logo {
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
+  background: linear-gradient(135deg, var(--writer-primary) 0%, var(--writer-primary-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -442,9 +430,9 @@ onMounted(() => {
   align-items: center;
   flex: 1;
   padding: 20px 24px;
-  background: white;
+  background: var(--writer-bg-card);
+  border: 1px solid var(--writer-border);
   border-radius: 14px;
-  box-shadow: 0 1px 3px rgba(44, 44, 44, 0.04);
   transition: all 0.2s ease;
 }
 
@@ -456,7 +444,7 @@ onMounted(() => {
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  background: linear-gradient(135deg, #6B7B8D 0%, #5A6B7A 100%);
+  background: linear-gradient(135deg, var(--writer-primary) 0%, var(--writer-primary-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -465,7 +453,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 12px;
-  color: #9E9E9E;
+  color: var(--writer-text-muted);
   margin-top: 4px;
 }
 
@@ -482,20 +470,21 @@ onMounted(() => {
 
 .empty-title {
   font-size: 24px;
-  color: #2C2C2C;
+  color: var(--writer-text-main);
   margin-bottom: 8px;
   font-family: 'Noto Serif SC', serif;
 }
 
 .empty-desc {
   font-size: 14px;
-  color: #9E9E9E;
+  color: var(--writer-text-muted);
   margin-bottom: 24px;
 }
 
 .loading-container {
   padding: 24px;
-  background: white;
+  background: var(--writer-bg-card);
+  border: 1px solid var(--writer-border);
   border-radius: 14px;
 }
 
@@ -508,14 +497,14 @@ onMounted(() => {
 
 .project-card {
   cursor: pointer;
-  background-color: white !important;
-  border: 1px solid #E0DFDC !important;
+  background-color: var(--writer-bg-card) !important;
+  border: 1px solid var(--writer-border) !important;
   transition: all 0.25s ease;
   border-radius: 14px !important;
 }
 
 .project-card:hover {
-  border-color: #6B7B8D !important;
+  border-color: var(--writer-primary) !important;
   transform: translateY(-3px);
   box-shadow: 0 8px 24px rgba(107, 123, 141, 0.10) !important;
 }
@@ -530,7 +519,7 @@ onMounted(() => {
 .project-title {
   font-size: 17px;
   font-weight: 600;
-  color: #2C2C2C;
+  color: var(--writer-text-main);
   margin: 0;
   flex: 1;
   margin-right: 8px;
@@ -538,16 +527,16 @@ onMounted(() => {
 }
 
 .more-btn {
-  color: #9E9E9E !important;
+  color: var(--writer-text-muted) !important;
 }
 
 .more-btn:hover {
-  color: #6B7B8D !important;
+  color: var(--writer-primary) !important;
 }
 
 .project-description {
   font-size: 13px;
-  color: #7A7A7A;
+  color: var(--writer-text-secondary);
   line-height: 1.6;
   margin-bottom: 12px;
   display: -webkit-box;
@@ -568,8 +557,8 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #6B7B8D;
-  background: rgba(107, 123, 141, 0.08);
+  color: var(--writer-primary);
+  background: var(--writer-bg-active);
   padding: 2px 10px;
   border-radius: 14px;
 }
@@ -588,19 +577,19 @@ onMounted(() => {
 .current-words {
   font-size: 16px;
   font-weight: 600;
-  color: #2C2C2C;
+  color: var(--writer-text-main);
 }
 
 .target {
   font-size: 12px;
-  color: #9E9E9E;
+  color: var(--writer-text-muted);
 }
 
 .card-footer {
   display: flex;
   justify-content: flex-end;
   padding-top: 10px;
-  border-top: 1px solid #ECEAE6;
+  border-top: 1px solid var(--writer-border-light);
 }
 
 .create-time {
@@ -608,7 +597,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #9E9E9E;
+  color: var(--writer-text-muted);
 }
 
 /* 响应式适配 */
