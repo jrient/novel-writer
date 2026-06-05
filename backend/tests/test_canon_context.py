@@ -82,3 +82,8 @@ def test_wizard_schema_accepts_canon_reference_id():
     from app.schemas.wizard import WizardMapsRequest
     req = WizardMapsRequest(title="测试", description="穿越乌鸡国", canon_reference_id=5)
     assert req.canon_reference_id == 5
+
+def test_type_cn_covers_ten_dimensions():
+    from app.services.canon_context import _TYPE_CN
+    for key in ("item", "race", "realm", "concept"):
+        assert key in _TYPE_CN

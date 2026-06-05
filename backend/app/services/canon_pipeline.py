@@ -16,13 +16,14 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from app.services.chunk import ChunkService
 from app.services.ai_service import AIService
 from app.services.canon_event_bus import canon_event_bus
-from app.services.canon_prompts import build_atomic_prompt, build_merge_prompt
-from app.models.canon import CanonEntity, CanonExtractionJob
+from app.services.canon_prompts import build_atomic_prompt, build_merge_prompt, build_relation_prompt
+from app.models.canon import CanonEntity, CanonExtractionJob, CanonRelation
 from app.models.reference import ReferenceNovel
 
 logger = logging.getLogger(__name__)
 
-ENTITY_TYPES = ["character", "location", "ability", "faction", "worldrule", "event"]
+ENTITY_TYPES = ["character", "location", "ability", "faction", "worldrule",
+                "event", "item", "race", "realm", "concept"]
 ATOMIC_CONCURRENCY = 4   # 并行块数上限
 MERGE_BATCH = 40         # 单次归并的最大条目数（树状分批）
 
@@ -62,6 +63,53 @@ def _safe_json_array(text: str) -> List[Dict[str, Any]]:
                     return []
     return []
 
+
+
+def _build_name_index(entities: List[Dict[str, Any]]) -> Dict[str, int]:
+    """canonical_name 与 aliases → entity_id。后者不覆盖前者已占用的名字。"""
+    idx: Dict[str, int] = {}
+    for e in entities:
+        eid = e.get("id")
+        name = (e.get("canonical_name") or "").strip()
+        if name and name not in idx:
+            idx[name] = eid
+        for a in e.get("aliases") or []:
+            a = (a or "").strip()
+            if a and a not in idx:
+                idx[a] = eid
+    return idx
+
+
+def _resolve_relations(
+    raw_rels: List[Dict[str, Any]], name_index: Dict[str, int], chunk_label: str
+) -> List[Dict[str, Any]]:
+    """把 LLM 抽出的 {source,target,...} 回链到 entity_id，丢弃越界/自指，并按
+    (src,tgt,type) 去重合并 source_refs。"""
+    bucket: Dict[tuple, Dict[str, Any]] = {}
+    for r in raw_rels:
+        if not isinstance(r, dict):
+            continue
+        sid = name_index.get((r.get("source") or "").strip())
+        tid = name_index.get((r.get("target") or "").strip())
+        if sid is None or tid is None or sid == tid:
+            continue
+        rtype = (r.get("relation_type") or "custom").strip() or "custom"
+        key = (sid, tid, rtype)
+        quote = (r.get("quote") or "").strip()
+        ref = {"chapter": chunk_label, "quote": quote} if quote else None
+        if key in bucket:
+            if ref:
+                bucket[key]["source_refs"].append(ref)
+        else:
+            bucket[key] = {
+                "source_entity_id": sid,
+                "target_entity_id": tid,
+                "relation_type": rtype,
+                "label": (r.get("label") or "").strip() or None,
+                "summary": None,
+                "source_refs": [ref] if ref else [],
+            }
+    return list(bucket.values())
 
 async def _atomic_extract_chunk(chunk: Dict[str, str], model: Optional[str]) -> List[Dict[str, Any]]:
     """单块原子提取：调 LLM → 解析 → 把 source.quote 规整为 source_refs（附 chapter=label）。
@@ -223,8 +271,18 @@ async def run_canon_extraction(
             j.status = "done"
             await s.commit()
 
+        # 6) RELATION_EXTRACT（实体已落库，按已存实体抽关系）
+        relation_count = 0
+        try:
+            relation_count = await extract_relations_for_reference(
+                reference_id, session_factory, model)
+        except Exception:  # noqa: BLE001
+            logger.exception("canon relation extraction failed (non-fatal)")
+
+
         await canon_event_bus.publish(reference_id,
-            {"event": "done", "job_id": job_id, "entity_count": new_count})
+            {"event": "done", "job_id": job_id, "entity_count": new_count,
+             "relation_count": relation_count})
         return job_id
 
     except Exception as exc:  # noqa: BLE001
@@ -241,3 +299,91 @@ async def run_canon_extraction(
             logger.exception("canon extraction: failed to persist failed-status")
         await canon_event_bus.publish(reference_id, {"event": "failed", "job_id": job_id, "error": str(exc)})
         return job_id
+
+async def _relation_extract_chunk(
+    chunk: Dict[str, str], entities_brief: List[Dict[str, Any]],
+    name_index: Dict[str, int], model: Optional[str],
+) -> List[Dict[str, Any]]:
+    prompt = build_relation_prompt(
+        entities=entities_brief, chunk_text=chunk["text"], chunk_label=chunk["label"])
+    raw = await AIService.generate_text(prompt, provider=model, max_tokens=4000)
+    return _resolve_relations(_safe_json_array(raw), name_index, chunk["label"])
+
+
+async def extract_relations_for_reference(
+    reference_id: int, session_factory: async_sessionmaker, model: Optional[str] = None,
+) -> int:
+    """对已存在实体的 reference 抽关系并落库。返回关系数。
+    幂等：清空既有 ai_extracted 关系，保留 user_*。会发 relation_* SSE 事件。"""
+    # 取实体 + 原文
+    async with session_factory() as s:
+        ref = (await s.execute(select(ReferenceNovel).where(
+            ReferenceNovel.id == reference_id))).scalar_one_or_none()
+        if ref is None:
+            raise ValueError(f"reference {reference_id} 不存在")
+        content = ref.content or ""
+        ents = (await s.execute(select(CanonEntity).where(
+            CanonEntity.reference_id == reference_id))).scalars().all()
+        entities_brief = [
+            {"id": e.id, "canonical_name": e.canonical_name,
+             "entity_type": e.entity_type, "aliases": e.aliases or []}
+            for e in ents
+        ]
+    if not entities_brief:
+        return 0
+
+    name_index = _build_name_index(entities_brief)
+    chunks = _chunk_reference(content)
+    await canon_event_bus.publish(reference_id, {
+        "event": "relation_chunked", "relation_total": len(chunks)})
+
+    sem = asyncio.Semaphore(ATOMIC_CONCURRENCY)
+    done = 0
+    all_rels: List[Dict[str, Any]] = []
+
+    async def _worker(ch):
+        nonlocal done
+        async with sem:
+            try:
+                rels = await _relation_extract_chunk(ch, entities_brief, name_index, model)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("canon relation chunk failed: %s", e)
+                rels = []
+            all_rels.extend(rels)
+            done += 1
+            await canon_event_bus.publish(reference_id, {
+                "event": "relation_progress", "relation_done": done,
+                "relation_total": len(chunks)})
+
+    await asyncio.gather(*[_worker(c) for c in chunks])
+
+    # 跨块再去重合并（同 src,tgt,type）
+    merged: Dict[tuple, Dict[str, Any]] = {}
+    for r in all_rels:
+        key = (r["source_entity_id"], r["target_entity_id"], r["relation_type"])
+        if key in merged:
+            merged[key]["source_refs"].extend(r["source_refs"])
+            if not merged[key]["label"] and r["label"]:
+                merged[key]["label"] = r["label"]
+        else:
+            merged[key] = r
+    final = list(merged.values())
+
+    async with session_factory() as s:
+        if final:
+            await s.execute(delete(CanonRelation).where(
+                CanonRelation.reference_id == reference_id,
+                CanonRelation.review_status == "ai_extracted"))
+            for r in final:
+                s.add(CanonRelation(
+                    reference_id=reference_id,
+                    source_entity_id=r["source_entity_id"],
+                    target_entity_id=r["target_entity_id"],
+                    relation_type=r["relation_type"][:40],
+                    label=(r["label"] or None),
+                    summary=r.get("summary"),
+                    source_refs=r["source_refs"],
+                    review_status="ai_extracted",
+                ))
+            await s.commit()
+    return len(final)

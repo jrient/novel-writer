@@ -48,3 +48,22 @@ async def test_create_extraction_job_defaults(db_session, ref):
     assert job.chunk_done == 0
     assert job.failed_chunks == 0
     assert job.entity_count == 0
+
+async def test_canon_relation_persist(db_session):
+    from app.models.reference import ReferenceNovel
+    from app.models.canon import CanonEntity, CanonRelation
+    ref = ReferenceNovel(title="原作", content="正文", total_chars=2)
+    db_session.add(ref); await db_session.commit(); await db_session.refresh(ref)
+    a = CanonEntity(reference_id=ref.id, entity_type="character", canonical_name="甲")
+    b = CanonEntity(reference_id=ref.id, entity_type="character", canonical_name="乙")
+    db_session.add_all([a, b]); await db_session.commit()
+    await db_session.refresh(a); await db_session.refresh(b)
+    rel = CanonRelation(
+        reference_id=ref.id, source_entity_id=a.id, target_entity_id=b.id,
+        relation_type="师徒", label="甲是乙的师父",
+        source_refs=[{"chapter": "片段1", "quote": "甲收乙为徒"}],
+    )
+    db_session.add(rel); await db_session.commit(); await db_session.refresh(rel)
+    assert rel.id is not None
+    assert rel.review_status == "ai_extracted"
+    assert rel.confidence == 1.0

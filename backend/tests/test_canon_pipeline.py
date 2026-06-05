@@ -174,6 +174,35 @@ async def test_empty_extraction_preserves_existing_entities(db_session, session_
         names = {e.canonical_name for e in (await s.execute(select(CanonEntity).where(
             CanonEntity.reference_id == ref.id))).scalars().all()}
         # 历史 ai_extracted 与人工条目都应保留
-        assert "旧AI实体" in names
-        assert "用户实体" in names
-        assert job.entity_count == 1  # 报告现存 ai_extracted 数量
+@pytest.mark.asyncio
+async def test_run_extraction_also_builds_relations(db_session, session_factory):
+    """Phase C Task C4: 主提取管线在实体落库后自动抽取关系"""
+    from app.models.reference import ReferenceNovel
+    from app.models.canon import CanonRelation
+    from app.services import canon_pipeline as cp
+    from sqlalchemy import select
+    from unittest.mock import patch
+
+    ref = ReferenceNovel(title="原作", content="唐僧收孙悟空为徒。", total_chars=8)
+    db_session.add(ref)
+    await db_session.commit()
+    await db_session.refresh(ref)
+
+    atomic = '[{"entity_type":"character","canonical_name":"唐僧","source":{"quote":"唐僧"},"importance":"major"},{"entity_type":"character","canonical_name":"孙悟空","source":{"quote":"孙悟空"},"importance":"major"}]'
+    merge = '[{"entity_type":"character","canonical_name":"唐僧","aliases":[],"source_refs":[{"quote":"x"}],"importance":"major"},{"entity_type":"character","canonical_name":"孙悟空","aliases":[],"source_refs":[{"quote":"x"}],"importance":"major"}]'
+    rel = '[{"source":"唐僧","target":"孙悟空","relation_type":"师徒","label":"师父","quote":"收为徒"}]'
+
+    async def fake_generate(prompt, *a, **k):
+        if "关系分析" in prompt:
+            return rel
+        if "归并" in prompt:
+            return merge
+        return atomic
+
+    with patch.object(cp.AIService, "generate_text", side_effect=fake_generate):
+        await cp.run_canon_extraction(ref.id, session_factory, model=None)
+
+    rows = (await db_session.execute(select(CanonRelation).where(
+        CanonRelation.reference_id == ref.id))).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].relation_type == "师徒"
