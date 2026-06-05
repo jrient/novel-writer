@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AiConfigPanel: typeof import('./src/components/drama/AiConfigPanel.vue')['default']
     AiPanel: typeof import('./src/components/AiPanel.vue')['default']
+    CanonGraphView: typeof import('./src/components/canon/CanonGraphView.vue')['default']
     ChapterList: typeof import('./src/components/ChapterList.vue')['default']
     ChapterVersionDrawer: typeof import('./src/components/ChapterVersionDrawer.vue')['default']
     CharacterEditOverlay: typeof import('./src/components/drama/CharacterEditOverlay.vue')['default']
