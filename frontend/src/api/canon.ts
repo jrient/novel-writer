@@ -1,12 +1,8 @@
 import request from './request'
 
 export type CanonEntityType =
-  | 'character'
-  | 'location'
-  | 'ability'
-  | 'faction'
-  | 'worldrule'
-  | 'event'
+  | 'character' | 'location' | 'ability' | 'faction' | 'worldrule'
+  | 'event' | 'item' | 'race' | 'realm' | 'concept'
 
 export type CanonImportance = 'critical' | 'major' | 'minor'
 
@@ -73,9 +69,46 @@ export interface CanonEntityUpdate {
   review_status?: CanonReviewStatus
 }
 
+export type CanonRelationReview =
+  | 'ai_extracted' | 'user_verified' | 'user_edited' | 'user_added'
+
+export interface CanonRelation {
+  id: number
+  reference_id: number
+  source_entity_id: number
+  target_entity_id: number
+  relation_type: string
+  label: string | null
+  summary: string | null
+  source_refs: CanonSourceRef[]
+  confidence: number
+  review_status: CanonRelationReview
+  created_at: string
+  updated_at: string | null
+}
+
+export interface CanonGraph {
+  nodes: CanonEntity[]
+  edges: CanonRelation[]
+}
+
+export interface CanonRelationCreate {
+  source_entity_id: number
+  target_entity_id: number
+  relation_type: string
+  label?: string | null
+  summary?: string | null
+  source_refs?: CanonSourceRef[]
+}
+
+export interface CanonRelationUpdate {
+  relation_type?: string
+  label?: string | null
+  summary?: string | null
+  review_status?: CanonRelationReview
+}
+
 export const canonApi = {
-  // 触发提取，202；若已有进行中任务返回 409（调用方据 error.response.status 判断，
-  // skipErrorToast 让 409 不弹全局错误提示——这是正常的“接管在跑任务”路径）。
   extract(refId: number) {
     return request.post(`/references/${refId}/canon/extract`, undefined, { skipErrorToast: true })
   },
@@ -107,5 +140,29 @@ export const canonApi = {
   getStreamUrl(refId: number, ticket: string): string {
     const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
     return `${base}/api/v1/references/${refId}/canon/stream?ticket=${encodeURIComponent(ticket)}`
+  },
+
+  getGraph(refId: number) {
+    return request.get<CanonGraph>(`/references/${refId}/canon/graph`)
+  },
+
+  listRelations(refId: number) {
+    return request.get<CanonRelation[]>(`/references/${refId}/canon/relations`)
+  },
+
+  createRelation(refId: number, data: CanonRelationCreate) {
+    return request.post<CanonRelation>(`/references/${refId}/canon/relations`, data)
+  },
+
+  updateRelation(refId: number, id: number, data: CanonRelationUpdate) {
+    return request.put<CanonRelation>(`/references/${refId}/canon/relations/${id}`, data)
+  },
+
+  deleteRelation(refId: number, id: number) {
+    return request.delete(`/references/${refId}/canon/relations/${id}`)
+  },
+
+  extractRelations(refId: number) {
+    return request.post(`/references/${refId}/canon/extract-relations`, undefined, { skipErrorToast: true })
   },
 }
