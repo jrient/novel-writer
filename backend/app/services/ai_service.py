@@ -858,8 +858,12 @@ class AIService:
             return "anthropic"
         if provider == "ollama":
             return "ollama"
+        if provider == "deepseek" and settings.DEEPSEEK_API_KEY and settings.DEEPSEEK_API_KEY not in ("sk-xxx", "", None):
+            return "deepseek"
 
         # 自动降级：检查其他可用 provider
+        if settings.DEEPSEEK_API_KEY and settings.DEEPSEEK_API_KEY not in ("sk-xxx", "", None):
+            return "deepseek"
         if settings.OPENAI_API_KEY and settings.OPENAI_API_KEY not in ("sk-xxx", "", None):
             return "openai"
         if settings.ANTHROPIC_API_KEY and settings.ANTHROPIC_API_KEY not in ("sk-ant-xxx", "", None):
@@ -867,6 +871,17 @@ class AIService:
 
         # 无可用 provider，使用演示模式
         return "demo"
+
+    @staticmethod
+    def _openai_compatible_config(provider: str):
+        """返回 OpenAI 兼容 provider 的 (api_key, base_url, model)。"""
+        if provider == "deepseek":
+            return (
+                settings.DEEPSEEK_API_KEY,
+                settings.DEEPSEEK_BASE_URL,
+                settings.DEEPSEEK_PRO_MODEL,
+            )
+        return settings.OPENAI_API_KEY, settings.OPENAI_BASE_URL, settings.OPENAI_MODEL
 
     @staticmethod
     def _get_context_text(
@@ -943,6 +958,9 @@ class AIService:
         elif actual_provider == "anthropic":
             async for chunk in AIService._stream_anthropic(prompt):
                 yield chunk
+        elif actual_provider == "deepseek":
+            async for chunk in AIService._stream_openai(prompt, provider="deepseek"):
+                yield chunk
         elif actual_provider == "ollama":
             async for chunk in AIService._stream_ollama(prompt):
                 yield chunk
@@ -956,16 +974,17 @@ class AIService:
         if actual_provider == "demo":
             return AIService._demo_outline_text()
 
-        if actual_provider == "openai":
+        if actual_provider in ("openai", "deepseek"):
             try:
                 from openai import AsyncOpenAI, RateLimitError, APIConnectionError, APITimeoutError
+                api_key, base_url, model = AIService._openai_compatible_config(actual_provider)
                 client = AsyncOpenAI(
-                    api_key=settings.OPENAI_API_KEY,
-                    base_url=settings.OPENAI_BASE_URL,
+                    api_key=api_key,
+                    base_url=base_url,
                     timeout=600.0,
                 )
                 resp = await client.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
+                    model=model,
                     messages=[
                         {"role": "system", "content": "你是一位专业的中文小说创作助手，擅长各类文学创作。请严格按要求的格式输出。"},
                         {"role": "user", "content": prompt},
@@ -1074,23 +1093,24 @@ class AIService:
         yield f"data: {json.dumps({'done': True, 'demo': True})}\n\n"
 
     @staticmethod
-    async def _stream_openai(prompt: str) -> AsyncGenerator[str, None]:
-        """OpenAI 流式生成（带重试）"""
-        logger.info(f"开始 OpenAI 流式生成, model={settings.OPENAI_MODEL}, base_url={settings.OPENAI_BASE_URL}")
+    async def _stream_openai(prompt: str, provider: str = "openai") -> AsyncGenerator[str, None]:
+        """OpenAI 兼容流式生成（带重试），provider 可为 openai / deepseek。"""
+        api_key, base_url, model = AIService._openai_compatible_config(provider)
+        logger.info(f"开始 {provider} 流式生成, model={model}, base_url={base_url}")
         from openai import AsyncOpenAI, RateLimitError, APIConnectionError, APITimeoutError
 
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
                 client = AsyncOpenAI(
-                    api_key=settings.OPENAI_API_KEY,
-                    base_url=settings.OPENAI_BASE_URL,
+                    api_key=api_key,
+                    base_url=base_url,
                     timeout=httpx.Timeout(connect=30.0, read=600.0, write=30.0, pool=30.0),
                 )
 
                 logger.info(f"正在调用 OpenAI API...（第 {attempt} 次尝试）")
                 stream = await client.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
+                    model=model,
                     messages=[
                         {"role": "system", "content": "你是一位专业的中文小说创作助手，擅长各类文学创作。"},
                         {"role": "user", "content": prompt},
