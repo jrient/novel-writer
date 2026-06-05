@@ -6,17 +6,18 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import select, func, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.database import get_db, engine, async_session
 from app.core.security import create_sse_ticket, verify_sse_ticket
 from app.models.reference import ReferenceNovel
-from app.models.canon import CanonEntity, CanonExtractionJob
+from app.models.canon import CanonEntity, CanonExtractionJob, CanonRelation, CanonRelation
 from app.models.user import User
 from app.routers.auth import get_current_user
 from app.schemas.canon import (
     CanonEntityOut, CanonEntityCreate, CanonEntityUpdate, CanonJobOut,
+    CanonRelationOut, CanonRelationCreate, CanonRelationUpdate, CanonGraphOut,
 )
 from app.services.canon_pipeline import run_canon_extraction
 from app.services.canon_event_bus import canon_event_bus
@@ -208,3 +209,83 @@ async def stream_extraction(reference_id: int, ticket: str = Query(...)):
             canon_event_bus.unsubscribe(sub)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
+
+
+@router.get("/relations", response_model=list[CanonRelationOut])
+async def list_relations(
+    reference_id: int,
+    relation_type: str | None = Query(default=None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_owned_ref(reference_id, db, user)
+    stmt = select(CanonRelation).where(CanonRelation.reference_id == reference_id)
+    if relation_type:
+        stmt = stmt.where(CanonRelation.relation_type == relation_type)
+    rows = (await db.execute(stmt.order_by(CanonRelation.id))).scalars().all()
+    return rows
+
+
+@router.post("/relations", response_model=CanonRelationOut, status_code=201)
+async def create_relation(
+    reference_id: int,
+    payload: CanonRelationCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_owned_ref(reference_id, db, user)
+    r = CanonRelation(
+        reference_id=reference_id,
+        source_entity_id=payload.source_entity_id,
+        target_entity_id=payload.target_entity_id,
+        relation_type=payload.relation_type,
+        label=payload.label,
+        summary=payload.summary,
+        source_refs=payload.source_refs,
+        review_status="user_added",
+    )
+    db.add(r)
+    await db.commit()
+    await db.refresh(r)
+    return r
+
+
+@router.put("/relations/{relation_id}", response_model=CanonRelationOut)
+async def update_relation(
+    reference_id: int,
+    relation_id: int,
+    payload: CanonRelationUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_owned_ref(reference_id, db, user)
+    r = (await db.execute(select(CanonRelation).where(
+        CanonRelation.id == relation_id,
+        CanonRelation.reference_id == reference_id))).scalar_one_or_none()
+    if r is None:
+        raise HTTPException(status_code=404, detail="关系不存在")
+    data = payload.model_dump(exclude_unset=True)
+    explicit_status = data.pop("review_status", None)
+    for k, v in data.items():
+        setattr(r, k, v)
+    r.review_status = explicit_status or "user_edited"
+    await db.commit()
+    await db.refresh(r)
+    return r
+
+
+@router.delete("/relations/{relation_id}", status_code=204)
+async def delete_relation(
+    reference_id: int,
+    relation_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_owned_ref(reference_id, db, user)
+    r = (await db.execute(select(CanonRelation).where(
+        CanonRelation.id == relation_id,
+        CanonRelation.reference_id == reference_id))).scalar_one_or_none()
+    if r is None:
+        raise HTTPException(status_code=404, detail="关系不存在")
+    await db.delete(r)
+    await db.commit()
