@@ -7,6 +7,7 @@ canon_event_bus SSE 进度 + CanonExtractionJob 状态机。
 import asyncio
 import json
 import logging
+import os
 import re
 from typing import List, Dict, Any, Optional
 
@@ -26,6 +27,18 @@ ENTITY_TYPES = ["character", "location", "ability", "faction", "worldrule",
                 "event", "item", "race", "realm", "concept"]
 ATOMIC_CONCURRENCY = 4   # 并行块数上限
 MERGE_BATCH = 40         # 单次归并的最大条目数（树状分批）
+
+
+def _load_reference_text(ref) -> str:
+    """取原作正文：DB content 优先，为空时回退读 file_path（>10万字上传只存盘不入库）。"""
+    content = ref.content or ""
+    if not content and ref.file_path and os.path.exists(ref.file_path):
+        try:
+            with open(ref.file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+        except OSError as e:
+            logger.warning("canon 读取 file_path 失败: %s", e)
+    return content
 
 
 def _chunk_reference(content: str, chunk_size: int = 4000) -> List[Dict[str, str]]:
@@ -198,7 +211,7 @@ async def run_canon_extraction(
             ReferenceNovel.id == reference_id))).scalar_one_or_none()
         if ref is None:
             raise ValueError(f"reference {reference_id} 不存在")
-        content = ref.content or ""
+        content = _load_reference_text(ref)
         job = CanonExtractionJob(reference_id=reference_id, model=model, status="processing")
         s.add(job)
         await s.commit()
@@ -346,7 +359,7 @@ async def extract_relations_for_reference(
             ReferenceNovel.id == reference_id))).scalar_one_or_none()
         if ref is None:
             raise ValueError(f"reference {reference_id} 不存在")
-        content = ref.content or ""
+        content = _load_reference_text(ref)
         ents = (await s.execute(select(CanonEntity).where(
             CanonEntity.reference_id == reference_id))).scalars().all()
         entities_brief = [
