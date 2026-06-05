@@ -54,3 +54,41 @@ class CanonJobOut(BaseModel):
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True, protected_namespaces=())
+
+
+class CanonRelationOut(BaseModel):
+    id: int
+    reference_id: int
+    source_entity_id: int
+    target_entity_id: int
+    relation_type: str
+    label: Optional[str] = None
+    summary: Optional[str] = None
+    source_refs: List[Dict[str, Any]] = Field(default_factory=list)
+    confidence: float
+    review_status: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CanonRelationCreate(BaseModel):
+    source_entity_id: int
+    target_entity_id: int
+    relation_type: str
+    label: Optional[str] = None
+    summary: Optional[str] = None
+    source_refs: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class CanonRelationUpdate(BaseModel):
+    relation_type: Optional[str] = None
+    label: Optional[str] = None
+    summary: Optional[str] = None
+    review_status: Optional[str] = None
+
+
+class CanonGraphOut(BaseModel):
+    nodes: List[CanonEntityOut] = Field(default_factory=list)
+    edges: List[CanonRelationOut] = Field(default_factory=list)
